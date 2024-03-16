@@ -1,0 +1,10 @@
+# Directories
+.vs/
+[Bb]inIntermediate/
+[Bb]inOutput/
+
+# Files
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user

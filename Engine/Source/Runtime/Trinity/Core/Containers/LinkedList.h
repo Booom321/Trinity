@@ -1224,7 +1224,7 @@ public:
 
 	NodeType* RemoveAt(NodeType* NodePosition)
 	{
-		if (ElementCount == 0)
+		if (ElementCount == 0 /*&& NodePosition == nullptr*/)
 		{
 			return nullptr;
 		}

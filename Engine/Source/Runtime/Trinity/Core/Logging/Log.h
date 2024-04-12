@@ -1,16 +1,19 @@
 #pragma once
 
+#define FMT_HEADER_ONLY
 #include <fmt/chrono.h>
 #include <fmt/xchar.h>
 
 #include "Trinity/Platform/FileIO.h"
 #include "Trinity/Core/Threading/Mutex.h"
 #include "Trinity/Core/Containers/LinkedList.h"
-#include "Trinity/Core/Utilities/OutputStream.h"
 #include "LogLevel.h"
 
+#include <deque>
+#include <stdio.h>
+
 template<const TChar* LogNameCharArray, const TWChar* LogNameWCharArray, TLogLevel Level>
-class TCompileTimeLogSettings
+class TCompileTimeLogInfo
 {
 public:
 	static TRNT_CONSTEXPR const TChar*  LogNameAsCString	= LogNameCharArray;
@@ -18,66 +21,24 @@ public:
 	static TRNT_CONSTEXPR TLogLevel     LogLevel			= Level;
 };
 
-#define TRNT_MAKE_LOG_SETTINGS_NAME(LogName) T##LogName##LogSettings
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define TRNT_DECLARE_LOG_SETTINGS(LogName, LogLevel) \
+#define TRNT_MAKE_LOG_INFO(LogName) T##LogName##LogInfo
+
+#define TRNT_DECLARE_LOG_INFO(LogName, LogLevel) \
 	static TRNT_CONSTEXPR const TChar LogName##CharArray[] = TRNT_STRINGIFY(LogName);\
 	static TRNT_CONSTEXPR const TWChar LogName##WCharArray[] = L#LogName;\
-	class TRNT_MAKE_LOG_SETTINGS_NAME(LogName) : public TCompileTimeLogSettings<LogName##CharArray, LogName##WCharArray, LogLevel>\
+	class TRNT_MAKE_LOG_INFO(LogName) : public TCompileTimeLogInfo<LogName##CharArray, LogName##WCharArray, LogLevel>\
 	{}
 
-#define TRNT_LOG_SETTINGS_NAME(LogName) TRNT_MAKE_LOG_SETTINGS_NAME(LogName)
+#define TRNT_GET_LOG_INFO(LogName) TRNT_MAKE_LOG_INFO(LogName)
 
-TRNT_DECLARE_LOG_SETTINGS(Default, TLogLevel::EDebug);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+TRNT_DECLARE_LOG_INFO(Default, TLogLevel::EDebug);
 
-/*
+using TLogMessageHandlerCallback = void(*)(TLogLevel LogLevel, const TChar* FormattedMessageA, TSize_T FormattedMessageALen, const TWChar* FormattedMessageW, TSize_T FormattedMessageWLen);
 
-**************************************************** EXAMPLE ****************************************************
-
-
-
-TRNT_DECLARE_LOG_SETTINGS(MyLogName, TLogLevel::EDebug);
-
-void MessageHandlerCallback(const TChar* TCMessage, TSize_T TCMessageLen, const TWChar* TWCMessage, TSize_T TWCMessageLen)
-{
-	printf("%s", TCMessage);
-}
-
-void Foo()
-{
-	TLog<TRNT_LOG_SETTINGS_NAME(MyLogName)>::AddMessageHandlerCallback(MessageHandlerCallback);
-
-	TLog<TRNT_LOG_SETTINGS_NAME(MyLogName)>::Debug("{} {}", "Hello", "world");
-	TLog<TRNT_LOG_SETTINGS_NAME(MyLogName)>::Info("{} {}", "Hello", "world");
-	TLog<TRNT_LOG_SETTINGS_NAME(MyLogName)>::Success("{} {}", "Hello", "world");
-	TLog<TRNT_LOG_SETTINGS_NAME(MyLogName)>::Warning("{} {}", "Hello", "world");
-	TLog<TRNT_LOG_SETTINGS_NAME(MyLogName)>::Error("{} {}", "Hello", "world");
-	TLog<TRNT_LOG_SETTINGS_NAME(MyLogName)>::Fatal("{} {}", "Hello", "world");
-
-	// Or...
-
-	using MyLog = TLog<TRNT_LOG_SETTINGS_NAME(MyLogName)>;
-
-	MyLog::AddMessageHandlerCallback(MessageHandlerCallback);
-	MyLog::Debug("{} {}", "Hello", "world");
-	MyLog::Info("{} {}", "Hello", "world");
-	MyLog::Success("{} {}", "Hello", "world");
-	MyLog::Warning("{} {}", "Hello", "world");
-	MyLog::Error("{} {}", "Hello", "world");
-	MyLog::Fatal("{} {}", "Hello", "world");
-}
-
-
-
-*****************************************************************************************************************
-
-*/
-
-
-using TLogMessageHandlerCallback = void(*)(const TChar* TCMessage, TSize_T TCMessageLen, const TWChar* TWCMessage, TSize_T TWCMessageLen);
-
-template<typename CTLogSettingsType>
 class TLog
 {
 private:
@@ -101,76 +62,76 @@ private:
 	};
 
 public:
-	template<typename... FormatArgs>
+	template<typename CTLogInfoType, typename... FormatArgs>
 	static TRNT_FORCE_INLINE void Debug(const TChar* FmtMessage, FormatArgs&&... Arguments)
 	{
-		ProcessMessageAndLog<TChar, TLogLevel::EDebug>(FmtMessage, Forward<FormatArgs>(Arguments)...);
+		ProcessMessageAndLog<CTLogInfoType, TChar, TLogLevel::EDebug>(FmtMessage, Forward<FormatArgs>(Arguments)...);
 	}
 
-	template<typename... FormatArgs>
+	template<typename CTLogInfoType, typename... FormatArgs>
 	static TRNT_FORCE_INLINE void Debug(const TWChar* FmtMessage, FormatArgs&&... Arguments)
 	{
-		ProcessMessageAndLog<TWChar, TLogLevel::EDebug>(FmtMessage, Forward<FormatArgs>(Arguments)...);
+		ProcessMessageAndLog<CTLogInfoType, TWChar, TLogLevel::EDebug>(FmtMessage, Forward<FormatArgs>(Arguments)...);
 	}
 
-	template<typename... FormatArgs>
+	template<typename CTLogInfoType, typename... FormatArgs>
 	static TRNT_FORCE_INLINE void Info(const TChar* FmtMessage, FormatArgs&&... Arguments)
 	{
-		ProcessMessageAndLog<TChar, TLogLevel::EInfo>(FmtMessage, Forward<FormatArgs>(Arguments)...);
+		ProcessMessageAndLog<CTLogInfoType, TChar, TLogLevel::EInfo>(FmtMessage, Forward<FormatArgs>(Arguments)...);
 	}
 
-	template<typename... FormatArgs>
+	template<typename CTLogInfoType, typename... FormatArgs>
 	static TRNT_FORCE_INLINE void Info(const TWChar* FmtMessage, FormatArgs&&... Arguments)
 	{
-		ProcessMessageAndLog<TWChar, TLogLevel::EInfo>(FmtMessage, Forward<FormatArgs>(Arguments)...);
+		ProcessMessageAndLog<CTLogInfoType, TWChar, TLogLevel::EInfo>(FmtMessage, Forward<FormatArgs>(Arguments)...);
 	}
 
-	template<typename... FormatArgs>
+	template<typename CTLogInfoType, typename... FormatArgs>
 	static TRNT_FORCE_INLINE void Success(const TChar* FmtMessage, FormatArgs&&... Arguments)
 	{
-		ProcessMessageAndLog<TChar, TLogLevel::ESuccess>(FmtMessage, Forward<FormatArgs>(Arguments)...);
+		ProcessMessageAndLog<CTLogInfoType, TChar, TLogLevel::ESuccess>(FmtMessage, Forward<FormatArgs>(Arguments)...);
 	}
 
-	template<typename... FormatArgs>
+	template<typename CTLogInfoType, typename... FormatArgs>
 	static TRNT_FORCE_INLINE void Success(const TWChar* FmtMessage, FormatArgs&&... Arguments)
 	{
-		ProcessMessageAndLog<TWChar, TLogLevel::ESuccess>(FmtMessage, Forward<FormatArgs>(Arguments)...);
+		ProcessMessageAndLog<CTLogInfoType, TWChar, TLogLevel::ESuccess>(FmtMessage, Forward<FormatArgs>(Arguments)...);
 	}
 
-	template<typename... FormatArgs>
+	template<typename CTLogInfoType, typename... FormatArgs>
 	static TRNT_FORCE_INLINE void Warning(const TChar* FmtMessage, FormatArgs&&... Arguments)
 	{
-		ProcessMessageAndLog<TChar, TLogLevel::EWarning>(FmtMessage, Forward<FormatArgs>(Arguments)...);
+		ProcessMessageAndLog<CTLogInfoType, TChar, TLogLevel::EWarning>(FmtMessage, Forward<FormatArgs>(Arguments)...);
 	}
 
-	template<typename... FormatArgs>
+	template<typename CTLogInfoType, typename... FormatArgs>
 	static TRNT_FORCE_INLINE void Warning(const TWChar* FmtMessage, FormatArgs&&... Arguments)
 	{
-		ProcessMessageAndLog<TWChar, TLogLevel::EWarning>(FmtMessage, Forward<FormatArgs>(Arguments)...);
+		ProcessMessageAndLog<CTLogInfoType, TWChar, TLogLevel::EWarning>(FmtMessage, Forward<FormatArgs>(Arguments)...);
 	}
 
-	template<typename... FormatArgs>
+	template<typename CTLogInfoType, typename... FormatArgs>
 	static TRNT_FORCE_INLINE void Error(const TChar* FmtMessage, FormatArgs&&... Arguments)
 	{
-		ProcessMessageAndLog<TChar, TLogLevel::EError>(FmtMessage, Forward<FormatArgs>(Arguments)...);
+		ProcessMessageAndLog<CTLogInfoType, TChar, TLogLevel::EError>(FmtMessage, Forward<FormatArgs>(Arguments)...);
 	}
 
-	template<typename... FormatArgs>
+	template<typename CTLogInfoType, typename... FormatArgs>
 	static TRNT_FORCE_INLINE void Error(const TWChar* FmtMessage, FormatArgs&&... Arguments)
 	{
-		ProcessMessageAndLog<TWChar, TLogLevel::EError>(FmtMessage, Forward<FormatArgs>(Arguments)...);
+		ProcessMessageAndLog<CTLogInfoType, TWChar, TLogLevel::EError>(FmtMessage, Forward<FormatArgs>(Arguments)...);
 	}
 
-	template<typename... FormatArgs>
+	template<typename CTLogInfoType, typename... FormatArgs>
 	static TRNT_FORCE_INLINE void Fatal(const TChar* FmtMessage, FormatArgs&&... Arguments)
 	{
-		ProcessMessageAndLog<TChar, TLogLevel::EFatal>(FmtMessage, Forward<FormatArgs>(Arguments)...);
+		ProcessMessageAndLog<CTLogInfoType, TChar, TLogLevel::EFatal>(FmtMessage, Forward<FormatArgs>(Arguments)...);
 	}
 
-	template<typename... FormatArgs>
+	template<typename CTLogInfoType, typename... FormatArgs>
 	static TRNT_FORCE_INLINE void Fatal(const TWChar* FmtMessage, FormatArgs&&... Arguments)
 	{
-		ProcessMessageAndLog<TWChar, TLogLevel::EFatal>(FmtMessage, Forward<FormatArgs>(Arguments)...);
+		ProcessMessageAndLog<CTLogInfoType, TWChar, TLogLevel::EFatal>(FmtMessage, Forward<FormatArgs>(Arguments)...);
 	}
 
 private:
@@ -178,16 +139,19 @@ private:
 
 	static TMutex LogMutex;
 
+	static FILE* OutputLogFile;
+
 	static LogMessageHandlerList MessageHandlers;
 
-	template<typename CharType, TLogLevel LogLevel, typename... FormatArgs>
+private:
+	template<typename CTLogInfoType, typename CharType, TLogLevel LogLevel, typename... FormatArgs>
 	static void ProcessMessageAndLog(const CharType* FmtMessage, FormatArgs&&... Arguments)
 	{
 		TRNT_ASSERT_AT_COMPILE_TIME(LogLevel >= TLogLevel::EDebug && LogLevel < TLogLevel::EMax);
-		TRNT_ASSERT_AT_COMPILE_TIME(CTLogSettingsType::LogLevel >= TLogLevel::EDebug && CTLogSettingsType::LogLevel < TLogLevel::EMax);
+		TRNT_ASSERT_AT_COMPILE_TIME(CTLogInfoType::LogLevel >= TLogLevel::EDebug && CTLogInfoType::LogLevel < TLogLevel::EMax);
 		TRNT_ASSERT_AT_COMPILE_TIME((TAreTheSameType<CharType, TChar>::Value || TAreTheSameType<CharType, TWChar>::Value));
 
-		if constexpr (LogLevel == TLogLevel::EFatal || LogLevel >= CTLogSettingsType::LogLevel)
+		if constexpr (LogLevel == TLogLevel::EFatal || LogLevel >= CTLogInfoType::LogLevel)
 		{
 			fmt::basic_memory_buffer<CharType> MemoryBuffer = fmt::basic_memory_buffer<CharType>();
 			std::chrono::time_point Now = std::chrono::system_clock::now();
@@ -196,24 +160,27 @@ private:
 			{
 				TString Message("[{:%Y-%m-%d %H:%M:%S}] [{}] {}: ");
 				Message += FmtMessage;
-				Message += "\n\0";
+				Message += "\n";
 
 				fmt::detail::vformat_to(
 					MemoryBuffer,
 					fmt::string_view{ Message.GetData(), static_cast<TSize_T>(Message.Length()) },
-					fmt::make_format_args(Now, CTLogSettingsType::LogNameAsCString, LogLevelToCString[static_cast<TUInt8>(LogLevel)], Arguments...));
+					fmt::make_format_args(Now, CTLogInfoType::LogNameAsCString, LogLevelToCString[static_cast<TUInt8>(LogLevel)], Arguments...));
+
+				MemoryBuffer.push_back('\0');
 			}
 			else if constexpr (TAreTheSameType<CharType, TWChar>::Value)
 			{
 				TWString Message(L"[{:%Y-%m-%d %H:%M:%S}] [{}] {}: ");
 				Message += FmtMessage;
-				Message += L"\n\0";
-
+				Message += L"\n";
 
 				fmt::detail::vformat_to(
 					MemoryBuffer,
 					fmt::wstring_view{ Message.GetData(), static_cast<TSize_T>(Message.Length()) },
-					fmt::make_wformat_args(Now, CTLogSettingsType::LogNameAsWCString, LogLevelToWCString[static_cast<TUInt8>(LogLevel)], Arguments...));
+					fmt::make_wformat_args(Now, CTLogInfoType::LogNameAsWCString, LogLevelToWCString[static_cast<TUInt8>(LogLevel)], Arguments...));
+				
+				MemoryBuffer.push_back(L'\0');
 			}
 
 			LogMutex.Lock();
@@ -224,11 +191,11 @@ private:
 			{
 				if constexpr (TAreTheSameType<CharType, TChar>::Value)
 				{
-					CurrentMessageHandler->Value(MemoryBuffer.data(), MemoryBuffer.size(), nullptr, 0);
+					CurrentMessageHandler->Value(LogLevel, MemoryBuffer.data(), MemoryBuffer.size() - 1, nullptr, 0);
 				}
 				else if constexpr (TAreTheSameType<CharType, TWChar>::Value)
 				{
-					CurrentMessageHandler->Value(nullptr, 0, MemoryBuffer.data(), MemoryBuffer.size());
+					CurrentMessageHandler->Value(LogLevel, nullptr, 0, MemoryBuffer.data(), MemoryBuffer.size() - 1);
 				}
 				CurrentMessageHandler = CurrentMessageHandler->Next;
 			}
@@ -237,43 +204,32 @@ private:
 		}
 
 		if constexpr (LogLevel == TLogLevel::EFatal)
-		{
+		{	
+			CloseLogFile();
 			::abort();
 		}
 	}
 
 public:
-	static void AddMessageHandlerCallback(TLogMessageHandlerCallback Callback)
-	{
-		MessageHandlers.InsertAtTail(new LogMessageHandlerList::NodeType(Callback));
-	}
+	static void AddMessageHandlerCallback(TLogMessageHandlerCallback Callback);
 
-	static void RemoveMessageHandlerCallback(TLogMessageHandlerCallback Callback)
-	{
-		MessageHandlers.RemoveAt(MessageHandlers.Find(Callback));
-	}
-
-	static void Initialize()
-	{
+	static void RemoveMessageHandlerCallback(TLogMessageHandlerCallback Callback);
 	
-	}
+	static FILE* OpenLogFile(const TChar* Filename, TBool EnableToAppend = false);
 
-	static void Destroy()
-	{
-		
-	}
+	static void CloseLogFile();
+
+	static void Initialize();
+
+	static void Shutdown();
 
 public:
-	static void StdoutMessageHandlers(const TChar* TCMessage, TSize_T TCMessageLen, const TWChar* TWCMessage, TSize_T TWCMessageLen)
+	static void DefaultStdoutMessageHandler(TLogLevel LogLevel, const TChar* FormattedMessageA, TSize_T FormattedMessageALen, const TWChar* FormattedMessageW, TSize_T FormattedMessageWLen);
+
+	static void DefaultFileMessageHandler(TLogLevel LogLevel, const TChar* FormattedMessageA, TSize_T FormattedMessageALen, const TWChar* FormattedMessageW, TSize_T FormattedMessageWLen);
+	
+	static TRNT_FORCE_INLINE FILE* GetOutputLogFile()
 	{
-
-	}
-
-	static void FileMessageHandlers(const TChar* TCMessage, TSize_T TCMessageLen, const TWChar* TWCMessage, TSize_T TWCMessageLen)
-	{
-
+		return OutputLogFile;
 	}
 };
-
-template<typename CTLogSettingsType> TMutex TLog<CTLogSettingsType>::LogMutex;
-template<typename CTLogSettingsType> typename TLog<CTLogSettingsType>::LogMessageHandlerList TLog<CTLogSettingsType>::MessageHandlers;

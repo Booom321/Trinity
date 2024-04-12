@@ -18,7 +18,7 @@
 
 #include "Trinity/Core/Containers/DynamicArray.h"
 
-enum class TStringSearchCase
+enum class TStringSearchCase : TInt8
 {
 	EIgnoreCase,
 	ECaseSensitive
@@ -1013,47 +1013,47 @@ public:
 	}
 
 public:
-	TBool SplitByString(TDynamicArray<TStringBase>& Result, const TChar* Substring = " ")
+	TBool SplitByString(TDynamicArray<TStringBase>& Result, ConstPointerType Substring = " ")
 	{
 		SizeType Start = 0;
 		PointerType Found = CStringHelper::Strstr(Data, Substring);
-		SizeType Index;
+		SizeType Offset;
 
 		while (Found != nullptr)
 		{
-			Index = static_cast<SizeType>(Found - Data);
-			Result.EmplaceBack(*this, Start, Index - Start);
-			Start = Index + 1;
+			Offset = static_cast<SizeType>(Found - Data);
+			Result.EmplaceBack(*this, Start, Offset - Start);
+			Start = Offset + 1;
 			Found = CStringHelper::Strstr(Data + Start, Substring);
 		}
 		
-		Index = Len - Start;
-		if (Index > 0)
+		Offset = Len - Start;
+		if (Offset > 0)
 		{
-			Result.EmplaceBack(*this, Start, Index);
+			Result.EmplaceBack(*this, Start, Offset);
 		}
 
 		return true;
 	}
 
-	TBool SplitBySeparators(TDynamicArray<TStringBase>& Result, const TChar* Separators = " ")
+	TBool SplitBySeparators(TDynamicArray<TStringBase>& Result, ConstPointerType Separators = " ")
 	{
 		SizeType Start = 0;
 		PointerType Found = CStringHelper::Strpbrk(Data, Separators);
-		SizeType Index;
+		SizeType Offset;
 
 		while (Found != nullptr)
 		{
-			Index = static_cast<SizeType>(Found - Data);
-			Result.EmplaceBack(*this, Start, Index - Start);
-			Start = Index + 1;
+			Offset = static_cast<SizeType>(Found - Data);
+			Result.EmplaceBack(*this, Start, Offset - Start);
+			Start = Offset + 1;
 			Found = CStringHelper::Strpbrk(Data + Start, Separators);
 		}
 
-		Index = Len - Start;
-		if (Index > 0)
+		Offset = Len - Start;
+		if (Offset > 0)
 		{
-			Result.EmplaceBack(*this, Start, Index);
+			Result.EmplaceBack(*this, Start, Offset);
 		}
 
 		return true;

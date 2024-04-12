@@ -3,8 +3,9 @@
 using TByte = unsigned char;
 
 /*
-	unsigned int types
+	Unsigned int types
 */ 
+
 using TUInt8	= unsigned char;
 
 using TUInt16	= unsigned short;
@@ -16,6 +17,7 @@ using TUInt64	= unsigned long long;
 /*
 	signed int types
 */
+
 using TInt8		= signed char;
 
 using TInt16	= signed short;
@@ -27,6 +29,7 @@ using TInt64	= signed long long;
 /*
 	floating point types
 */
+
 using TFloat = float;
 
 using TDouble = double;
@@ -34,11 +37,13 @@ using TDouble = double;
 /*
 	boolean type
 */
+
 using TBool = bool;
 
 /*
 	character types
 */
+
 #include <version>
 using TChar = char;
 

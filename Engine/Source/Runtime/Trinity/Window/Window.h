@@ -18,8 +18,13 @@ using TWindowHandle = TWindowsWindowHandle;
 #include "Trinity/Input/KeyCodes.h"
 #include "Trinity/Input/MouseButtons.h"
 
-struct TWindowProperties
+#include "Trinity/Core/Logging/Log.h"
+
+TRNT_DECLARE_LOG_INFO(Window, TLogLevel::EDebug);
+
+class TWindowProperties
 {
+public:
 	TString Title = "Fury Engine";
 
 	TUInt32 Width = 1280;

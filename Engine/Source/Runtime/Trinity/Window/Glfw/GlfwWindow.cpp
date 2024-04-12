@@ -4,8 +4,6 @@
 
 #include "Trinity/Input/InputManager.h"
 
-//#include "Trinity/Core/Logging/Log.h"
-
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
@@ -445,7 +443,7 @@ TBool TWindow::Initialize()
 
 		if (VideoMode == nullptr)
 		{
-			//TLog::Error("Failed to get video mode of the specified monitor.");
+			TLog::Error<TRNT_GET_LOG_INFO(Window)>("Failed to get video mode of the specified monitor!");
 			return false;
 		}
 
@@ -461,7 +459,7 @@ TBool TWindow::Initialize()
 
 	if (WindowHandle == nullptr)
 	{
-		//TLog::Error("Failed to create GLFW Window.");
+		TLog::Error<TRNT_GET_LOG_INFO(Window)>("Failed to create GLFW Window!");
 		return false;
 	}
 
@@ -501,7 +499,7 @@ TBool TWindow::Initialize()
 
 	Initialized = true;
 
-	//TLog::Success("Create GLFW Window successfully!");
+	TLog::Success<TRNT_GET_LOG_INFO(Window)>("Create GLFW Window successfully!");
 
 	return true;
 }

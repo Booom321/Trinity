@@ -2,6 +2,9 @@
 
 #include <Trinity/Core/String/String.h>
 #include <Trinity/Core/Logging/Log.h>
+#include <Trinity/Core/String/StringConversion.h>
+#undef max
+static constexpr TUInt64 max = std::numeric_limits<TUInt64>::max();
 
 static TRNT_FORCE_INLINE TBool Check(const TString& Str, const TChar* ExpectedStr, TString::SizeType ExpectedStrLen)
 {

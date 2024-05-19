@@ -5,9 +5,9 @@
 template<typename LinkedListType>
 TBool CheckValid(const LinkedListType& List, std::initializer_list<typename LinkedListType::ElementType> InitList, typename LinkedListType::SizeType ExpectElementCount)
 {
-	if (List.Length() == ExpectElementCount)
+	if (List.GetElementCount() == ExpectElementCount)
 	{
-		if (List.Length() != (typename LinkedListType::SizeType)InitList.size())
+		if (List.GetElementCount() != (typename LinkedListType::SizeType)InitList.size())
 		{
 			return false;
 		}
@@ -61,7 +61,7 @@ TRNT_IMPL_TEST_CASE(Containers, TSinglyLinkedList)
 	// constructor   
 	{
 		TInt32LinkedList l1;
-		TRNT_TEST_EXPECT_TRUE(l1.GetHead() == nullptr && l1.GetTail() == nullptr && l1.Length() == 0);
+		TRNT_TEST_EXPECT_TRUE(l1.GetHead() == nullptr && l1.GetTail() == nullptr && l1.GetElementCount() == 0);
 
 		TInt32LinkedList l2{ 1,2,3,4 };
 		TRNT_TEST_EXPECT_TRUE(CheckValid<TInt32LinkedList>(l2, { 1,2,3,4 }, 4));
@@ -74,7 +74,7 @@ TRNT_IMPL_TEST_CASE(Containers, TSinglyLinkedList)
 
 		TInt32LinkedList l4(Move(l2));
 		TRNT_TEST_EXPECT_TRUE(CheckValid<TInt32LinkedList>(l4, { 1,2,3,4 }, 4));
-		TRNT_TEST_EXPECT_TRUE(l2.GetHead() == nullptr && l2.Length() == 0);
+		TRNT_TEST_EXPECT_TRUE(l2.GetHead() == nullptr && l2.GetElementCount() == 0);
 	}
 
 	// operator=
@@ -89,7 +89,7 @@ TRNT_IMPL_TEST_CASE(Containers, TSinglyLinkedList)
 		TRNT_TEST_EXPECT_TRUE(CheckValid<TInt32LinkedList>(l1, { 11,22,33,44,55 }, 5));
 
 		l1 = Move(l2);
-		TRNT_TEST_EXPECT_TRUE(l2.GetHead() == nullptr && l2.GetTail() == nullptr && l2.Length() == 0);
+		TRNT_TEST_EXPECT_TRUE(l2.GetHead() == nullptr && l2.GetTail() == nullptr && l2.GetElementCount() == 0);
 		TRNT_TEST_EXPECT_TRUE(CheckValid<TInt32LinkedList>(l1, { 11,22,33,44,55 }, 5));
 	}
 
@@ -101,14 +101,14 @@ TRNT_IMPL_TEST_CASE(Containers, TSinglyLinkedList)
 		for (TInt32LinkedList::ConstIteratorType It = l1.cbegin(); It != l1.cend(); ++It)
 		{
 			++i;
-			TRNT_TEST_EXPECT_TRUE(It->Value == i);
+			TRNT_TEST_EXPECT_TRUE(*It == i);
 		}
 
 		i = 0;
-		for (TInt32LinkedList::NodeType& Val : l1)
+		for (TInt32LinkedList::ElementType Val : l1)
 		{
 			++i;
-			TRNT_TEST_EXPECT_TRUE(Val.Value == i);
+			TRNT_TEST_EXPECT_TRUE(Val == i);
 		}
 	}
 
@@ -138,7 +138,7 @@ TRNT_IMPL_TEST_CASE(Containers, TSinglyLinkedList)
 	{
 		TInt32LinkedList l{ 1,2,3,4,5,6,7,8 };
 
-		TRNT_TEST_EXPECT_TRUE(l.Length() == 8 && (l.First() == 1) && l.GetHead()->Value == 1 && l.GetTail()->Value == 8);
+		TRNT_TEST_EXPECT_TRUE(l.GetElementCount() == 8 && (l.First() == 1) && l.GetHead()->Value == 1 && l.GetTail()->Value == 8);
 	}
 
 	{
@@ -207,7 +207,7 @@ TRNT_IMPL_TEST_CASE(Containers, TDoublyLinkedList)
 	{
 		TInt32LinkedList l;
 		TRNT_TEST_EXPECT_TRUE(
-			l.IsEmpty() && l.Length() == 0 && l.GetHead() == nullptr && l.GetTail() == nullptr
+			l.IsEmpty() && l.GetElementCount() == 0 && l.GetHead() == nullptr && l.GetTail() == nullptr
 		);
 
 		TInt32LinkedList l1{ 1,2,3,4,5,6,7 };
@@ -220,7 +220,7 @@ TRNT_IMPL_TEST_CASE(Containers, TDoublyLinkedList)
 
 		TInt32LinkedList l4(Move(l2));
 		TRNT_TEST_EXPECT_TRUE(CheckValid<TInt32LinkedList>(l4, { 1,2,3,4,5,6,7 }, 7));
-		TRNT_TEST_EXPECT_TRUE(l2.GetHead() == nullptr && l2.Length() == 0);
+		TRNT_TEST_EXPECT_TRUE(l2.GetHead() == nullptr && l2.GetElementCount() == 0);
 	}
 
 	// operator=
@@ -237,7 +237,7 @@ TRNT_IMPL_TEST_CASE(Containers, TDoublyLinkedList)
 		l2 = { 1,2,3,4,5,6,7,8,9 };
 
 		l1 = Move(l2);
-		TRNT_TEST_EXPECT_TRUE(l2.GetHead() == nullptr && l2.GetTail() == nullptr && l2.Length() == 0);
+		TRNT_TEST_EXPECT_TRUE(l2.GetHead() == nullptr && l2.GetTail() == nullptr && l2.GetElementCount() == 0);
 		TRNT_TEST_EXPECT_TRUE(CheckValid<TInt32LinkedList>(l1, { 1,2,3,4,5,6,7,8,9 }, 9));
 	}
 
@@ -249,14 +249,14 @@ TRNT_IMPL_TEST_CASE(Containers, TDoublyLinkedList)
 		for (TInt32LinkedList::ConstIteratorType It = l1.cbegin(); It != l1.cend(); ++It)
 		{
 			++i;
-			TRNT_TEST_EXPECT_TRUE(It->Value == i);
+			TRNT_TEST_EXPECT_TRUE(*It == i);
 		}
 
 		i = 0;
-		for (TInt32LinkedList::NodeType& Val : l1)
+		for (TInt32LinkedList::ElementType& Val : l1)
 		{
 			++i;
-			TRNT_TEST_EXPECT_TRUE(Val.Value == i);
+			TRNT_TEST_EXPECT_TRUE(Val == i);
 		}
 	}
 
@@ -286,7 +286,7 @@ TRNT_IMPL_TEST_CASE(Containers, TDoublyLinkedList)
 	{
 		TInt32LinkedList l{ 1,2,3,4,5,6,7,8 };
 
-		TRNT_TEST_EXPECT_TRUE(l.Length() == 8 && l.First() == 1 && l.Last() == 8 && l.GetHead()->Value == 1 && l.GetTail()->Value == 8);
+		TRNT_TEST_EXPECT_TRUE(l.GetElementCount() == 8 && l.First() == 1 && l.Last() == 8 && l.GetHead()->Value == 1 && l.GetTail()->Value == 8);
 	}
 
 	// removal
@@ -353,6 +353,7 @@ TRNT_IMPL_TEST_CASE(Containers, TDoublyLinkedList)
 		TRNT_TEST_EXPECT_TRUE(CheckValid<TInt32LinkedList>(l, { 5, 2, 1, 4, 10, 3 }, 6));
 
 		l.Clear();
+		TRNT_TEST_EXPECT_TRUE(l.GetHead() == nullptr && l.GetTail() == nullptr)
 
 		l.InsertAtHead(3);
 		l.InsertAtHead(new TInt32LinkedList::NodeType(4));

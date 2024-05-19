@@ -1,16 +1,14 @@
 #pragma once
 
-#define FMT_HEADER_ONLY
 #include <fmt/chrono.h>
 #include <fmt/xchar.h>
 
-#include "Trinity/Platform/FileIO.h"
 #include "Trinity/Core/Threading/Mutex.h"
 #include "Trinity/Core/Containers/LinkedList.h"
-#include "LogLevel.h"
+#include "Trinity/Core/String/String.h"
+#include "Trinity/Core/TypeTraits/TypeRelationships.h"
 
-#include <deque>
-#include <stdio.h>
+#include "LogLevel.h"
 
 template<const TChar* LogNameCharArray, const TWChar* LogNameWCharArray, TLogLevel Level>
 class TCompileTimeLogInfo
@@ -23,15 +21,15 @@ public:
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define TRNT_MAKE_LOG_INFO(LogName) T##LogName##LogInfo
+#define TRNT_MAKE_LOG_INFO_NAME(LogName) T##LogName##LogInfo
 
 #define TRNT_DECLARE_LOG_INFO(LogName, LogLevel) \
 	static TRNT_CONSTEXPR const TChar LogName##CharArray[] = TRNT_STRINGIFY(LogName);\
 	static TRNT_CONSTEXPR const TWChar LogName##WCharArray[] = L#LogName;\
-	class TRNT_MAKE_LOG_INFO(LogName) : public TCompileTimeLogInfo<LogName##CharArray, LogName##WCharArray, LogLevel>\
+	class TRNT_MAKE_LOG_INFO_NAME(LogName) : public TCompileTimeLogInfo<LogName##CharArray, LogName##WCharArray, LogLevel>\
 	{}
 
-#define TRNT_GET_LOG_INFO(LogName) TRNT_MAKE_LOG_INFO(LogName)
+#define TRNT_GET_LOG_INFO(LogName) TRNT_MAKE_LOG_INFO_NAME(LogName)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -151,7 +149,7 @@ private:
 		TRNT_ASSERT_AT_COMPILE_TIME(CTLogInfoType::LogLevel >= TLogLevel::EDebug && CTLogInfoType::LogLevel < TLogLevel::EMax);
 		TRNT_ASSERT_AT_COMPILE_TIME((TAreTheSameType<CharType, TChar>::Value || TAreTheSameType<CharType, TWChar>::Value));
 
-		if constexpr (LogLevel == TLogLevel::EFatal || LogLevel >= CTLogInfoType::LogLevel)
+		if constexpr (LogLevel >= CTLogInfoType::LogLevel || LogLevel == TLogLevel::EFatal)
 		{
 			fmt::basic_memory_buffer<CharType> MemoryBuffer = fmt::basic_memory_buffer<CharType>();
 			std::chrono::time_point Now = std::chrono::system_clock::now();
@@ -160,11 +158,11 @@ private:
 			{
 				TString Message("[{:%Y-%m-%d %H:%M:%S}] [{}] {}: ");
 				Message += FmtMessage;
-				Message += "\n";
+				Message += '\n';
 
 				fmt::detail::vformat_to(
 					MemoryBuffer,
-					fmt::string_view{ Message.GetData(), static_cast<TSize_T>(Message.Length()) },
+					fmt::string_view{ Message.GetData(), static_cast<TSize_T>(Message.GetElementCount()) },
 					fmt::make_format_args(Now, CTLogInfoType::LogNameAsCString, LogLevelToCString[static_cast<TUInt8>(LogLevel)], Arguments...));
 
 				MemoryBuffer.push_back('\0');
@@ -173,11 +171,11 @@ private:
 			{
 				TWString Message(L"[{:%Y-%m-%d %H:%M:%S}] [{}] {}: ");
 				Message += FmtMessage;
-				Message += L"\n";
+				Message += L'\n';
 
 				fmt::detail::vformat_to(
 					MemoryBuffer,
-					fmt::wstring_view{ Message.GetData(), static_cast<TSize_T>(Message.Length()) },
+					fmt::wstring_view{ Message.GetData(), static_cast<TSize_T>(Message.GetElementCount()) },
 					fmt::make_wformat_args(Now, CTLogInfoType::LogNameAsWCString, LogLevelToWCString[static_cast<TUInt8>(LogLevel)], Arguments...));
 				
 				MemoryBuffer.push_back(L'\0');

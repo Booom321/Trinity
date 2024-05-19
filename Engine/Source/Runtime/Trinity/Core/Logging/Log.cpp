@@ -1,5 +1,7 @@
 #include "Log.h"
 
+#include <stdio.h>
+
 #pragma warning(push)
 #pragma warning(disable: 4996)
 #pragma warning(disable: 6387)
@@ -11,11 +13,10 @@ typename TLog::LogMessageHandlerList TLog::MessageHandlers;
 void TLog::AddMessageHandlerCallback(TLogMessageHandlerCallback Callback)
 {
 	LogMutex.Lock();
-	if (MessageHandlers.Contains(Callback))
+	if (!MessageHandlers.Contains(Callback))
 	{
-		return;
+		MessageHandlers.InsertAtTail(new LogMessageHandlerList::NodeType(Callback));
 	}
-	MessageHandlers.InsertAtTail(new LogMessageHandlerList::NodeType(Callback));
 	LogMutex.Unlock();
 }
 

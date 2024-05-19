@@ -15,7 +15,7 @@ static_assert(TIsTriviallyDestructible<TInt32>::Value);
 template<typename T>
 TBool Check(const TDynamicArray<T>& X, const TDynamicArray<T>& Expected, TInt64 ExpectedLen)
 {
-	return (X == Expected) && (X.Length() == ExpectedLen) && (X.Capacity() >= ExpectedLen);
+	return (X == Expected) && (X.GetElementCount() == ExpectedLen) && (X.Capacity() >= ExpectedLen);
 }
 
 TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithTrivialType)
@@ -25,7 +25,7 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithTrivialType)
 	{
 		Array a;
 		TRNT_TEST_EXPECT_TRUE(a.IsEmpty());
-		TRNT_TEST_EXPECT_TRUE(a.Length() == 0);
+		TRNT_TEST_EXPECT_TRUE(a.GetElementCount() == 0);
 		TRNT_TEST_EXPECT_TRUE(a.Capacity() == 0);
 
 		Array a1{ 1,2,3,4,5,6,7 };
@@ -49,11 +49,11 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithTrivialType)
 		TRNT_TEST_EXPECT_TRUE(Check(a5, Array{ 3,4,5,6,7 }, 5));
 		TRNT_TEST_EXPECT_TRUE(a5.GetData() != nullptr);
 		TRNT_TEST_EXPECT_TRUE(a4.GetData() == nullptr);
-		TRNT_TEST_EXPECT_TRUE(a4.Length() == 0 && a4.Capacity() == 0);
+		TRNT_TEST_EXPECT_TRUE(a4.GetElementCount() == 0 && a4.Capacity() == 0);
 
 		Array a6(10);
 		//failed: Array a6(-10);
-		TRNT_TEST_EXPECT_TRUE(a6.Length() == 0 && a6.Capacity() == 10);
+		TRNT_TEST_EXPECT_TRUE(a6.GetElementCount() == 0 && a6.Capacity() == 10);
 
 		Array a7(3, a1);
 		//failed: Array a7(-3, a1);
@@ -66,7 +66,7 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithTrivialType)
 		Array a9(5, a1.GetData(), 5);
 		//failed: Array a9(-5, a1.GetData(), 5);
 		//failed: Array a9(5, a1.GetData(), -5);
-		TRNT_TEST_EXPECT_TRUE(a9.Length() == 5 && a9.Capacity() == 10);
+		TRNT_TEST_EXPECT_TRUE(a9.GetElementCount() == 5 && a9.Capacity() == 10);
 		TRNT_TEST_EXPECT_TRUE(Check(a9, Array{ 1,2,3,4,5 }, 5));
 
 		Array a10(a1.begin(), a1.begin() + 3);
@@ -95,7 +95,7 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithTrivialType)
 		TRNT_TEST_EXPECT_TRUE(a2[8] == 9);
 
 		TRNT_TEST_EXPECT_TRUE(a2.GetData() != nullptr);
-		TRNT_TEST_EXPECT_TRUE(a2.Length() == 9);
+		TRNT_TEST_EXPECT_TRUE(a2.GetElementCount() == 9);
 		TRNT_TEST_EXPECT_TRUE(a2.Capacity() == 9);
 
 		a1 = a2;
@@ -103,9 +103,9 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithTrivialType)
 
 		a1 = Move(a2);
 		TRNT_TEST_EXPECT_TRUE(a1.GetData() != nullptr);
-		TRNT_TEST_EXPECT_TRUE(a1.Length() == 9 && a1.Capacity() == 9);
+		TRNT_TEST_EXPECT_TRUE(a1.GetElementCount() == 9 && a1.Capacity() == 9);
 		TRNT_TEST_EXPECT_TRUE(a2.GetData() == nullptr);
-		TRNT_TEST_EXPECT_TRUE(a2.Length() == 0 && a2.Capacity() == 0);
+		TRNT_TEST_EXPECT_TRUE(a2.GetElementCount() == 0 && a2.Capacity() == 0);
 
 		a1 = { 111,222,333,444,555,66,777,8,1111,222,3333 };
 		TRNT_TEST_EXPECT_TRUE(Check(a1, Array{ 111,222,333,444,555,66,777,8,1111,222,3333 }, 11));
@@ -166,7 +166,7 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithTrivialType)
 
 		// for each
 		auto IncByOne = [](int& a) { ++a; };
-		a.ForEachTInternal(IncByOne);
+		a.ForEachInternal(IncByOne);
 		TRNT_TEST_EXPECT_TRUE(Check(a, Array{ 2,3,4,5,6,7 }, 6));
 
 		auto MultiplyBy2 = [](int& a) { a *= 2; };
@@ -192,21 +192,21 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithTrivialType)
 		Array a1;
 
 		a1.Reserve(10);
-		TRNT_TEST_EXPECT_TRUE(a1.Length() == 0 && a1.Capacity() == 10);
+		TRNT_TEST_EXPECT_TRUE(a1.GetElementCount() == 0 && a1.Capacity() == 10);
 
 		a1.Reserve(1);
-		TRNT_TEST_EXPECT_TRUE(a1.Length() == 0 && a1.Capacity() == 10);
+		TRNT_TEST_EXPECT_TRUE(a1.GetElementCount() == 0 && a1.Capacity() == 10);
 
 		a1.Resize(4);
 
 		a1.Shrink();
-		TRNT_TEST_EXPECT_TRUE(a1.Length() == 4 && a1.Length() == a1.Capacity());
+		TRNT_TEST_EXPECT_TRUE(a1.GetElementCount() == 4 && a1.GetElementCount() == a1.Capacity());
 	}
 
 	{
 		Array a{ 1,2,3,4,5,6,7 };
 		TRNT_TEST_EXPECT_TRUE(!a.IsEmpty());
-		TRNT_TEST_EXPECT_TRUE(a.Length() == 7);
+		TRNT_TEST_EXPECT_TRUE(a.GetElementCount() == 7);
 		TRNT_TEST_EXPECT_TRUE(a.Capacity() == 7);
 		TRNT_TEST_EXPECT_TRUE(a.RemainingCapacity() == 0);
 
@@ -247,7 +247,7 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithTrivialType)
 
 		a.Clear();
 		a.Shrink();
-		TRNT_TEST_EXPECT_TRUE(a.Length() == 0 && a.Capacity() == 0);
+		TRNT_TEST_EXPECT_TRUE(a.GetElementCount() == 0 && a.Capacity() == 0);
 
 		a.EmplaceBack(10);
 
@@ -365,7 +365,7 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithFString)
 
 	{
 		Array a;
-		TRNT_TEST_EXPECT_TRUE(a.IsEmpty() && a.Length() == 0 && a.Capacity() == 0 && a.GetData() == nullptr);
+		TRNT_TEST_EXPECT_TRUE(a.IsEmpty() && a.GetElementCount() == 0 && a.Capacity() == 0 && a.GetData() == nullptr);
 
 		Array a1{ "aaa", "bbb", "ccc", "ddd", "eee", "111", "222", "333", "444" };
 		TRNT_TEST_EXPECT_TRUE(Check(a1, Array{ "aaa", "bbb", "ccc", "ddd", "eee", "111", "222", "333", "444" }, 9));
@@ -382,15 +382,15 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithFString)
 		Array a5(Array{ "1", "2", "3", "" });
 		TRNT_TEST_EXPECT_TRUE(Check(a5, Array{ "1", "2", "3", "" }, 4));
 
-		TRNT_TEST_EXPECT_TRUE(a4.GetData() != nullptr && a4.Length() == 5 && a4.Capacity() == 5);
+		TRNT_TEST_EXPECT_TRUE(a4.GetData() != nullptr && a4.GetElementCount() == 5 && a4.Capacity() == 5);
 		Array a6(Move(a4));
-		TRNT_TEST_EXPECT_TRUE(a4.GetData() == nullptr && a4.Length() == 0 && a4.Capacity() == 0);
-		TRNT_TEST_EXPECT_TRUE(a6.GetData() != nullptr && a6.Length() == 5 && a6.Capacity() == 5);
+		TRNT_TEST_EXPECT_TRUE(a4.GetData() == nullptr && a4.GetElementCount() == 0 && a4.Capacity() == 0);
+		TRNT_TEST_EXPECT_TRUE(a6.GetData() != nullptr && a6.GetElementCount() == 5 && a6.Capacity() == 5);
 		TRNT_TEST_EXPECT_TRUE(Check(a6, Array{ "aaa", "bbb", "ccc", "ddd", "eee" }, 5));
 
 		Array a7(10);
 		//failed: Array a7(-10);
-		TRNT_TEST_EXPECT_TRUE(a7.Length() == 0 && a7.Capacity() == 10);
+		TRNT_TEST_EXPECT_TRUE(a7.GetElementCount() == 0 && a7.Capacity() == 10);
 
 		Array a_tmp{ "111", "222", "333", "444", "555", "666" };
 
@@ -430,10 +430,10 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithFString)
 		a1 = { "a", "b", "c" };
 		TRNT_TEST_EXPECT_TRUE(Check(a1, Array{ "a", "b", "c" }, 3));
 
-		TRNT_TEST_EXPECT_TRUE(a2.Length() == 3 && a2.Capacity() == 3 && a2.GetData() != nullptr);
+		TRNT_TEST_EXPECT_TRUE(a2.GetElementCount() == 3 && a2.Capacity() == 3 && a2.GetData() != nullptr);
 		a1 = Move(a2);
-		TRNT_TEST_EXPECT_TRUE(a2.Length() == 0 && a2.Capacity() == 0 && a2.GetData() == nullptr);
-		TRNT_TEST_EXPECT_TRUE(a1.Length() == 3 && a1.Capacity() == 3 && a1.GetData() != nullptr);
+		TRNT_TEST_EXPECT_TRUE(a2.GetElementCount() == 0 && a2.Capacity() == 0 && a2.GetData() == nullptr);
+		TRNT_TEST_EXPECT_TRUE(a1.GetElementCount() == 3 && a1.Capacity() == 3 && a1.GetData() != nullptr);
 
 		a1 = {};
 		TRNT_TEST_EXPECT_TRUE(Check(a1, Array{}, 0));
@@ -484,7 +484,7 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithFString)
 
 	{
 		Array a{ "aaaa", "bbbb", "cccc", "dddd", "eeee" };
-		TRNT_TEST_EXPECT_TRUE(a.Length() == 5);
+		TRNT_TEST_EXPECT_TRUE(a.GetElementCount() == 5);
 
 		a.Resize(3);
 		TRNT_TEST_EXPECT_TRUE(Check(a, Array{"aaaa", "bbbb", "cccc"}, 3));
@@ -501,10 +501,10 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithFString)
 		TRNT_TEST_EXPECT_TRUE(a.Capacity() == 20);
 
 		a.Shrink();
-		TRNT_TEST_EXPECT_TRUE(a.Capacity() == a.Length());
+		TRNT_TEST_EXPECT_TRUE(a.Capacity() == a.GetElementCount());
 
 		a.Clear();
-		TRNT_TEST_EXPECT_TRUE(a.Length() == 0);
+		TRNT_TEST_EXPECT_TRUE(a.GetElementCount() == 0);
 	}
 
 	{
@@ -512,14 +512,14 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithFString)
 		auto func = [](const TString& a) -> bool { return a == "bbbb"; };
 
 		Array r = a.Filter(func);
-		TRNT_TEST_EXPECT_TRUE(r.Length() == 1);
+		TRNT_TEST_EXPECT_TRUE(r.GetElementCount() == 1);
 
 		Array r1 = a.Filter([](const TString& a) -> bool { return a > "zzzz"; });
 		TRNT_TEST_EXPECT_TRUE(r1.IsEmpty());
 
 		// for each
 		auto func1 = [](TString& a) { a.Append("aaaa"); };
-		a.ForEachTInternal(func1);
+		a.ForEachInternal(func1);
 		TRNT_TEST_EXPECT_TRUE(Check(a, Array{ "aaaaaaaa", "bbbbaaaa", "ccccaaaa", "ddddaaaa", "eeeeaaaa", "ffffaaaa" }, 6));
 
 		auto func2 = [](TString& a) { a.Append("foo"); };
@@ -531,7 +531,7 @@ TRNT_IMPL_TEST_CASE(Containers, TDynamicArrayWithFString)
 		Array a{ "mango", "apple", "melon", "banana", "tomato", "avocado" };
 
 		TRNT_TEST_EXPECT_TRUE(!a.IsEmpty());
-		TRNT_TEST_EXPECT_TRUE(a.Length() == 6);
+		TRNT_TEST_EXPECT_TRUE(a.GetElementCount() == 6);
 		TRNT_TEST_EXPECT_TRUE(a.Capacity() == 6);
 		TRNT_TEST_EXPECT_TRUE(a.RemainingCapacity() == 0);
 

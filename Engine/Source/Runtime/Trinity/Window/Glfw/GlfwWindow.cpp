@@ -4,7 +4,6 @@
 
 #include "Trinity/Input/InputManager.h"
 
-#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 #pragma warning(push)
@@ -258,6 +257,8 @@ TKeyCode ConvertGlfwKeyToTKeyCode(TInt32 GlfwKeyCode)
 	return TKeyCode::EUnknown;
 }
 
+static TInputManager* InputManagerInstance = nullptr;
+
 TMouseButton ConvertGlfwMouseToTMouseButton(TInt32 Button)
 {
 	switch (Button)
@@ -356,13 +357,13 @@ void KeyCallback(GLFWwindow* GLFWWindow, TInt32 Key, TInt32 Scancode, TInt32 Act
 	switch (Action)
 	{
 	case GLFW_PRESS:
-		TInputManager::GetInstance()->SetKeyState(ConvertGlfwKeyToTKeyCode(Key), TInputAction::EPress);
+		InputManagerInstance->SetKeyState(ConvertGlfwKeyToTKeyCode(Key), TInputAction::EPress);
 		break;
 	case GLFW_REPEAT:
-		TInputManager::GetInstance()->SetKeyState(ConvertGlfwKeyToTKeyCode(Key), TInputAction::ERepeat);
+		InputManagerInstance->SetKeyState(ConvertGlfwKeyToTKeyCode(Key), TInputAction::ERepeat);
 		break;
 	case GLFW_RELEASE:
-		TInputManager::GetInstance()->SetKeyState(ConvertGlfwKeyToTKeyCode(Key), TInputAction::ERelease);
+		InputManagerInstance->SetKeyState(ConvertGlfwKeyToTKeyCode(Key), TInputAction::ERelease);
 		break;
 	default:
 		break;
@@ -380,10 +381,10 @@ void MouseButtonCallback(GLFWwindow* GLFWWindow, TInt32 Button, TInt32 Action, T
 	switch (Action)
 	{
 	case GLFW_PRESS:
-		TInputManager::GetInstance()->SetMouseState(ConvertGlfwMouseToTMouseButton(Button), TInputAction::EPress);
+		InputManagerInstance->SetMouseState(ConvertGlfwMouseToTMouseButton(Button), TInputAction::EPress);
 		break;
 	case GLFW_RELEASE:
-		TInputManager::GetInstance()->SetMouseState(ConvertGlfwMouseToTMouseButton(Button), TInputAction::ERelease);
+		InputManagerInstance->SetMouseState(ConvertGlfwMouseToTMouseButton(Button), TInputAction::ERelease);
 		break;
 	default:
 		break;
@@ -401,7 +402,7 @@ void CursorPositionCallback(GLFWwindow* GLFWWindow, TDouble XPosition, TDouble Y
 
 		if (Window->Focused)
 		{
-			TInputManager::GetInstance()->SetCurrentMousePosition((TFloat)XPosition, (TFloat)YPosition);
+			InputManagerInstance->SetCurrentMousePosition((TFloat)XPosition, (TFloat)YPosition);
 		}
 	}
 }
@@ -414,17 +415,18 @@ void ScrollCallback(GLFWwindow* GLFWWindow, TDouble XOffset, TDouble YOffset)
 	{
 		if (Window->Focused)
 		{
-			TInputManager::GetInstance()->SetScrollDelta((TFloat)XOffset, (TFloat)YOffset);
+			InputManagerInstance->SetScrollDelta((TFloat)XOffset, (TFloat)YOffset);
 		}
 	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+static TInt32 GlfwWindowCount = 0;
+
 TWindow::TWindow(const TWindowProperties& WindowProperties)
-	: WindowProperties(WindowProperties), Initialized(false), Focused(false), Resized(false), Iconified(false), Closed(false), CursorHidden(false)
-{
-}
+	: WindowProperties(WindowProperties), Initialized(false), Focused(false), Resized(false), Iconified(false), Closed(true), CursorHidden(false)
+{}
 
 TWindow::~TWindow()
 {
@@ -436,6 +438,28 @@ TWindow::~TWindow()
 
 TBool TWindow::Initialize()
 {
+	if (GlfwWindowCount < 1)
+	{
+		if (glfwInit() != GLFW_TRUE)
+		{
+			TLog::Error<TRNT_GET_LOG_INFO(Window)>("Could not initialize Glfw library!");
+
+			return false;
+		}
+	}
+
+	if (!InputManagerInstance)
+	{
+		InputManagerInstance = TInputManager::GetInstance();
+	}
+
+	if (InputManagerInstance == nullptr)
+	{
+		TLog::Error<TRNT_GET_LOG_INFO(Window)>("TInputManager is not initialized! Please call TInputManager::Initialize() before creating the window.");
+
+		return false;
+	}
+
 	if (WindowProperties.Fullscreen)
 	{
 		GLFWmonitor* Monitor = glfwGetPrimaryMonitor();
@@ -496,10 +520,12 @@ TBool TWindow::Initialize()
 	glfwShowWindow(WindowHandle);
 
 	Focused = true;
-
 	Initialized = true;
+	Closed = false;
 
 	TLog::Success<TRNT_GET_LOG_INFO(Window)>("Create GLFW Window successfully!");
+
+	++GlfwWindowCount;
 
 	return true;
 }
@@ -510,9 +536,17 @@ void TWindow::Destroy()
 	{
 		glfwDestroyWindow(WindowHandle);
 		WindowHandle = nullptr;
+
+		--GlfwWindowCount;
 	}
 	Initialized = false;
 	Closed = true;
+	InputManagerInstance = nullptr;
+
+	if (GlfwWindowCount < 1)
+	{
+		glfwTerminate();
+	}
 }
 
 void TWindow::Maximize()
@@ -637,7 +671,7 @@ void TWindow::SetCursorHide(TBool Hide)
 
 	if (Focused)
 	{
-		TInputManager::GetInstance()->SetCursorIsHidden(Hide);
+		InputManagerInstance->SetCursorIsHidden(Hide);
 	}
 }
 

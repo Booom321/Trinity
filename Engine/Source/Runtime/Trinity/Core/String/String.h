@@ -28,7 +28,7 @@ enum class TStringSearchCase : TInt8
 #pragma warning(disable: 6011)
 #pragma warning(disable: 6387)
 
-template <typename CharType>
+template<typename CharType>
 class TStringBase
 {
 public:
@@ -223,7 +223,7 @@ public:
 		return Data;
 	}
 
-	TRNT_FORCE_INLINE SizeType Length() const noexcept
+	TRNT_FORCE_INLINE SizeType GetElementCount() const noexcept
 	{
 		return Len;
 	}
@@ -1114,6 +1114,70 @@ public:
 	{
 		TrimStartInternal();
 		TrimEndInternal();
+	}
+
+public:
+	void AppendPath(ConstPointerType PathString, SizeType PathLen)
+	{
+		if (!PathString || PathLen < 0)
+		{
+			return; 
+		}
+		
+		if (Len > 0 && Data[Len - 1] != '/' && Data[Len - 1] != '\\' && (PathLen == 0 || (*PathString != '/' && *PathString != '\\')))
+		{
+			Append(1, '/');
+		}
+		else
+		{
+			if ((Len > 0 && (Data[Len - 1] == '/' || Data[Len - 1] == '\\')) && (PathLen > 0 && (*PathString == '/' || *PathString == '\\')))
+			{
+				++PathString;
+				--PathLen;
+			}
+		}
+		Append(PathString, PathLen);
+	}
+
+	TRNT_FORCE_INLINE TStringBase& operator/=(ConstPointerType PathString)
+	{
+		AppendPath(PathString, CStringHelper::Strlen(PathString));
+		return *this;
+	}
+
+	TRNT_FORCE_INLINE TStringBase& operator/=(const TStringBase& PathString)
+	{
+		AppendPath(PathString.Data, PathString.Len);
+		return *this;
+	}
+
+public:
+	TRNT_NODISCARD TRNT_FORCE_INLINE friend TStringBase operator/(const TStringBase& PathA, const TStringBase& PathB)
+	{
+		TStringBase Result(PathA);
+		Result.AppendPath(PathB.Data, PathB.Len);
+		return Result;
+	}
+
+	TRNT_NODISCARD TRNT_FORCE_INLINE friend TStringBase operator/(const TStringBase& PathA, ConstPointerType PathB)
+	{
+		TStringBase Result(PathA);
+		Result.AppendPath(PathB, CStringHelper::Strlen(PathB));
+		return Result;
+	}
+
+	TRNT_NODISCARD TRNT_FORCE_INLINE friend TStringBase operator/(TStringBase&& PathA, const TStringBase& PathB)
+	{
+		TStringBase Result(Move(PathA));
+		Result.AppendPath(PathB.Data, PathB.Len);
+		return Result;
+	}
+
+	TRNT_NODISCARD TRNT_FORCE_INLINE friend TStringBase operator/(TStringBase&& PathA, ConstPointerType PathB)
+	{
+		TStringBase Result(Move(PathA));
+		Result.AppendPath(PathB, CStringHelper::Strlen(PathB));
+		return Result;
 	}
 
 private:

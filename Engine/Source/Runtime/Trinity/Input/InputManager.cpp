@@ -6,10 +6,12 @@ TInputManager* TInputManager::Instance = nullptr;
 
 void TInputManager::Reset()
 {
-	memset(InputManagerData.KeyState, static_cast<TInt32>(TInputAction::ERelease), TInputManagerData::KeyCodeCount * sizeof(TInputAction));
-	memset(InputManagerData.MouseState, static_cast<TInt32>(TInputAction::ERelease), TInputManagerData::MouseButtonCount * sizeof(TInputAction));
+	memset(InputManagerData.KeyState, static_cast<TInt32>(TInputAction::ERelease), TData::KeyCodeCount * sizeof(TInputAction));
+	memset(InputManagerData.MouseState, static_cast<TInt32>(TInputAction::ERelease), TData::MouseButtonCount * sizeof(TInputAction));
 
 	InputManagerData.ScrollDelta = { 0.0f, 0.0f };
+
+	InputManagerData.CursorIsHidden = false;
 }
 
 void TInputManager::SetCurrentMousePosition(TFloat MousePosX, TFloat MousePosY)

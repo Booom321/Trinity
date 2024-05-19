@@ -255,7 +255,7 @@ private:
     DeleterType Deleter;
 
     TSharedPtr<void> Store;
-    TSize_T StoreSize;
+    TSize_T StoreSize = 0;
 
     template<typename T>
     static TRNT_FORCE_INLINE void FunctorDeleter(void* const Pointer)

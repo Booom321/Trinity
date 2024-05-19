@@ -31,7 +31,7 @@ TBool TCommandLineParser::IsCommandLineOptionExists(TString OptName)
 {
 	TRNT_ASSERT_MESSAGE(OptName[0] == '-', "Command line option name must start with a hyphen (\"-\").");
 
-	for (TInt32 Index = 0, OptionCount = (TInt32)CommandLineOptions.Length(); Index < OptionCount; ++Index)
+	for (TInt32 Index = 0, OptionCount = (TInt32)CommandLineOptions.GetElementCount(); Index < OptionCount; ++Index)
 	{
 		if (CommandLineOptions[Index].OptName == OptName)
 		{
@@ -84,7 +84,7 @@ TBool TCommandLineParser::Parse()
 {
 	TDynamicArray<TString> CommandArgParts(2);
 
-	for (TInt32 Index = 0, CommandLineArgCount = (TInt32)CommandLineArgs.Length(); Index < CommandLineArgCount; ++Index)
+	for (TInt32 Index = 0, CommandLineArgCount = (TInt32)CommandLineArgs.GetElementCount(); Index < CommandLineArgCount; ++Index)
 	{
 		CommandLineArgs[Index].SplitByString(CommandArgParts, "=");
 
@@ -109,7 +109,7 @@ TBool TCommandLineParser::Parse()
 		}
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		if (CommandArgParts.Length() > 1)
+		if (CommandArgParts.GetElementCount() > 1)
 		{
 			const TString& Value = CommandArgParts[1];
 

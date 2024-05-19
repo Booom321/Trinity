@@ -57,7 +57,7 @@ public:
 
 	constexpr TRNT_FORCE_INLINE TBool IsEmpty() const noexcept { return Count == 0; }
 
-	constexpr TRNT_FORCE_INLINE SizeType Length() const noexcept { return Count; }
+	constexpr TRNT_FORCE_INLINE SizeType GetElementCount() const noexcept { return Count; }
 
 	constexpr IteratorType begin() { return IteratorType(Elements); }
 	constexpr ConstIteratorType begin() const { return ConstIteratorType(Elements); }

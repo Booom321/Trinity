@@ -8,7 +8,7 @@ static constexpr TUInt64 max = std::numeric_limits<TUInt64>::max();
 
 static TRNT_FORCE_INLINE TBool Check(const TString& Str, const TChar* ExpectedStr, TString::SizeType ExpectedStrLen)
 {
-	return Str == ExpectedStr && Str.Length() == ExpectedStrLen && Str.Capacity() >= ExpectedStrLen;
+	return Str == ExpectedStr && Str.GetElementCount() == ExpectedStrLen && Str.Capacity() >= ExpectedStrLen;
 }
 
 TRNT_IMPL_TEST_CASE(Strings, TString)
@@ -171,7 +171,7 @@ TRNT_IMPL_TEST_CASE(Strings, TString)
 		TRNT_TEST_EXPECT_TRUE(Str.Contains("AaAA bBBB", TStringSearchCase::EIgnoreCase));
 
 		TRNT_TEST_EXPECT_TRUE(Str.FindChar('b') == 5);
-		TRNT_TEST_EXPECT_TRUE(Str.FindLastChar('b') == Str.Length() - 1);
+		TRNT_TEST_EXPECT_TRUE(Str.FindLastChar('b') == Str.GetElementCount() - 1);
 
 		// CaseSensitive
 		TRNT_TEST_EXPECT_TRUE(Str.Find("cccc") == 10);
@@ -187,7 +187,7 @@ TRNT_IMPL_TEST_CASE(Strings, TString)
 		TRNT_TEST_EXPECT_TRUE(Str.FindLast(Substr, 1000) == 20);
 		TRNT_TEST_EXPECT_TRUE(Str.FindLast(Substr, 15) == 0);
 		TRNT_TEST_EXPECT_TRUE(Str.FindLast("", 10) == 10);
-		TRNT_TEST_EXPECT_TRUE(Str.FindLast("") == Str.Length());
+		TRNT_TEST_EXPECT_TRUE(Str.FindLast("") == Str.GetElementCount());
 		TRNT_TEST_EXPECT_TRUE(Str.FindLast(3, "bbbbccc", 15) == 6);
 
 		// IgnoreCase
@@ -204,7 +204,7 @@ TRNT_IMPL_TEST_CASE(Strings, TString)
 		TRNT_TEST_EXPECT_TRUE(Str.FindLast(Substr, 1000, SearchCase) == 20);
 		TRNT_TEST_EXPECT_TRUE(Str.FindLast(Substr, 15, SearchCase) == 0);
 		TRNT_TEST_EXPECT_TRUE(Str.FindLast("", 10, SearchCase) == 10);
-		TRNT_TEST_EXPECT_TRUE(Str.FindLast("", -1, SearchCase) == Str.Length());
+		TRNT_TEST_EXPECT_TRUE(Str.FindLast("", -1, SearchCase) == Str.GetElementCount());
 		TRNT_TEST_EXPECT_TRUE(Str.FindLast(3, "BBbbCCc", 15, SearchCase) == 6);
 	}
 
@@ -243,7 +243,7 @@ TRNT_IMPL_TEST_CASE(Strings, TString)
 	{
 		TString Str("aaaabbbbcccc");
 
-		TRNT_TEST_EXPECT_TRUE(Str.Length() == 12);
+		TRNT_TEST_EXPECT_TRUE(Str.GetElementCount() == 12);
 		TRNT_TEST_EXPECT_TRUE(Str.Capacity() == 12);
 
 		TRNT_TEST_EXPECT_TRUE(Str.RemainingCapacity() == 0);
@@ -320,7 +320,7 @@ TRNT_IMPL_TEST_CASE(Strings, TString)
 
 		TRNT_TEST_EXPECT_TRUE(Check(S, "333333444000111222", 18));
 
-		S.Insert(S.Length() - 3, "33334444");
+		S.Insert(S.GetElementCount() - 3, "33334444");
 
 		TRNT_TEST_EXPECT_TRUE(Check(S, "33333344400011133334444222", 26));
 	}

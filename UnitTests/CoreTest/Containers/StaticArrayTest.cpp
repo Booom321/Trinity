@@ -17,7 +17,7 @@ TRNT_IMPL_TEST_CASE(Containers, TStaticArray)
 
 		StringArray<3> Arr1(Arr);
 		TRNT_TEST_EXPECT_EQ(Arr, Arr1);
-		TRNT_TEST_EXPECT_EQ(Arr.Length(), Arr1.Length());
+		TRNT_TEST_EXPECT_EQ(Arr.GetElementCount(), Arr1.GetElementCount());
 
 		StringArray<3> Arr2(Move(Arr1));
 		TRNT_TEST_EXPECT_EQ(Arr, Arr2);
@@ -35,7 +35,7 @@ TRNT_IMPL_TEST_CASE(Containers, TStaticArray)
 
 		Arr = Tmp;
 		TRNT_TEST_EXPECT_EQ(Arr, Tmp);
-		TRNT_TEST_EXPECT_EQ(Arr.Length(), Tmp.Length());
+		TRNT_TEST_EXPECT_EQ(Arr.GetElementCount(), Tmp.GetElementCount());
 
 		Arr = Move(Tmp);
 		TRNT_TEST_EXPECT_TRUE(Arr[0] == "foo");
@@ -62,7 +62,7 @@ TRNT_IMPL_TEST_CASE(Containers, TStaticArray)
 		Arr1[2] = "bar";
 		Arr1[3] = "bar";
 
-		TRNT_TEST_EXPECT_TRUE(Arr.Length() == 4);
+		TRNT_TEST_EXPECT_TRUE(Arr.GetElementCount() == 4);
 		TRNT_TEST_EXPECT_TRUE(Arr.IsEmpty() == false);
 
 		TRNT_TEST_EXPECT_TRUE(Arr == Arr1);

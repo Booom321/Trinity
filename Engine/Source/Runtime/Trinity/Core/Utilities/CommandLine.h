@@ -117,9 +117,9 @@ public:
 		return CommandLineOptions[(TInt64)Index];
 	}
 
-	TRNT_NODISCARD TInt64 GetCommanndLineArgCount() const { return CommandLineArgs.Length(); }
+	TRNT_NODISCARD TInt64 GetCommanndLineArgCount() const { return CommandLineArgs.GetElementCount(); }
 
-	TRNT_NODISCARD TInt64 GetCommanndLineOptionCount() const { return CommandLineOptions.Length(); }
+	TRNT_NODISCARD TInt64 GetCommanndLineOptionCount() const { return CommandLineOptions.GetElementCount(); }
 
 private:
 	template<typename T>

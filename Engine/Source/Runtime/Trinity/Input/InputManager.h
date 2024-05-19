@@ -12,7 +12,7 @@
 
 class TRNT_API TInputManager
 {
-	class TInputManagerData
+	class TData
 	{
 	public:
 		using PositionType = TPair<TFloat, TFloat>;
@@ -28,7 +28,7 @@ class TRNT_API TInputManager
 
 		PositionType ScrollDelta{ 0.0f, 0.0f };
 
-		TBool CursorIsHidden;
+		TBool CursorIsHidden = false;
 	};
 
 public:
@@ -123,6 +123,7 @@ public:
 		if (!Instance)
 		{
 			Instance = new TInputManager();
+			Instance->Reset();
 		}
 	}
 
@@ -143,5 +144,5 @@ public:
 private:
 	static TInputManager* Instance;
 
-	TInputManagerData InputManagerData;
+	TData InputManagerData;
 };

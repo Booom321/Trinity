@@ -1,4 +1,4 @@
-#pragma once
+ #pragma once
 
 
 #include "Hashable.h"
@@ -15,6 +15,7 @@
 #include "Trinity/Core/TypeTraits/EnableIf.h"
 #include "Trinity/Core/TypeTraits/PrimaryTypes.h"
 #include "Trinity/Core/TypeTraits/RemoveCV.h"
+#include "Trinity/Core/TypeTraits/Logical.h"
 
 #include <functional>
 
@@ -160,12 +161,12 @@ namespace TNsHash
 
 	inline TSize_T GetHashCode(const TString& String)
 	{
-		return GetHashCodeFromCString<TChar>(String.GetData(), String.Length());
+		return GetHashCodeFromCString<TChar>(String.GetData(), String.GetElementCount());
 	}
 
 	inline TSize_T GetHashCode(const TWString& WString)
 	{
-		return GetHashCodeFromCString<TWChar>(WString.GetData(), WString.Length());
+		return GetHashCodeFromCString<TWChar>(WString.GetData(), WString.GetElementCount());
 	}
 
 	inline TSize_T GetHashCode(const FXxHash32& Hash)
@@ -191,8 +192,8 @@ namespace TNsHash
 
 	template<typename T>
 	inline typename TEnableIf<
-		!TAreTheSameType<TChar*, typename TRemoveCV<T>::Type>::Value && !TAreTheSameType<TWChar*, typename TRemoveCV<T>::Type>::Value &&
-		(TIsEnum<T>::Value || TIsPointer<T>::Value || TIsBaseOf<THashable, T>::Value), TSize_T
+		!TOr<TAreTheSameType<TChar*, typename TRemoveCV<T>::Type>, TAreTheSameType<TWChar*, typename TRemoveCV<T>::Type>>::Value && TOr<TIsEnum<T>, TIsPointer<T>, TIsBaseOf<THashable, T>>::Value, 
+		TSize_T
 	>::Type GetHashCode(const T& Value)
 	{
 		if constexpr (TIsEnum<T>::Value)
@@ -202,15 +203,11 @@ namespace TNsHash
 		else if constexpr (TIsPointer<T>::Value)
 		{
 			static const TSize_T Shift = (TSize_T)log2(1 + sizeof(T));
-			return (TSize_T)(Value) >> Shift;
+			return static_cast<TSize_T>((Value) >> Shift);
 		}
 		else if constexpr (TIsBaseOf<THashable, T>::Value)
 		{
 			return Value.CalculateHash();
-		}
-		else
-		{
-			TRNT_ASSERT_AT_COMPILE_TIME_MESSAGE(false, "GetHashCode(const T& Value) doesn't support for this type.");
 		}
 	}
 }

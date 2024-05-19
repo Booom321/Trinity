@@ -185,7 +185,7 @@ namespace TNsStringConversion
 		ToString(Number, NewFormat);
 		NewFormat += "f";
 
-		memcpy(FloatingPointFormatStr, NewFormat.GetData(), NewFormat.Length() * sizeof(TChar));
+		memcpy(FloatingPointFormatStr, NewFormat.GetData(), NewFormat.GetElementCount() * sizeof(TChar));
 	}
 
 	TInt8 StringToInt8(const TString& String)

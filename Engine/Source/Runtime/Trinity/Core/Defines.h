@@ -1,6 +1,6 @@
 #pragma once
 
-#if !defined(NDEBUG) || defined(_DEBUG)
+#if defined(_DEBUG)
 #	define TRNT_DEBUG 1
 #endif
 

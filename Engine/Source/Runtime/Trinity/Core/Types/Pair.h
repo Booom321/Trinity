@@ -1,13 +1,14 @@
 #pragma once
 
 #include "Trinity/Core/Defines.h"
+#include "Trinity/Core/Types/DataTypes.h"
 #include "Trinity/Core/TypeTraits/RemoveReference.h"
 
 template<typename T, typename U>
 class TPair
 {
 public:
-	TRNT_FORCE_INLINE TPair() {};
+	TRNT_FORCE_INLINE TPair() = default;
 
 	TPair(const T& First, const U& Second)
 		: First(First), Second(Second)
@@ -22,12 +23,12 @@ public:
 	{}
 
 public:
-	inline bool operator==(const TPair& Other) const
+	TRNT_INLINE TBool operator==(const TPair& Other) const
 	{
 		return First == Other.First && Second == Other.Second;
 	}
 
-	inline bool operator!=(const TPair& Other) const
+	TRNT_INLINE TBool operator!=(const TPair& Other) const
 	{
 		return First != Other.First || Second != Other.Second;
 	}

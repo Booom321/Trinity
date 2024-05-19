@@ -125,7 +125,7 @@ TBool TFileWriter::WriteFile(TByte* Buffer, TUInt32 TBytesToWrite)
 TBool TFileWriter::WriteTextFile(const TString& Text)
 {
 	DWORD Written;
-	return ::WriteFile(FileHandle, Text.GetData(), static_cast<TUInt32>(Text.Length()), &Written, nullptr);
+	return ::WriteFile(FileHandle, Text.GetData(), static_cast<TUInt32>(Text.GetElementCount()), &Written, nullptr);
 }
 
 TBool TFileWriter::IsOpen() const

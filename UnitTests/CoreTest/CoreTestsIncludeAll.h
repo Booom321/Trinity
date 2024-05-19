@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Containers/DynamicArrayTest.h"
+#include "Containers/HashMapTest.h"
 #include "Containers/LinkedListTest.h"
 #include "Containers/StaticArrayTest.h"
 

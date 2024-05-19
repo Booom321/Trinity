@@ -9,11 +9,11 @@
 
 #include "Trinity/Core/Memory/Memory.h"
 
-#include "Trinity/Core/TypeTraits/Trivial.h"
-#include "Trinity/Core/TypeTraits/IsCopyConstructible.h"
-#include "Trinity/Core/TypeTraits/IsMoveConstructible.h"
 #include "Trinity/Core/TypeTraits/IsCopyAssignable.h"
+#include "Trinity/Core/TypeTraits/IsCopyConstructible.h"
 #include "Trinity/Core/TypeTraits/IsMoveAssignable.h"
+#include "Trinity/Core/TypeTraits/IsMoveConstructible.h"
+#include "Trinity/Core/TypeTraits/Trivial.h"
 
 #include "Trinity/Core/Assert/AssertionMacros.h"
 
@@ -186,7 +186,7 @@ public:
 	}
 
 public:
-	TRNT_FORCE_INLINE SizeType Length() const noexcept
+	TRNT_FORCE_INLINE SizeType GetElementCount() const noexcept
 	{
 		return Len;
 	}
@@ -781,7 +781,7 @@ public:
 	}
 
 	template<typename Function>
-	void ForEachTInternal(Function Func)
+	void ForEachInternal(Function Func)
 	{
 		for (SizeType Index = 0; Index < Len; ++Index)
 		{

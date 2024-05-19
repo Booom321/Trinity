@@ -2,8 +2,8 @@
 
 #include <initializer_list>
 
-#include "Trinity/Core/Defines.h"
 #include "Trinity/Core/Assert/AssertionMacros.h"
+#include "Trinity/Core/Defines.h"
 #include "Trinity/Core/Types/DataTypes.h"
 #include "Trinity/Core/TypeTraits/RemoveReference.h"
 
@@ -132,14 +132,14 @@ public:
 	{}
 
 public:
-	TRNT_FORCE_INLINE NodeType& operator*() { return *CurrentNode; }
-	TRNT_FORCE_INLINE const NodeType& operator*() const { return *CurrentNode; }
+	TRNT_FORCE_INLINE ElementType& operator*() { return CurrentNode->Value; }
+	TRNT_FORCE_INLINE const ElementType& operator*() const { return CurrentNode->Value; }
 
-	TRNT_FORCE_INLINE NodeType* operator->() { return CurrentNode; }
-	TRNT_FORCE_INLINE const NodeType* operator->() const { return CurrentNode; }
+	TRNT_FORCE_INLINE ElementType* operator->() { return &CurrentNode->Value; }
+	TRNT_FORCE_INLINE const ElementType* operator->() const { return &CurrentNode->Value; }
 
-	TRNT_FORCE_INLINE ElementType& GetValue() { return CurrentNode->Value; }
-	TRNT_FORCE_INLINE ElementType& GetValue() const { return CurrentNode->Value; }
+	TRNT_FORCE_INLINE NodeType* GetNode() { return CurrentNode; }
+	TRNT_FORCE_INLINE const NodeType* GetNode() const { return CurrentNode; }
 
 public:
 	TRNT_FORCE_INLINE TBool operator==(const LinkedListIteratorType<NodeType, ElementType>& Rhs) const { return CurrentNode == Rhs.CurrentNode; }
@@ -177,8 +177,7 @@ public:
 public:
 	TRNT_FORCE_INLINE TSinglyLinkedListIterator(NodeType* CurrentNode)
 		: Super(CurrentNode)
-	{
-	}
+	{}
 
 public:
 	TRNT_FORCE_INLINE TSinglyLinkedListIterator& operator++()
@@ -402,7 +401,7 @@ public:
 	}
 
 public:
-	TRNT_FORCE_INLINE SizeType Length() const
+	TRNT_FORCE_INLINE SizeType GetElementCount() const
 	{
 		return ElementCount;
 	}
@@ -807,12 +806,14 @@ public:
 	~TDoublyLinkedList()
 	{
 		LinkedListHelper::Clear(*this);
+		Tail = nullptr;
 	}
 
 public:
 	void Clear()
 	{
 		LinkedListHelper::Clear(*this);
+		Tail = nullptr;
 	}
 
 public:
@@ -934,7 +935,7 @@ public:
 
 
 public:
-	TRNT_FORCE_INLINE SizeType Length() const
+	TRNT_FORCE_INLINE SizeType GetElementCount() const
 	{
 		return ElementCount;
 	}
@@ -1224,7 +1225,7 @@ public:
 
 	NodeType* RemoveAt(NodeType* NodePosition)
 	{
-		if (ElementCount == 0 /*&& NodePosition == nullptr*/)
+		if (ElementCount == 0 || NodePosition == nullptr)
 		{
 			return nullptr;
 		}

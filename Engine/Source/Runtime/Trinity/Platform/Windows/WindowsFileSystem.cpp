@@ -1,14 +1,13 @@
-#include "Trinity/Platform/FileSystem.h"
+#include "Trinity/Core/PlatformDetection.h"
 
 #if defined(TRNT_PLATFORM_WIN64)
-
-#include "WindowsDeclarations.h"
 
 #include <Windows.h>
 #include <shlwapi.h>
 
-#undef DeleteFile
-#undef CreateDirectory
+#include "Trinity/Platform/FileSystem.h"
+
+#include "WindowsDeclarations.h"
 
 TBool TFileSystem::FileExists(const TChar* FilePath)
 {
@@ -67,7 +66,7 @@ TBool TFileSystem::IsDirectory(const TChar* Path)
 {
 	DWORD FileAttributes = GetFileAttributesA(Path);
 
-	return ((FileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0) ? true : false;
+	return (FileAttributes & FILE_ATTRIBUTE_DIRECTORY);
 }
 
 TBool TFileSystem::CopyFileOrDirectory(const TChar* From, const TChar* To)
@@ -110,6 +109,52 @@ TBool TFileSystem::IsAbsolute(const TChar* Path)
 TBool TFileSystem::IsRelative(const TChar* Path)
 {
 	return PathIsRelativeA(Path);
+}
+
+TBool TFileSystem::GetFilesInDirectory(const TString& Directory, TDynamicArray<TString>& Output, TBool Files, TBool Directories)
+{
+	if (Directory.GetElementCount() == 0)
+	{
+		return false;
+	}
+
+	TChar LastChar = Directory.Last();
+	TString TempDirectory = (LastChar == 47 || LastChar == 92) ? Directory : (Directory + "/");
+
+	WIN32_FIND_DATAA FindData;
+	TWindowsHandle HFind = FindFirstFileA(TString(TempDirectory + "*").GetData(), &FindData);
+
+	if (HFind == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+
+	FindNextFileA(HFind, &FindData); // skip  "."
+	FindNextFileA(HFind, &FindData); // skip  ".."
+
+	do
+	{
+		if (Files)
+		{
+			if (!(FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+			{
+				Output.EmplaceBack(TempDirectory + FindData.cFileName);
+			}
+		}
+
+		if (Directories)
+		{
+			if (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+			{
+				Output.EmplaceBack(TempDirectory + FindData.cFileName);
+			}
+		}
+	} 
+	while (FindNextFileA(HFind, &FindData));
+
+	FindClose(HFind);
+
+	return true;
 }
 
 #endif // PLATFORM_WINDOWS

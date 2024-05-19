@@ -25,7 +25,7 @@ TRNT_DECLARE_LOG_INFO(Window, TLogLevel::EDebug);
 class TWindowProperties
 {
 public:
-	TString Title = "Fury Engine";
+	TString Title = "Trinity Engine";
 
 	TUInt32 Width = 1280;
 	TUInt32 Height = 720;
@@ -176,8 +176,8 @@ private:
 };
 
 #if defined(TRNT_USE_GLFW)
-static TRNT_API TKeyCode ConvertGlfwKeyToFKeyCode(TInt32 GlfwKeyCode);
-static TRNT_API TMouseButton ConvertGlfwMouseToFMouseButton(TInt32 Button);
+static TRNT_API TKeyCode ConvertGlfwKeyToTKeyCode(TInt32 GlfwKeyCode);
+static TRNT_API TMouseButton ConvertGlfwMouseToTMouseButton(TInt32 Button);
 #elif defined(TRNT_PLATFORM_WIN64)
 
 #else

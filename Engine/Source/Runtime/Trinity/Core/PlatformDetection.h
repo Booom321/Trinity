@@ -4,7 +4,7 @@
 #	if defined(_WIN64)
 #		define TRNT_PLATFORM_WIN64
 #	else
-#		error "x32 and x86 are not supported!"
+#		error "x86 are not supported!"
 #	endif
 #elif defined(__APPLE__) || defined(__MACH__)
 #	include <TargetConditionals.h>

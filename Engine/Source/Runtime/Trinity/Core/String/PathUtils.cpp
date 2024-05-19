@@ -1,6 +1,6 @@
-#include "FileSystem.h"
+#include "PathUtils.h"
 
-TString TFileSystem::GetFileName(const TChar* Path)
+TString TPathUtils::GetFileName(const TChar* Path)
 {
 	if (!Path || !*Path)
 	{
@@ -13,7 +13,7 @@ TString TFileSystem::GetFileName(const TChar* Path)
 	return (Found) ? TString(static_cast<TInt64>(PathLen - (Found - Path)), Found) : "";
 }
 
-TString TFileSystem::GetFileNameWithoutExtension(const TChar* Path)
+TString TPathUtils::GetFileNameWithoutExtension(const TChar* Path)
 {
 	if (!Path || !*Path)
 	{
@@ -38,7 +38,7 @@ TString TFileSystem::GetFileNameWithoutExtension(const TChar* Path)
 	return TString(static_cast<TInt64>(FoundExtension - FoundSlash), ++FoundSlash);
 }
 
-TString TFileSystem::GetFileExtension(const TChar* Path)
+TString TPathUtils::GetFileExtension(const TChar* Path)
 {
 	if (!Path || !*Path)
 	{
@@ -51,7 +51,7 @@ TString TFileSystem::GetFileExtension(const TChar* Path)
 }
 
 
-TString TFileSystem::RemoveFileExtension(const TChar* Path)
+TString TPathUtils::RemoveFileExtension(const TChar* Path)
 {
 	if (!Path || !*Path)
 	{
@@ -63,25 +63,72 @@ TString TFileSystem::RemoveFileExtension(const TChar* Path)
 	return (Found) ? TString(static_cast<TInt64>(Found - Path), Path) : Path;
 }
 
-void TFileSystem::NormalizePath(TChar* Path)
+void TPathUtils::NormalizePath(TString& Path)
 {
-	if (!Path || !*Path)
+	if (Path.IsEmpty())
 	{
 		return;
 	}
 
-#if defined(TRNT_PLATFORM_WIN64)
-	TChar* Found = strchr(Path, '\\');
+	TChar* PathData = Path.GetData();
+
+	TChar* Found = ::strchr(PathData, '\\');
 
 	while (Found)
 	{
 		*Found = '/';
 		Found = strchr(Found, '\\');
 	}
-#endif
+
+	TDynamicArray<TString> StringArr;
+	TInt64 PathLen = Path.GetElementCount();
+
+	TString Tmp;
+	for (TInt64 Index = 0; Index < PathLen; ++Index)
+	{
+		Tmp = "";
+
+		while (Index < PathLen && Path[Index] != '/')
+		{
+			Tmp += Path[Index];
+			++Index;
+		}
+
+		const TChar* TmpData = Tmp.GetData();
+
+		if (strcmp(TmpData, "..") == 0)
+		{
+			if (!StringArr.IsEmpty())
+			{
+				StringArr.Pop();
+			}
+		}
+		else if (strcmp(TmpData, ".") == 0 || !*TmpData)
+		{
+
+		}
+		else
+		{
+			StringArr.EmplaceBack(Tmp);
+		}
+	}
+
+	Path = "";
+	TInt64 ElementCount = StringArr.GetElementCount();
+	const TString* StringArrData = StringArr.GetData();
+	for (TInt64 Index = 0; Index < ElementCount; ++Index)
+	{
+		Path += StringArrData[Index];
+		Path += "/";
+	}
+
+	if (Path.IsEmpty())
+	{
+		Path = "/";
+	}
 }
 
-TString TFileSystem::ParentPathOf(const TChar* Path)
+TString TPathUtils::ParentPathOf(const TChar* Path)
 {
 	if (!Path || !*Path)
 	{
@@ -95,7 +142,7 @@ TString TFileSystem::ParentPathOf(const TChar* Path)
 	return (FoundSlash) ? TString(static_cast<TInt64>(FoundSlash - Path) + 1, Path) : "";
 }
 
-void TFileSystem::ResolvePath(const TChar* OriginalPath, TString* Extension, TString* FileName, TString* FileNameWithoutExtension, TString* ParentPath)
+void TPathUtils::ResolvePath(const TChar* OriginalPath, TString* Extension, TString* FileName, TString* FileNameWithoutExtension, TString* ParentPath)
 {
 	if (!OriginalPath || !*OriginalPath)
 	{

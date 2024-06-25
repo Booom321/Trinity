@@ -18,6 +18,8 @@
 
 #include "Trinity/Core/Containers/DynamicArray.h"
 
+#include <fmt/format.h>
+
 enum class TStringSearchCase : TInt8
 {
 	EIgnoreCase,
@@ -1139,6 +1141,11 @@ public:
 		Append(PathString, PathLen);
 	}
 
+	TRNT_FORCE_INLINE void AppendPath(ConstPointerType PathString)
+	{
+		return AppendPath(PathString, CStringHelper::Strlen(PathString));
+	}
+
 	TRNT_FORCE_INLINE TStringBase& operator/=(ConstPointerType PathString)
 	{
 		AppendPath(PathString, CStringHelper::Strlen(PathString));
@@ -1178,6 +1185,19 @@ public:
 		TStringBase Result(Move(PathA));
 		Result.AppendPath(PathB, CStringHelper::Strlen(PathB));
 		return Result;
+	}
+
+public:
+	template<typename... FormatArgs>
+	static TRNT_NODISCARD TStringBase Format(ConstPointerType FormatString, FormatArgs&&... Args)
+	{
+		using FmtBufferedContext	= fmt::buffered_context<ElementType>;
+		using FmtFormatArgs			= fmt::basic_format_args<FmtBufferedContext>;
+		using FmtMemoryBuffer		= fmt::basic_memory_buffer<ElementType>;
+
+		FmtMemoryBuffer MemoryBuffer = FmtMemoryBuffer();
+		fmt::detail::vformat_to<ElementType>(MemoryBuffer, FormatString, fmt::make_format_args<FmtBufferedContext>(Args...));
+		return TStringBase(MemoryBuffer.size(), MemoryBuffer.data());
 	}
 
 private:

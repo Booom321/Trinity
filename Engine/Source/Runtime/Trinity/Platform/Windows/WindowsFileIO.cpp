@@ -1,3 +1,4 @@
+#include "TrinityPCH.h"
 #include "Trinity/Platform/FileIO.h"
 
 #if defined (TRNT_PLATFORM_WIN64)

@@ -1,3 +1,5 @@
+#include "TrinityPCH.h"
+
 #include "PathUtils.h"
 
 TString TPathUtils::GetFileName(const TChar* Path)

@@ -1,6 +1,4 @@
-#include "Log.h"
-
-#include <stdio.h>
+#include "TrinityPCH.h"
 
 #pragma warning(push)
 #pragma warning(disable: 4996)
@@ -9,23 +7,6 @@
 TMutex TLog::LogMutex;
 FILE* TLog::OutputLogFile = nullptr;
 typename TLog::LogMessageHandlerList TLog::MessageHandlers;
-
-void TLog::AddMessageHandlerCallback(TLogMessageHandlerCallback Callback)
-{
-	LogMutex.Lock();
-	if (!MessageHandlers.Contains(Callback))
-	{
-		MessageHandlers.InsertAtTail(new LogMessageHandlerList::NodeType(Callback));
-	}
-	LogMutex.Unlock();
-}
-
-void TLog::RemoveMessageHandlerCallback(TLogMessageHandlerCallback Callback)
-{
-	LogMutex.Lock();
-	MessageHandlers.RemoveAt(MessageHandlers.Find(Callback));
-	LogMutex.Unlock();
-}
 
 FILE* TLog::OpenLogFile(const TChar* Filename, TBool EnableToAppend)
 {
@@ -64,6 +45,13 @@ void TLog::Initialize()
 void TLog::Shutdown()
 {
 	// implement later!
+}
+
+void TLog::ClearAllMessageHandlerCallbacks()
+{
+	LogMutex.Lock();
+	MessageHandlers.Clear();
+	LogMutex.Unlock();
 }
 
 void TLog::DefaultStdoutMessageHandler(TLogLevel LogLevel, const TChar* FormattedMessageA, TSize_T FormattedMessageALen, const TWChar* FormattedMessageW, TSize_T FormattedMessageWLen)

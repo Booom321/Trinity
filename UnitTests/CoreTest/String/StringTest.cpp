@@ -1,4 +1,4 @@
-#include "StringTest.h"
+﻿#include "StringTest.h"
 
 #include <Trinity/Core/String/String.h>
 #include <Trinity/Core/Logging/Log.h>
@@ -10,6 +10,7 @@ static TRNT_FORCE_INLINE TBool Check(const TString& Str, const TChar* ExpectedSt
 {
 	return Str == ExpectedStr && Str.GetElementCount() == ExpectedStrLen && Str.Capacity() >= ExpectedStrLen;
 }
+#include <Trinity/Core/Logging/Log.h>
 
 TRNT_IMPL_TEST_CASE(Strings, TString)
 {
@@ -370,5 +371,34 @@ TRNT_IMPL_TEST_CASE(Strings, TString)
 		TString s1("  abcdef       ");
 		s1.TrimStartAndEndInternal();
 		TRNT_TEST_EXPECT_TRUE(Check(s1, "abcdef", 6));
+	}
+
+	// TString::Format
+	{
+		TString Formatted = TString::Format("{} {} {} {}", "aaaa", 1, 1.4f, true);
+		TRNT_TEST_EXPECT_TRUE(Check(Formatted, "aaaa 1 1.4 true", 15));
+	}
+
+	{
+		TString Path = "";
+		Path /= "dir1";
+		Path /= "/dir2";
+		Path /= "dir3/";
+		Path /= "/dir4/";
+
+		TRNT_TEST_EXPECT_TRUE(Check(Path, "dir1/dir2/dir3/dir4/", 20));
+
+		Path /= "";
+		TRNT_TEST_EXPECT_TRUE(Check(Path, "dir1/dir2/dir3/dir4/", 20));
+
+		TString Dir1 = "C:/dir1";
+		TString Dir2 = "dir2/";
+
+		Path = Dir1 / Dir2;
+		
+		TRNT_TEST_EXPECT_TRUE(Check(Path, "C:/dir1/dir2/", 13));
+
+		Path = Dir1 / "other_dir_1/other_dir_2";
+		TRNT_TEST_EXPECT_TRUE(Check(Path, "C:/dir1/other_dir_1/other_dir_2", 31));
 	}
 }

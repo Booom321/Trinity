@@ -1,19 +1,23 @@
+#include "TrinityPCH.h"
 #include "CommandLine.h"
 
-TCommandLineParser* TCommandLineParser::Instance = nullptr;
+TCommandLineParser TCommandLineParser::Instance = TCommandLineParser();
 
-void TCommandLineParser::DeleteInstance()
+TCommandLineParser::~TCommandLineParser()
 {
-	if (!Instance)
+	CommandLineArgs.Clear();
+	CommandLineOptions.Clear();
+}
+
+void TCommandLineParser::Delete(TCommandLineParser* CmdLineParser)
+{
+	if (!CmdLineParser)
 	{
 		return;
 	}
-	
-	Instance->CommandLineOptions.Clear();
-	Instance->CommandLineArgs.Clear();
 
-	delete Instance;
-	Instance = nullptr;
+	delete CmdLineParser;
+	return;
 }
 
 void TCommandLineParser::SetCommandLine(TInt32 ArgCount, TChar** ArgV)
@@ -97,9 +101,9 @@ TBool TCommandLineParser::Parse()
 		}
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		TInt64 FoundIndex = CommandLineOptions.FindElementIf([&Argument](const TCommandLineOption& Option) -> TBool
-			{
-				return Option.OptName == Argument;
-			});
+		{
+			return Option.OptName == Argument;
+		});
 
 		if (FoundIndex == TDynamicArray<TCommandLineOption>::Npos)
 		{
@@ -127,7 +131,7 @@ TBool TCommandLineParser::Parse()
 	return true;
 }
 
-TRNT_NODISCARD TString TCommandLineParser::GetStringOption(const TString& OptionName, TStringSearchCase SearchCase)
+TRNT_NODISCARD TBool TCommandLineParser::GetStringOption(TString& Value, const TString& OptionName, TStringSearchCase SearchCase)
 {
 	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
 		{
@@ -136,15 +140,16 @@ TRNT_NODISCARD TString TCommandLineParser::GetStringOption(const TString& Option
 
 	if (Index == TDynamicArray<TCommandLineOption>::Npos)
 	{
-		return "";
+		return false;
 	}
 
 	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EString);
 
-	return CommandLineOptions[Index].Value;
+	Value = CommandLineOptions[Index].Value;
+	return true;
 }
 
-TRNT_NODISCARD TBool TCommandLineParser::GetBooleanOption(const TString& OptionName, TStringSearchCase SearchCase)
+TRNT_NODISCARD TBool TCommandLineParser::GetBooleanOption(TBool& Value, const TString& OptionName, TStringSearchCase SearchCase)
 {
 	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
 		{
@@ -158,10 +163,11 @@ TRNT_NODISCARD TBool TCommandLineParser::GetBooleanOption(const TString& OptionN
 	
 	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EBool);
 
-	return TNsStringConversion::StringToBool(CommandLineOptions[Index].Value);
+	Value = TNsStringConversion::StringToBool(CommandLineOptions[Index].Value);
+	return true;
 }
 
-TRNT_NODISCARD TFloat TCommandLineParser::GetFloatOption(const TString& OptionName, TStringSearchCase SearchCase)
+TRNT_NODISCARD TBool TCommandLineParser::GetFloatOption(TFloat& Value, const TString& OptionName, TStringSearchCase SearchCase)
 {
 	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
 		{
@@ -170,15 +176,16 @@ TRNT_NODISCARD TFloat TCommandLineParser::GetFloatOption(const TString& OptionNa
 
 	if (Index == TDynamicArray<TCommandLineOption>::Npos)
 	{
-		return 0.0f;
+		return false;
 	}
 
 	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EFloat);
 
-	return strtof(CommandLineOptions[Index].Value.GetData(), nullptr);
+	Value = ::strtof(CommandLineOptions[Index].Value.GetData(), nullptr);
+	return true;
 }
 
-TRNT_NODISCARD TDouble TCommandLineParser::GetDoubleOption(const TString& OptionName, TStringSearchCase SearchCase)
+TRNT_NODISCARD TBool TCommandLineParser::GetDoubleOption(TDouble& Value, const TString& OptionName, TStringSearchCase SearchCase)
 {
 	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
 		{
@@ -187,15 +194,16 @@ TRNT_NODISCARD TDouble TCommandLineParser::GetDoubleOption(const TString& Option
 
 	if (Index == TDynamicArray<TCommandLineOption>::Npos)
 	{
-		return 0.0;
+		return false;
 	}
 
 	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EDouble);
 
-	return ::atof(CommandLineOptions[Index].Value.GetData());
+	Value = ::atof(CommandLineOptions[Index].Value.GetData());
+	return true;
 }
 
-TRNT_NODISCARD TInt32 TCommandLineParser::GetInt32Option(const TString& OptionName, TStringSearchCase SearchCase)
+TRNT_NODISCARD TBool TCommandLineParser::GetInt32Option(TInt32& Value, const TString& OptionName, TStringSearchCase SearchCase)
 {
 	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
 		{
@@ -204,15 +212,16 @@ TRNT_NODISCARD TInt32 TCommandLineParser::GetInt32Option(const TString& OptionNa
 
 	if (Index == TDynamicArray<TCommandLineOption>::Npos)
 	{
-		return 0;
+		return false;
 	}
 
 	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EInt32);
 
-	return ::atoi(CommandLineOptions[Index].Value.GetData());
+	Value = ::atoi(CommandLineOptions[Index].Value.GetData());
+	return true;
 }
 
-TRNT_NODISCARD TUInt32 TCommandLineParser::GetUInt32Option(const TString& OptionName, TStringSearchCase SearchCase)
+TRNT_NODISCARD TBool TCommandLineParser::GetUInt32Option(TUInt32& Value, const TString& OptionName, TStringSearchCase SearchCase)
 {
 	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
 		{
@@ -221,15 +230,16 @@ TRNT_NODISCARD TUInt32 TCommandLineParser::GetUInt32Option(const TString& Option
 
 	if (Index == TDynamicArray<TCommandLineOption>::Npos)
 	{
-		return 0;
+		return false;
 	}
 
 	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EUInt32);
 
-	return TNsStringConversion::StringToUInt32(CommandLineOptions[Index].Value);
+	Value = TNsStringConversion::StringToUInt32(CommandLineOptions[Index].Value);
+	return true;
 }
 
-TRNT_NODISCARD TInt64 TCommandLineParser::GetInt64Option(const TString& OptionName, TStringSearchCase SearchCase)
+TRNT_NODISCARD TBool TCommandLineParser::GetInt64Option(TInt64& Value, const TString& OptionName, TStringSearchCase SearchCase)
 {
 	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
 		{
@@ -238,15 +248,16 @@ TRNT_NODISCARD TInt64 TCommandLineParser::GetInt64Option(const TString& OptionNa
 
 	if (Index == TDynamicArray<TCommandLineOption>::Npos)
 	{
-		return 0;
+		return false;
 	}
 
 	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EInt64);
 
-	return ::atoll(CommandLineOptions[Index].Value.GetData());
+	Value = ::atoll(CommandLineOptions[Index].Value.GetData());
+	return true;
 }
 
-TRNT_NODISCARD TUInt64 TCommandLineParser::GetUInt64Option(const TString& OptionName, TStringSearchCase SearchCase)
+TRNT_NODISCARD TBool TCommandLineParser::GetUInt64Option(TUInt64& Value, const TString& OptionName, TStringSearchCase SearchCase)
 {
 	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
 		{
@@ -255,10 +266,11 @@ TRNT_NODISCARD TUInt64 TCommandLineParser::GetUInt64Option(const TString& Option
 
 	if (Index == TDynamicArray<TCommandLineOption>::Npos)
 	{
-		return 0;
+		return false;
 	}
 
 	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EUInt64);
 
-	return TNsStringConversion::StringToUInt64(CommandLineOptions[Index].Value);
+	Value = TNsStringConversion::StringToUInt64(CommandLineOptions[Index].Value);
+	return true;
 }

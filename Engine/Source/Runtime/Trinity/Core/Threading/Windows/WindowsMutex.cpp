@@ -1,3 +1,4 @@
+#include "TrinityPCH.h"
 #include "Trinity/Core/Threading/Mutex.h"
 
 #if defined(TRNT_PLATFORM_WIN64)

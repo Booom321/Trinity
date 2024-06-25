@@ -6,11 +6,13 @@
 
 #include "Trinity/Core/Types/Pair.h"
 
+#include "Trinity/Core/Utilities/Singleton.h"
+
 #include "KeyCodes.h"
 #include "MouseButtons.h"
 #include "InputAction.h"
 
-class TRNT_API TInputManager
+class TRNT_API TInputManager : public TSingleton<TInputManager>
 {
 	class TData
 	{
@@ -87,17 +89,17 @@ public:
 public:
 	void SetCurrentMousePosition(TFloat MousePosX, TFloat MousePosY);
 
-	TRNT_FORCE_INLINE const TPair<TFloat, TFloat>& GetCurrentMousePosition()
+	TRNT_FORCE_INLINE const typename TData::PositionType& GetCurrentMousePosition()
 	{
 		return InputManagerData.CurrentMousePosition;
 	}
 
-	TRNT_FORCE_INLINE const TPair<TFloat, TFloat>& GetLastMousePosition()
+	TRNT_FORCE_INLINE const typename TData::PositionType& GetLastMousePosition()
 	{
 		return InputManagerData.LastMousePosition;
 	}
 
-	TRNT_FORCE_INLINE const TPair<TFloat, TFloat>& GetScrollDelta()
+	TRNT_FORCE_INLINE const typename TData::PositionType& GetScrollDelta()
 	{
 		return InputManagerData.ScrollDelta;
 	}
@@ -117,32 +119,6 @@ public:
 		InputManagerData.CursorIsHidden = Hidden;
 	}
 
-public:
-	static TRNT_FORCE_INLINE void Initialize()
-	{
-		if (!Instance)
-		{
-			Instance = new TInputManager();
-			Instance->Reset();
-		}
-	}
-
-	static TRNT_FORCE_INLINE TInputManager* GetInstance()
-	{
-		return Instance;
-	}
-
-	static TRNT_FORCE_INLINE void DeleteInstance()
-	{
-		if (Instance)
-		{
-			delete Instance;
-			Instance = nullptr;
-		}
-	}
-
 private:
-	static TInputManager* Instance;
-
 	TData InputManagerData;
 };

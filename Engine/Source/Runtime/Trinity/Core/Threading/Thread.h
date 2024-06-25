@@ -53,6 +53,8 @@ private:
 	static TThreadID MainThreadID;
 };
 
+TThreadID TThread::MainThreadID;
+
 #if defined(TRNT_PLATFORM_WIN64)
 #include "Windows/WindowsThreadImpl.h"
 #else

@@ -1,11 +1,7 @@
+#include "TrinityPCH.h"
+
 #include "Application.h"
-
-#include "Trinity/Platform/FileSystem.h"
-#include "Trinity/Core/String/PathUtils.h"
-
 #include "Trinity/Engine/EngineGlobals.h"
-
-#include "Trinity/Core/Logging/Log.h"
 
 TApplication* TApplication::ApplicationInstance = nullptr;
 

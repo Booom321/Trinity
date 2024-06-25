@@ -8,7 +8,7 @@
 #if defined(TRNT_USE_GLFW)
 #include "Glfw/GlfwWindowHandle.h"
 using TWindowHandle = TGlfwWindowHandle;
-#elif defined(TRNT_PLATFORM_WIN64)
+#elif defined(TRNT_USE_WINDOWS_WINDOW)
 #include "Windows/WindowsWindowHandle.h"
 using TWindowHandle = TWindowsWindowHandle;
 #else
@@ -17,6 +17,8 @@ using TWindowHandle = TWindowsWindowHandle;
 
 #include "Trinity/Input/KeyCodes.h"
 #include "Trinity/Input/MouseButtons.h"
+#include "Trinity/Input/InputAction.h"
+#include "Trinity/Input/ModifierKeys.h"
 
 #include "Trinity/Core/Logging/Log.h"
 
@@ -35,14 +37,14 @@ public:
 
 	TBool Resizable = true;
 	TBool Borderless = false;
-	TBool TFloating = false;
+	TBool Floating = false;
 	TBool Fullscreen = false;
 };
 
 class TRNT_API TWindow
 {
 public:
-	TWindow(const TWindowProperties& WindowProperties);
+	TWindow(const TWindowProperties& WindowProperties, TBool ForceInit = false);
 
 	~TWindow();
 
@@ -79,7 +81,7 @@ public:
 
 	void SetBorderless(TBool Borderless);
 
-	void SetTFloating(TBool TFloating);
+	void SetFloating(TBool Floating);
 
 	void SetFullscreen(TBool Fullscreen);
 
@@ -88,6 +90,8 @@ public:
 	void SetClipboard(const TChar* String);
 
 	void SetCursorHide(TBool Hide);
+
+	void SetOpacity(TFloat Opacity);
 
 public:
 	void ProcessInput();
@@ -126,7 +130,7 @@ public:
 
 	TRNT_FORCE_INLINE TBool IsBorderless() const { return WindowProperties.Borderless; }
 
-	TRNT_FORCE_INLINE TBool IsTFloating() const { return WindowProperties.TFloating; }
+	TRNT_FORCE_INLINE TBool IsFloating() const { return WindowProperties.Floating; }
 
 	TRNT_FORCE_INLINE TBool IsFullscreen() const { return WindowProperties.Fullscreen; }
 
@@ -137,6 +141,8 @@ public:
 	TRNT_FORCE_INLINE TBool CursorIsHidden() const { return CursorHidden; }
 
 	TRNT_FORCE_INLINE void* GetNativeHandle() const { return WindowHandle; }
+
+	TRNT_FORCE_INLINE TFloat GetOpacity() const { return Opacity; }
 
 private:
 	TWindowHandle WindowHandle;
@@ -156,6 +162,116 @@ private:
 	TBool Closed;
 
 	TBool CursorHidden;
+	TFloat Opacity;
+
+public:
+	using OnWindowMoveCallback			= void(*)(TWindow* Window, TInt32 XPos, TInt32 YPos);
+	using OnWindowResizeCallback		= void(*)(TWindow* Window, TInt32 Width, TInt32 Height);
+	using OnWindowCloseCallback			= void(*)(TWindow* Window);
+	using OnWindowFocusCallback			= void(*)(TWindow* Window, TBool Focused);
+	using OnWindowIconifyCallback		= void(*)(TWindow* Window, TBool Iconified);
+	using OnFramebufferSizeCallback		= void(*)(TWindow* Window, TInt32 Width, TInt32 Height);
+	using OnCursorEnterCallback			= void(*)(TWindow* Window, TBool CursorEntered);
+	using OnDropCallback				= void(*)(TWindow* Window, TInt32 Count, const TChar** Paths);
+	using OnKeyCallback					= void(*)(TWindow* Window, TKeyCode Key, TInt32 Scancode, TInputAction Action, TModifierKey Mods);
+	using OnCharCallback				= void(*)(TWindow* Window, TChar Codepoint);
+	using OnMouseButtonCallback			= void(*)(TWindow* Window, TMouseButton Button, TInputAction Action, TModifierKey Mods);
+	using OnCursorPositionCallback		= void(*)(TWindow* Window, TDouble XPosition, TDouble YPosition);
+	using OnScrollCallback				= void(*)(TWindow* Window, TDouble XOffset, TDouble YOffset);
+
+	TRNT_FORCE_INLINE OnWindowMoveCallback GetWindowMoveCallback() const { return OnWindowMove; }
+	TRNT_FORCE_INLINE OnWindowResizeCallback GetWindowResizeCallback() const { return OnWindowResize; }
+	TRNT_FORCE_INLINE OnWindowCloseCallback GetWindowCloseCallback() const { return OnWindowClose; }
+	TRNT_FORCE_INLINE OnWindowFocusCallback GetWindowFocusCallback() const { return OnWindowFocus; }
+	TRNT_FORCE_INLINE OnWindowIconifyCallback GetWindowIconifyCallback() const { return OnWindowIconify; }
+	TRNT_FORCE_INLINE OnFramebufferSizeCallback GetFramebufferSizeCallback() const { return OnFramebufferSize; }
+	TRNT_FORCE_INLINE OnCursorEnterCallback GetCursorEnterCallback() const { return OnCursorEnter; }
+	TRNT_FORCE_INLINE OnDropCallback GetDropCallback() const { return OnDrop; }
+	TRNT_FORCE_INLINE OnKeyCallback GetKeyCallback() const { return OnKey; }
+	TRNT_FORCE_INLINE OnCharCallback GetCharCallback() const { return OnChar; }
+	TRNT_FORCE_INLINE OnMouseButtonCallback GetMouseButtonCallback() const { return OnMouseButton; }
+	TRNT_FORCE_INLINE OnCursorPositionCallback GetCursorPositionCallback() const { return OnCursorPosition; }
+	TRNT_FORCE_INLINE OnScrollCallback GetScrollCallback() const { return OnScroll; }
+
+	TRNT_FORCE_INLINE void SetWindowMoveCallback(OnWindowMoveCallback OnWindowMove)
+	{
+		this->OnWindowMove = OnWindowMove;
+	}
+
+	TRNT_FORCE_INLINE void SetWindowResizeCallback(OnWindowResizeCallback OnWindowResize)
+	{
+		this->OnWindowResize = OnWindowResize;
+	}
+
+	TRNT_FORCE_INLINE void SetWindowCloseCallback(OnWindowCloseCallback OnWindowClose)
+	{
+		this->OnWindowClose = OnWindowClose;
+	}
+
+	TRNT_FORCE_INLINE void SetWindowFocusCallback(OnWindowFocusCallback OnWindowFocus)
+	{
+		this->OnWindowFocus = OnWindowFocus;
+	}
+
+	TRNT_FORCE_INLINE void SetWindowIconifyCallback(OnWindowIconifyCallback OnWindowIconify)
+	{
+		this->OnWindowIconify = OnWindowIconify;
+	}
+
+	TRNT_FORCE_INLINE void SetFramebufferSizeCallback(OnFramebufferSizeCallback OnFramebufferSize)
+	{
+		this->OnFramebufferSize = OnFramebufferSize;
+	}
+
+	TRNT_FORCE_INLINE void SetCursorEnterCallback(OnCursorEnterCallback OnCursorEnter)
+	{
+		this->OnCursorEnter = OnCursorEnter;
+	}
+
+	TRNT_FORCE_INLINE void SetDropCallback(OnDropCallback OnDrop)
+	{
+		this->OnDrop = OnDrop;
+	}
+
+	TRNT_FORCE_INLINE void SetKeyCallback(OnKeyCallback OnKey)
+	{
+		this->OnKey = OnKey;
+	}
+
+	TRNT_FORCE_INLINE void SetCharCallback(OnCharCallback OnChar)
+	{
+		this->OnChar = OnChar;
+	}
+
+	TRNT_FORCE_INLINE void SetMouseButtonCallback(OnMouseButtonCallback OnMouseButton)
+	{
+		this->OnMouseButton = OnMouseButton;
+	}
+
+	TRNT_FORCE_INLINE void SetCursorPositionCallback(OnCursorPositionCallback OnCursorPosition)
+	{
+		this->OnCursorPosition = OnCursorPosition;
+	}
+
+	TRNT_FORCE_INLINE void SetScrollCallback(OnScrollCallback OnScroll)
+	{
+		this->OnScroll = OnScroll;
+	}
+
+private:
+	OnWindowMoveCallback OnWindowMove;
+	OnWindowResizeCallback OnWindowResize;
+	OnWindowCloseCallback OnWindowClose;
+	OnWindowFocusCallback OnWindowFocus;
+	OnWindowIconifyCallback OnWindowIconify;
+	OnFramebufferSizeCallback OnFramebufferSize;
+	OnCursorEnterCallback OnCursorEnter;
+	OnDropCallback OnDrop;
+	OnKeyCallback OnKey;
+	OnCharCallback OnChar;
+	OnMouseButtonCallback OnMouseButton;
+	OnCursorPositionCallback OnCursorPosition;
+	OnScrollCallback OnScroll;
 
 private:
 #if defined(TRNT_USE_GLFW)
@@ -178,8 +294,10 @@ private:
 #if defined(TRNT_USE_GLFW)
 static TRNT_API TKeyCode ConvertGlfwKeyToTKeyCode(TInt32 GlfwKeyCode);
 static TRNT_API TMouseButton ConvertGlfwMouseToTMouseButton(TInt32 Button);
-#elif defined(TRNT_PLATFORM_WIN64)
-
+static TRNT_API TInputAction ConvertGlfwInputActionToTInputAction(TInt32 Action);
+static TRNT_API TModifierKey ConvertGlfwModifierKeyToTModifierKey(TInt32 Mod);
+#elif defined(TRNT_USE_WINDOWS_WINDOW)
+// ...
 #else
 #	error "Current platform keycodes and mouse buttons cannot be converted to TKeyCode and TMouseButton!"
 #endif

@@ -14,11 +14,12 @@ project "Samples"
 
     includedirs
     {
-        "%{wks.location}/Engine/Source/Runtime",
+        "%{IncludeDirs.EngineRuntime}",
         "%{IncludeDirs.fmt}",
         "%{IncludeDirs.glfw}",
         "%{IncludeDirs.xxHash}",
-        "%{IncludeDirs.stb}"
+        "%{IncludeDirs.stb}",
+        "%{IncludeDirs.Vulkan}"
     }
 
     links
@@ -39,14 +40,21 @@ project "Samples"
         conformancemode "on"
         defines
         {
-            "TRNT_SUPPORTS_GLFW",
+            "TRNT_USE_VULKAN",
+            "TRNT_SUPPORT_GLFW",
             "WIN32_LEAN_AND_MEAN",
 			"_CRT_SECURE_NO_WARNINGS"
         }
-        
+
+        libdirs
+        {
+            VULKAN_SDK .. "/Lib"
+        }
+
         links
         {
-            "Shlwapi"
+            "Shlwapi",
+            "vulkan-1"
         }
 
     filter "configurations:Debug"

@@ -1,8 +1,7 @@
+#include "TrinityPCH.h"
 #include "InputManager.h"
 
 #include <cstring>
-
-TInputManager* TInputManager::Instance = nullptr;
 
 void TInputManager::Reset()
 {

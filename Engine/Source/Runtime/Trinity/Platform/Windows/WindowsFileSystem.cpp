@@ -1,11 +1,10 @@
-#include "Trinity/Core/PlatformDetection.h"
+#include "TrinityPCH.h"
 
 #if defined(TRNT_PLATFORM_WIN64)
 
-#include <Windows.h>
-#include <shlwapi.h>
+#define TRNT_WIN64_PATH_SEPARATOR "\\"
 
-#include "Trinity/Platform/FileSystem.h"
+#include <shlwapi.h>
 
 #include "WindowsDeclarations.h"
 
@@ -119,7 +118,7 @@ TBool TFileSystem::GetFilesInDirectory(const TString& Directory, TDynamicArray<T
 	}
 
 	TChar LastChar = Directory.Last();
-	TString TempDirectory = (LastChar == 47 || LastChar == 92) ? Directory : (Directory + "/");
+	TString TempDirectory = (LastChar == 47 || LastChar == 92) ? Directory : (Directory + TRNT_WIN64_PATH_SEPARATOR);
 
 	WIN32_FIND_DATAA FindData;
 	TWindowsHandle HFind = FindFirstFileA(TString(TempDirectory + "*").GetData(), &FindData);
@@ -139,6 +138,7 @@ TBool TFileSystem::GetFilesInDirectory(const TString& Directory, TDynamicArray<T
 			if (!(FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
 			{
 				Output.EmplaceBack(TempDirectory + FindData.cFileName);
+				continue;
 			}
 		}
 
@@ -147,6 +147,7 @@ TBool TFileSystem::GetFilesInDirectory(const TString& Directory, TDynamicArray<T
 			if (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			{
 				Output.EmplaceBack(TempDirectory + FindData.cFileName);
+				continue;
 			}
 		}
 	} 
@@ -156,5 +157,50 @@ TBool TFileSystem::GetFilesInDirectory(const TString& Directory, TDynamicArray<T
 
 	return true;
 }
+
+TBool TFileSystem::GetFilesInDirectoryRecursively(const TString& Directory, TDynamicArray<TString>& Output)
+{
+	if (Directory.GetElementCount() == 0)
+	{
+		return false;
+	}
+
+	TChar LastChar = Directory.Last();
+	TString TempDirectory = (LastChar == 47 || LastChar == 92) ? Directory : (Directory + TRNT_WIN64_PATH_SEPARATOR);
+
+	WIN32_FIND_DATAA FindData;
+	TWindowsHandle HFind = FindFirstFileA(TString(TempDirectory + "*").GetData(), &FindData);
+
+	if (HFind == INVALID_HANDLE_VALUE)
+	{
+		return false;
+	}
+
+	FindNextFileA(HFind, &FindData); // skip  "."
+	FindNextFileA(HFind, &FindData); // skip  ".."
+
+	do
+	{
+		if (!(FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+		{
+			Output.EmplaceBack(TempDirectory / FindData.cFileName);
+			continue;
+		}
+
+		if (FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+		{
+			if (!GetFilesInDirectoryRecursively(TempDirectory / FindData.cFileName, Output))
+			{
+				return false;
+			}
+		}
+	}
+	while (FindNextFileA(HFind, &FindData));
+
+	FindClose(HFind);
+
+	return true;
+}
+
 
 #endif // PLATFORM_WINDOWS

@@ -37,7 +37,7 @@ TRNT_DECLARE_LOG_INFO(Default, TLogLevel::EDebug);
 
 using TLogMessageHandlerCallback = void(*)(TLogLevel LogLevel, const TChar* FormattedMessageA, TSize_T FormattedMessageALen, const TWChar* FormattedMessageW, TSize_T FormattedMessageWLen);
 
-class TLog
+class TRNT_API TLog
 {
 private:
 	static constexpr const TChar* LogLevelToCString[6] = {
@@ -209,9 +209,34 @@ private:
 	}
 
 public:
-	static void AddMessageHandlerCallback(TLogMessageHandlerCallback Callback);
+	template<typename Function>
+	static void AddMessageHandlerCallback(Function Callback)
+	{
+		static_assert(!TIsClass<Function>::Value, "Lambda functions are not allowed!");
+		static_assert(TAreTheSameType<Function, TLogMessageHandlerCallback>::Value);
+		
+		LogMutex.Lock();
+		if (!MessageHandlers.Contains(Callback))
+		{
+			MessageHandlers.InsertAtTail(new LogMessageHandlerList::NodeType(Callback));
+		}
+		LogMutex.Unlock();
+	}
+	
+	template<typename Function>
+	static void RemoveMessageHandlerCallback(Function Callback)
+	{
+		static_assert(!TIsClass<Function>::Value, "Lambda functions are not allowed!");
+		static_assert(TAreTheSameType<Function, TLogMessageHandlerCallback>::Value);
 
-	static void RemoveMessageHandlerCallback(TLogMessageHandlerCallback Callback);
+		LogMutex.Lock();
+		typename LogMessageHandlerList::NodeType* Found = MessageHandlers.Find(Callback);
+		if (Found)
+		{
+			MessageHandlers.RemoveAt(Found);
+		}
+		LogMutex.Unlock();
+	}
 	
 	static FILE* OpenLogFile(const TChar* Filename, TBool EnableToAppend = false);
 
@@ -220,6 +245,8 @@ public:
 	static void Initialize();
 
 	static void Shutdown();
+
+	static void ClearAllMessageHandlerCallbacks();
 
 public:
 	static void DefaultStdoutMessageHandler(TLogLevel LogLevel, const TChar* FormattedMessageA, TSize_T FormattedMessageALen, const TWChar* FormattedMessageW, TSize_T FormattedMessageWLen);

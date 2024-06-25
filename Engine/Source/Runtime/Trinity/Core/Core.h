@@ -25,6 +25,9 @@
 #include "Logging/Log.h"
 #include "Logging/LogLevel.h"
 
+#include "Math/Math.h"
+
+#include "TypeTraits/Conjunction.h"
 #include "TypeTraits/Decay.h"
 #include "TypeTraits/EnableIf.h"
 #include "TypeTraits/IsBitwiseConstructible.h"
@@ -54,8 +57,11 @@
 #include "Utilities/Singleton.h"
 
 #include "String/String.h"
+#include "String/PathUtils.h"
 #include "String/StringConversion.h"
 
 #include "Threading/LockGuard.h"
 #include "Threading/Mutex.h"
 #include "Threading/Thread.h"
+
+#include "Memory/Memory.h"

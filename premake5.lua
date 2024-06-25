@@ -11,15 +11,11 @@ workspace( WorkspaceSettings.Name )
 	configurations { "Debug", "Release" }
 	flags { "MultiProcessorCompile" }
 	startproject "UnitTests"
-
 -----------------------------------------------------------------------------------------------------------------------------
-
-group "ThirdParty"
-	include "Engine/ThirdParty/glfw/premake5"
-group ""
-
+	group "ThirdParty"
+		include "Engine/ThirdParty/glfw/premake5"
+	group ""
 -----------------------------------------------------------------------------------------------------------------------------
-
-include "Engine/premake5"
-include "Samples/premake5"
-include "UnitTests/premake5"
+	include "Engine/premake5"
+	include "Samples/premake5"
+	include "UnitTests/premake5"

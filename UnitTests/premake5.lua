@@ -9,7 +9,8 @@ project "UnitTests"
 
     files 
     {
-        "TestMain.cpp",
+        "*.h",
+        "*.cpp",
 
         "CoreTest/**.h",
         "CoreTest/**.cpp",
@@ -21,21 +22,20 @@ project "UnitTests"
     includedirs
     {
         "%{prj.location}",
-        "%{wks.location}/Engine/Source/Runtime",
+
+        "%{IncludeDirs.EngineRuntime}",
         "%{IncludeDirs.fmt}",
         "%{IncludeDirs.xxHash}"
     }
 
     links
     {
-        "Engine",
-        "Glfw"
+        "Engine"
     }
 
     defines
     {
         "FMT_HEADER_ONLY",
-        "STB_IMAGE_IMPLEMENTATION",
         "TRNT_ROOT_DIRECTORY="..__ROOT_DIRECTORY__
     }
 
@@ -44,7 +44,6 @@ project "UnitTests"
         conformancemode "on"
         defines
         {
-            "TRNT_SUPPORTS_GLFW",
             "WIN32_LEAN_AND_MEAN",
 			"_CRT_SECURE_NO_WARNINGS"
         }

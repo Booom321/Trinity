@@ -4,6 +4,7 @@
 
 enum class TInputAction : TInt8
 {
+	EUnknown = -1,
 	EPress,
 	ERelease,
 	ERepeat,

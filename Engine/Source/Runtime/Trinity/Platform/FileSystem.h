@@ -13,7 +13,6 @@
 #	undef GetCurrentDirectory
 #endif // TRNT_PLATFORM_WIN64
 
-
 class TRNT_API TFileSystem
 {
 public:
@@ -26,8 +25,10 @@ public:
 	static TBool MoveFileOrDirectory(const TChar* From, const TChar* To);
 
 	static TInt64 GetFileSize(const TChar* FilePath);
-
+	
 	static TBool GetFilesInDirectory(const TString& Directory, TDynamicArray<TString>& Output, TBool Files = true, TBool Directories = true);
+
+	static TBool GetFilesInDirectoryRecursively(const TString& Directory, TDynamicArray<TString>& Output);
 
 public:
 	static TBool DirectoryExists(const TChar* DirectoryPath);

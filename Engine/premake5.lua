@@ -2,7 +2,11 @@ project "Engine"
     kind "StaticLib"
     language "C++"
     cppdialect "C++17"
-    staticruntime "off"
+    staticruntime "Off"
+    editandcontinue "Off"
+
+    pchheader("TrinityPCH.h")
+    pchsource("Source/PCH/TrinityPCH.cpp")
 
     targetdir ("%{wks.location}/BinOutput/" .. WorkspaceSettings.OutputDir .. "/%{prj.name}")
 	objdir ("%{wks.location}/BinIntermediate/" .. WorkspaceSettings.OutputDir .. "/%{prj.name}")
@@ -14,15 +18,18 @@ project "Engine"
 
     files 
     {
-        "Source/Runtime/**.h",
-        "Source/Runtime/**.cpp"
+        "Source/PCH/*.h",
+        "Source/PCH/*.cpp",
+        EngineRuntimeLocation.."/**.h",
+        EngineRuntimeLocation.."/**.cpp"
     }
 
     includedirs
     {
-        "%{wks.location}/Engine/Source/Runtime",
-        "%{IncludeDirs.fmt}",
+        "Source/PCH",
+        "%{IncludeDirs.EngineRuntime}",
         "%{IncludeDirs.glfw}",
+        "%{IncludeDirs.fmt}",
         "%{IncludeDirs.xxHash}",
         "%{IncludeDirs.stb}",
         "%{IncludeDirs.Vulkan}"
@@ -34,20 +41,39 @@ project "Engine"
         "STB_IMAGE_IMPLEMENTATION",
         "TRNT_ROOT_DIRECTORY="..__ROOT_DIRECTORY__
     }
+    
+    filter 'files:ThirdParty/**.cpp'
+        flags  { "NoPCH" }
+    filter 'files:ThirdParty/**.c'
+        flags  { "NoPCH" }
+    filter { "files:ThirdParty/**"}
+        warnings "Off"
 
     filter "system:windows"
         systemversion "latest"
         conformancemode "on"
         defines
         {
-            "TRNT_SUPPORTS_GLFW",
+            ---- RHI ------------------
+            "TRNT_USE_NULL_RHI",
+            "TRNT_USE_VULKAN_RHI",
+            "TRNT_USE_DIRECTX11_RHI",
+            "TRNT_USE_DIRECTX12_RHI",
+            --------------------------- 
+            "TRNT_SUPPORT_GLFW",
             "WIN32_LEAN_AND_MEAN",
 			"_CRT_SECURE_NO_WARNINGS"
         }
 
+        libdirs
+        {
+            VULKAN_SDK .. "/Lib"
+        }
+
         links
         {
-            "Shlwapi"
+            "Shlwapi",
+            "vulkan-1"
         }
 
     filter "configurations:Debug"

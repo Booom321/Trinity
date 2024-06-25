@@ -1,3 +1,4 @@
+#include "TrinityPCH.h"
 #include "Trinity/Window/Window.h"
 
 #if defined(TRNT_USE_GLFW)
@@ -8,6 +9,7 @@
 
 #pragma warning(push)
 #pragma warning(disable: 26495)
+#pragma warning(disable: 6011)
 
 TKeyCode ConvertGlfwKeyToTKeyCode(TInt32 GlfwKeyCode)
 {
@@ -257,8 +259,6 @@ TKeyCode ConvertGlfwKeyToTKeyCode(TInt32 GlfwKeyCode)
 	return TKeyCode::EUnknown;
 }
 
-static TInputManager* InputManagerInstance = nullptr;
-
 TMouseButton ConvertGlfwMouseToTMouseButton(TInt32 Button)
 {
 	switch (Button)
@@ -274,6 +274,44 @@ TMouseButton ConvertGlfwMouseToTMouseButton(TInt32 Button)
 	return TMouseButton::EUnknown;
 }
 
+TInputAction ConvertGlfwInputActionToTInputAction(TInt32 Action)
+{
+	switch (Action)
+	{
+	case GLFW_PRESS:
+		return TInputAction::EPress;
+	case GLFW_RELEASE:
+		return TInputAction::ERelease;
+	case GLFW_REPEAT:
+		return TInputAction::ERepeat;
+	}
+
+	return TInputAction::EUnknown;
+}
+
+TModifierKey ConvertGlfwModifierKeyToTModifierKey(TInt32 Mod)
+{
+	switch (Mod)
+	{
+	case GLFW_MOD_SHIFT:
+		return TModifierKey::EShift;
+	case GLFW_MOD_CONTROL:
+		return TModifierKey::EControl;
+	case GLFW_MOD_ALT:
+		return TModifierKey::EAlt;
+	case GLFW_MOD_SUPER:
+		return TModifierKey::ESuper;
+	case GLFW_MOD_CAPS_LOCK:
+		return TModifierKey::ECapsLock;
+	case GLFW_MOD_NUM_LOCK:
+		return TModifierKey::ENumLock;
+	}
+
+	return TModifierKey::EUnknown;
+}
+
+static TInputManager* InputManagerInstance = nullptr;
+
 void WindowPositionCallback(GLFWwindow* GLFWWindow, TInt32 XPosition, TInt32 YPosition)
 {
 	TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
@@ -285,6 +323,8 @@ void WindowPositionCallback(GLFWwindow* GLFWWindow, TInt32 XPosition, TInt32 YPo
 
 	Window->WindowProperties.XPosition = XPosition;
 	Window->WindowProperties.YPosition = YPosition;
+
+	Window->OnWindowMove(Window, XPosition, YPosition);
 }
 
 void WindowSizeCallback(GLFWwindow* GLFWWindow, TInt32 Width, TInt32 Height)
@@ -304,6 +344,8 @@ void WindowSizeCallback(GLFWwindow* GLFWWindow, TInt32 Width, TInt32 Height)
 			Window->WindowProperties.Height = Height;
 		}
 	}
+
+	Window->OnWindowResize(Window, Width, Height);
 }
 
 void WindowCloseCallback(GLFWwindow* GLFWWindow)
@@ -314,6 +356,8 @@ void WindowCloseCallback(GLFWwindow* GLFWWindow)
 	{
 		Window->Closed = true;
 	}
+
+	Window->OnWindowClose(Window);
 }
 
 void WindowFocusCallback(GLFWwindow* GLFWWindow, TInt32 Focused)
@@ -322,8 +366,10 @@ void WindowFocusCallback(GLFWwindow* GLFWWindow, TInt32 Focused)
 
 	if (Window)
 	{
-		Window->Focused = (Focused) ? true : false;
+		Window->Focused = Focused;
 	}
+
+	Window->OnWindowFocus(Window, Focused);
 }
 
 void WindowIconifyCallback(GLFWwindow* GLFWWindow, TInt32 Iconified)
@@ -332,63 +378,79 @@ void WindowIconifyCallback(GLFWwindow* GLFWWindow, TInt32 Iconified)
 
 	if (Window)
 	{
-		Window->Iconified = (Iconified) ? true : false;
+		Window->Iconified = Iconified;
 	}
+
+	Window->OnWindowIconify(Window, Iconified);
 }
 
 void FramebufferSizeCallback(GLFWwindow* GLFWWindow, TInt32 Width, TInt32 Height)
 {
-	//TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
+	TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
+	Window->OnFramebufferSize(Window, Width, Height);
 }
 
 void CursorEnterCallback(GLFWwindow* GLFWWindow, TInt32 Entered)
 {
-	//TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
+	TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
+	Window->OnCursorEnter(Window, Entered);
 }
 
 void DropCallback(GLFWwindow* GLFWWindow, TInt32 Count, const TChar** Paths)
 {
-	//TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
+	TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
+	Window->OnDrop(Window, Count, Paths);
 }
 
 void KeyCallback(GLFWwindow* GLFWWindow, TInt32 Key, TInt32 Scancode, TInt32 Action, TInt32 Mods)
 {
-	//TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
+	TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
+
+	TKeyCode KeyCode = ConvertGlfwKeyToTKeyCode(Key);
 	switch (Action)
 	{
 	case GLFW_PRESS:
-		InputManagerInstance->SetKeyState(ConvertGlfwKeyToTKeyCode(Key), TInputAction::EPress);
+		InputManagerInstance->SetKeyState(KeyCode, TInputAction::EPress);
 		break;
 	case GLFW_REPEAT:
-		InputManagerInstance->SetKeyState(ConvertGlfwKeyToTKeyCode(Key), TInputAction::ERepeat);
+		InputManagerInstance->SetKeyState(KeyCode, TInputAction::ERepeat);
 		break;
 	case GLFW_RELEASE:
-		InputManagerInstance->SetKeyState(ConvertGlfwKeyToTKeyCode(Key), TInputAction::ERelease);
+		InputManagerInstance->SetKeyState(KeyCode, TInputAction::ERelease);
 		break;
 	default:
 		break;
 	}
+
+	Window->OnKey(Window, KeyCode, Scancode, ConvertGlfwInputActionToTInputAction(Action), ConvertGlfwModifierKeyToTModifierKey(Mods));
 }
 
 void CharCallback(GLFWwindow* GLFWWindow, TUInt32 Codepoint)
 {
-	//TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
+	TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
+
+	Window->OnChar(Window, static_cast<TChar>(Codepoint));
 }
 
 void MouseButtonCallback(GLFWwindow* GLFWWindow, TInt32 Button, TInt32 Action, TInt32 Mods)
 {
-	//TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
+	TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
+
+	TMouseButton MouseButton = ConvertGlfwMouseToTMouseButton(Button);
+
 	switch (Action)
 	{
 	case GLFW_PRESS:
-		InputManagerInstance->SetMouseState(ConvertGlfwMouseToTMouseButton(Button), TInputAction::EPress);
+		InputManagerInstance->SetMouseState(MouseButton, TInputAction::EPress);
 		break;
 	case GLFW_RELEASE:
-		InputManagerInstance->SetMouseState(ConvertGlfwMouseToTMouseButton(Button), TInputAction::ERelease);
+		InputManagerInstance->SetMouseState(MouseButton, TInputAction::ERelease);
 		break;
 	default:
 		break;
 	}
+
+	Window->OnMouseButton(Window, MouseButton, ConvertGlfwInputActionToTInputAction(Action), ConvertGlfwModifierKeyToTModifierKey(Mods));
 }
 
 void CursorPositionCallback(GLFWwindow* GLFWWindow, TDouble XPosition, TDouble YPosition)
@@ -405,6 +467,8 @@ void CursorPositionCallback(GLFWwindow* GLFWWindow, TDouble XPosition, TDouble Y
 			InputManagerInstance->SetCurrentMousePosition((TFloat)XPosition, (TFloat)YPosition);
 		}
 	}
+
+	Window->OnCursorPosition(Window, XPosition, YPosition);
 }
 
 void ScrollCallback(GLFWwindow* GLFWWindow, TDouble XOffset, TDouble YOffset)
@@ -418,15 +482,45 @@ void ScrollCallback(GLFWwindow* GLFWWindow, TDouble XOffset, TDouble YOffset)
 			InputManagerInstance->SetScrollDelta((TFloat)XOffset, (TFloat)YOffset);
 		}
 	}
+
+	Window->OnScroll(Window, XOffset, YOffset);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static TInt32 GlfwWindowCount = 0;
 
-TWindow::TWindow(const TWindowProperties& WindowProperties)
-	: WindowProperties(WindowProperties), Initialized(false), Focused(false), Resized(false), Iconified(false), Closed(true), CursorHidden(false)
-{}
+TWindow::TWindow(const TWindowProperties& WindowProperties, TBool ForceInit)
+	: 	WindowProperties(WindowProperties), 
+		Initialized(false), 
+		Focused(false), 
+		Resized(false), 
+		Iconified(false), 
+		Closed(true), 
+		CursorHidden(false), 
+		Opacity(1.0f),
+		OnWindowMove(nullptr),
+		OnWindowResize(nullptr),
+		OnWindowClose(nullptr),
+		OnWindowFocus(nullptr),
+		OnWindowIconify(nullptr),
+		OnFramebufferSize(nullptr),
+		OnCursorEnter(nullptr),
+		OnDrop(nullptr),
+		OnKey(nullptr),
+		OnChar(nullptr),
+		OnMouseButton(nullptr),
+		OnCursorPosition(nullptr),
+		OnScroll(nullptr)
+{
+	if (ForceInit)
+	{
+		if (!this->Initialize())
+		{
+			TLog::Error<TRNT_GET_LOG_INFO(Window)>("Failed to initialize TWindow!");
+		}
+	}
+}
 
 TWindow::~TWindow()
 {
@@ -455,7 +549,7 @@ TBool TWindow::Initialize()
 
 	if (InputManagerInstance == nullptr)
 	{
-		TLog::Error<TRNT_GET_LOG_INFO(Window)>("TInputManager is not initialized! Please call TInputManager::Initialize() before creating the window.");
+		TLog::Error<TRNT_GET_LOG_INFO(Window)>("TInputManager is not initialized! Please initialize `TInputManager` before creating the window.");
 
 		return false;
 	}
@@ -499,9 +593,11 @@ TBool TWindow::Initialize()
 	glfwSetWindowUserPointer(WindowHandle, this);
 
 	glfwSetWindowAttrib(WindowHandle, GLFW_RESIZABLE, WindowProperties.Resizable);
-	glfwSetWindowAttrib(WindowHandle, GLFW_FLOATING, WindowProperties.TFloating);
+	glfwSetWindowAttrib(WindowHandle, GLFW_FLOATING, WindowProperties.Floating);
 	glfwSetWindowAttrib(WindowHandle, GLFW_DECORATED, !WindowProperties.Borderless);
 	glfwSetWindowAttrib(WindowHandle, GLFW_FOCUSED, GLFW_TRUE);
+
+	glfwSetWindowOpacity(WindowHandle, Opacity);
 
 	glfwSetWindowPosCallback(WindowHandle, WindowPositionCallback);
 	glfwSetWindowSizeCallback(WindowHandle, WindowSizeCallback);
@@ -539,9 +635,9 @@ void TWindow::Destroy()
 
 		--GlfwWindowCount;
 	}
+
 	Initialized = false;
 	Closed = true;
-	InputManagerInstance = nullptr;
 
 	if (GlfwWindowCount < 1)
 	{
@@ -626,10 +722,10 @@ void TWindow::SetBorderless(TBool Borderless)
 	glfwSetWindowAttrib(WindowHandle, GLFW_DECORATED, !Borderless);
 }
 
-void TWindow::SetTFloating(TBool TFloating)
+void TWindow::SetFloating(TBool Floating)
 {
-	WindowProperties.TFloating = TFloating;
-	glfwSetWindowAttrib(WindowHandle, GLFW_FLOATING, TFloating);
+	WindowProperties.Floating = Floating;
+	glfwSetWindowAttrib(WindowHandle, GLFW_FLOATING, Floating);
 }
 
 void TWindow::SetFullscreen(TBool Fullscreen)
@@ -678,6 +774,12 @@ void TWindow::SetCursorHide(TBool Hide)
 void TWindow::ProcessInput()
 {
 	glfwPollEvents();
+}
+
+void TWindow::SetOpacity(TFloat Opacity)
+{
+	this->Opacity = Opacity;
+	glfwSetWindowOpacity(WindowHandle, Opacity);
 }
 
 #pragma warning(pop)

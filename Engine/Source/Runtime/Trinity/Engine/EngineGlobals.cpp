@@ -1,3 +1,4 @@
+#include "TrinityPCH.h"
 #include "EngineGlobals.h"
 
 TString TEngineGlobals::EngineDir;

@@ -7,7 +7,7 @@
 #include "Trinity/Core/TypeTraits/RemoveCVRef.h"
 #include "Trinity/Core/TypeTraits/Decay.h"
 
-class TPathUtils
+class TRNT_API TPathUtils
 {
 	template<typename T>
 	class TIsAnsiStringExceptStdString

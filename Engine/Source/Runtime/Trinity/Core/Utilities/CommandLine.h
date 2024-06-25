@@ -4,6 +4,7 @@
 
 #include "Trinity/Core/Containers/DynamicArray.h"
 #include "Trinity/Core/String/StringConversion.h"
+#include "Trinity/Core/TypeTraits/RemoveCVRef.h"
 #include "Trinity/Core/String/String.h"
 #include "Trinity/Core/Types/Pair.h"
 
@@ -40,8 +41,8 @@ public:
 
 class TRNT_API TCommandLineParser
 {
+public:
 	TCommandLineParser() = default;
-	~TCommandLineParser() = default;
 
 	TCommandLineParser(const TCommandLineParser&) = delete;
 	TCommandLineParser(TCommandLineParser&&) = delete;
@@ -49,9 +50,13 @@ class TRNT_API TCommandLineParser
 	TCommandLineParser& operator=(TCommandLineParser&&) = delete;
 
 public:
-	static TRNT_FORCE_INLINE TCommandLineParser* GetInstance() { return (Instance) ? Instance : (Instance = new TCommandLineParser()); }
+	~TCommandLineParser();
 
-	static void DeleteInstance();
+	static TRNT_FORCE_INLINE TCommandLineParser* GetInstance() { return &Instance; }
+
+	static TRNT_FORCE_INLINE TCommandLineParser* Create() { return new TCommandLineParser(); }
+
+	static void Delete(TCommandLineParser* CmdLineParser);
 
 public:
 	void SetCommandLine(TInt32 ArgCount, TChar** ArgV);
@@ -59,12 +64,7 @@ public:
 	template<typename T>
 	TRNT_FORCE_INLINE void AddCommandLineOption(const TString& OptName, const T& DefaultValue)
 	{
-		static_assert(
-			TOr<
-				TAreTheSameType<T, TString>,
-				TAreTheSameType<T, TUInt32>, TAreTheSameType<T, TInt32>, TAreTheSameType<T, TUInt64>, TAreTheSameType<T, TInt64>,
-				TIsFloatingPoint<T>, TAreTheSameType<T, TBool>
-			>::Value);
+		static_assert(TStringable<T>::Value);
 
 		const auto Predicate = [&OptName](const TCommandLineOption& Option) -> TBool
 			{
@@ -90,21 +90,21 @@ public:
 	TBool Parse();
 
 public:
-	TRNT_NODISCARD TString GetStringOption(const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
+	TRNT_NODISCARD TBool GetStringOption(TString& Value, const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
 
-	TRNT_NODISCARD TBool GetBooleanOption(const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
+	TRNT_NODISCARD TBool GetBooleanOption(TBool& Value, const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
 
-	TRNT_NODISCARD TFloat GetFloatOption(const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
+	TRNT_NODISCARD TBool GetFloatOption(TFloat& Value, const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
 
-	TRNT_NODISCARD TDouble GetDoubleOption(const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
+	TRNT_NODISCARD TBool GetDoubleOption(TDouble& Value, const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
 
-	TRNT_NODISCARD TInt32 GetInt32Option(const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
+	TRNT_NODISCARD TBool GetInt32Option(TInt32& Value, const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
 
-	TRNT_NODISCARD TUInt32 GetUInt32Option(const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
+	TRNT_NODISCARD TBool GetUInt32Option(TUInt32& Value, const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
 
-	TRNT_NODISCARD TInt64 GetInt64Option(const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
+	TRNT_NODISCARD TBool GetInt64Option(TInt64& Value, const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
 
-	TRNT_NODISCARD TUInt64 GetUInt64Option(const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
+	TRNT_NODISCARD TBool GetUInt64Option(TUInt64& Value, const TString& OptionName, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive);
 
 public:
 	TRNT_NODISCARD const TString& CommandLineArgAt(TInt32 Index) const
@@ -172,9 +172,8 @@ private:
 		return;
 	}
 
-	static TCommandLineParser* Instance;
+	static TCommandLineParser Instance;
 
 	TDynamicArray<TString> CommandLineArgs;
-
 	TDynamicArray<TCommandLineOption> CommandLineOptions;
 };

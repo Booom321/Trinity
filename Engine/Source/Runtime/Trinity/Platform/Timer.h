@@ -18,10 +18,16 @@ public:
 	void Reset();
 
 	template<typename T>
-	T GetElapsed(const T TimeResolution) const;
+	T GetElapsed(const T TimeResolution) const
+	{
+		return static_cast<T>(((Now().QuadPart - Start.QuadPart) * TimeResolution) / PCFrequency);
+	}
 
 	template<typename T>
-	static T GetElapsed(const TimeStampType Start, const TimeStampType End, const T TimeResolution);
+	static T GetElapsed(const TimeStampType Start, const TimeStampType End, const T TimeResolution)
+	{
+		return static_cast<T>(((Now().QuadPart - Start.QuadPart) * TimeResolution) / PCFrequency);
+	}
 
 	static TimeStampType Now();
 
@@ -35,7 +41,7 @@ public:
 	template<typename T>
 	TRNT_FORCE_INLINE T GetElapsedMillisecond() const
 	{
-		return GetElapsed(static_cast<T>(1000));
+		return GetElapsed(static_cast<T>(1'000));
 	}
 
 	template<typename T>
@@ -51,9 +57,3 @@ private:
 
 	TimeStampType Start{ Now() };
 };
-
-#if defined(TRNT_PLATFORM_WIN64)
-#include "Windows/WindowsTimerImpl.h"
-#else
-#	error "TTimer isn't implemented on current platform!"
-#endif

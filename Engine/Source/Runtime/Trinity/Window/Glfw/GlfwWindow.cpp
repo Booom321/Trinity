@@ -324,7 +324,10 @@ void WindowPositionCallback(GLFWwindow* GLFWWindow, TInt32 XPosition, TInt32 YPo
 	Window->WindowProperties.XPosition = XPosition;
 	Window->WindowProperties.YPosition = YPosition;
 
-	Window->OnWindowMove(Window, XPosition, YPosition);
+	if (Window->OnWindowMove)
+	{
+		Window->OnWindowMove(Window, XPosition, YPosition);
+	}
 }
 
 void WindowSizeCallback(GLFWwindow* GLFWWindow, TInt32 Width, TInt32 Height)
@@ -345,7 +348,10 @@ void WindowSizeCallback(GLFWwindow* GLFWWindow, TInt32 Width, TInt32 Height)
 		}
 	}
 
-	Window->OnWindowResize(Window, Width, Height);
+	if (Window->OnWindowResize)
+	{
+		Window->OnWindowResize(Window, Width, Height);
+	}
 }
 
 void WindowCloseCallback(GLFWwindow* GLFWWindow)
@@ -357,7 +363,10 @@ void WindowCloseCallback(GLFWwindow* GLFWWindow)
 		Window->Closed = true;
 	}
 
-	Window->OnWindowClose(Window);
+	if (Window->OnWindowClose)
+	{
+		Window->OnWindowClose(Window);
+	}
 }
 
 void WindowFocusCallback(GLFWwindow* GLFWWindow, TInt32 Focused)
@@ -369,7 +378,10 @@ void WindowFocusCallback(GLFWwindow* GLFWWindow, TInt32 Focused)
 		Window->Focused = Focused;
 	}
 
-	Window->OnWindowFocus(Window, Focused);
+	if (Window->OnWindowFocus)
+	{
+		Window->OnWindowFocus(Window, Focused);
+	}
 }
 
 void WindowIconifyCallback(GLFWwindow* GLFWWindow, TInt32 Iconified)
@@ -381,25 +393,37 @@ void WindowIconifyCallback(GLFWwindow* GLFWWindow, TInt32 Iconified)
 		Window->Iconified = Iconified;
 	}
 
-	Window->OnWindowIconify(Window, Iconified);
+	if (Window->OnWindowIconify)
+	{
+		Window->OnWindowIconify(Window, Iconified);
+	}
 }
 
 void FramebufferSizeCallback(GLFWwindow* GLFWWindow, TInt32 Width, TInt32 Height)
 {
 	TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
-	Window->OnFramebufferSize(Window, Width, Height);
+	if (Window->OnFramebufferSize)
+	{
+		Window->OnFramebufferSize(Window, Width, Height);
+	}
 }
 
 void CursorEnterCallback(GLFWwindow* GLFWWindow, TInt32 Entered)
 {
 	TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
-	Window->OnCursorEnter(Window, Entered);
+	if (Window->OnCursorEnter)
+	{
+		Window->OnCursorEnter(Window, Entered);
+	}
 }
 
 void DropCallback(GLFWwindow* GLFWWindow, TInt32 Count, const TChar** Paths)
 {
 	TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
-	Window->OnDrop(Window, Count, Paths);
+	if (Window->OnDrop)
+	{
+		Window->OnDrop(Window, Count, Paths);
+	}
 }
 
 void KeyCallback(GLFWwindow* GLFWWindow, TInt32 Key, TInt32 Scancode, TInt32 Action, TInt32 Mods)
@@ -422,14 +446,20 @@ void KeyCallback(GLFWwindow* GLFWWindow, TInt32 Key, TInt32 Scancode, TInt32 Act
 		break;
 	}
 
-	Window->OnKey(Window, KeyCode, Scancode, ConvertGlfwInputActionToTInputAction(Action), ConvertGlfwModifierKeyToTModifierKey(Mods));
+	if (Window->OnKey)
+	{
+		Window->OnKey(Window, KeyCode, Scancode, ConvertGlfwInputActionToTInputAction(Action), ConvertGlfwModifierKeyToTModifierKey(Mods));
+	}
 }
 
 void CharCallback(GLFWwindow* GLFWWindow, TUInt32 Codepoint)
 {
 	TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
 
-	Window->OnChar(Window, static_cast<TChar>(Codepoint));
+	if (Window->OnChar)
+	{
+		Window->OnChar(Window, static_cast<TChar>(Codepoint));
+	}
 }
 
 void MouseButtonCallback(GLFWwindow* GLFWWindow, TInt32 Button, TInt32 Action, TInt32 Mods)
@@ -450,7 +480,10 @@ void MouseButtonCallback(GLFWwindow* GLFWWindow, TInt32 Button, TInt32 Action, T
 		break;
 	}
 
-	Window->OnMouseButton(Window, MouseButton, ConvertGlfwInputActionToTInputAction(Action), ConvertGlfwModifierKeyToTModifierKey(Mods));
+	if (Window->OnMouseButton)
+	{
+		Window->OnMouseButton(Window, MouseButton, ConvertGlfwInputActionToTInputAction(Action), ConvertGlfwModifierKeyToTModifierKey(Mods));
+	}
 }
 
 void CursorPositionCallback(GLFWwindow* GLFWWindow, TDouble XPosition, TDouble YPosition)
@@ -468,7 +501,10 @@ void CursorPositionCallback(GLFWwindow* GLFWWindow, TDouble XPosition, TDouble Y
 		}
 	}
 
-	Window->OnCursorPosition(Window, XPosition, YPosition);
+	if (Window->OnCursorPosition)
+	{
+		Window->OnCursorPosition(Window, XPosition, YPosition);
+	}
 }
 
 void ScrollCallback(GLFWwindow* GLFWWindow, TDouble XOffset, TDouble YOffset)
@@ -483,7 +519,10 @@ void ScrollCallback(GLFWwindow* GLFWWindow, TDouble XOffset, TDouble YOffset)
 		}
 	}
 
-	Window->OnScroll(Window, XOffset, YOffset);
+	if (Window->OnScroll)
+	{
+		Window->OnScroll(Window, XOffset, YOffset);
+	}
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -619,9 +658,9 @@ TBool TWindow::Initialize()
 	Initialized = true;
 	Closed = false;
 
-	TLog::Success<TRNT_GET_LOG_INFO(Window)>("Create GLFW Window successfully!");
-
 	++GlfwWindowCount;
+
+	TLog::Success<TRNT_GET_LOG_INFO(Window)>("Create GLFW Window successfully! Window count: {}", GlfwWindowCount);
 
 	return true;
 }
@@ -632,8 +671,9 @@ void TWindow::Destroy()
 	{
 		glfwDestroyWindow(WindowHandle);
 		WindowHandle = nullptr;
-
 		--GlfwWindowCount;
+
+		TLog::Info<TRNT_GET_LOG_INFO(Window)>("Deleted GLFW Window! Window cound: {}", GlfwWindowCount);
 	}
 
 	Initialized = false;

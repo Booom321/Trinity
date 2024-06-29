@@ -13,14 +13,15 @@ static TInt32 ApplicationEntryPoint(int Argc, char** Argv, const TChar* AppName,
 		return -1;
 	}
 
-	ApplicationClass* App = new ApplicationClass(AppName, Forward<ArgsType>(Args)...);
+	ApplicationClass* App = new ApplicationClass(Forward<ArgsType>(Args)...);
+	App->SetApplicationName(AppName);
 	App->OnInitialize();
 
 	TTimer Timer{};
 	while (!App->QuitRequested)
 	{
-		App->OnUpdate(Timer.GetElapsedMillisecond<TDouble>());
 		Timer.Reset();
+		App->OnUpdate(Timer.GetElapsedMillisecond<TDouble>());
 	}
 
 	App->OnQuit();

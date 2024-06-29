@@ -16,15 +16,24 @@ public:
 	TBool Initialize();
 	void Destroy();
 
+public:
+	TRNT_FORCE_INLINE VkSwapchainKHR GetVulkanSwapChain() const { return SwapChain; }
+	TRNT_FORCE_INLINE VkSurfaceKHR GetVulkanSurface() const { return Surface; }
+
 private:
 	VkSurfaceFormatKHR ChooseSuitableSurfaceFormat(const TDynamicArray<VkSurfaceFormatKHR>& SurfaceFormats, VkColorSpaceKHR DesiredColorSpace);
 	VkPresentModeKHR ChoosePresentMode(const TDynamicArray<VkPresentModeKHR>& PresentModes);
+
+	TBool CreateVulkanImageViews();
 
 	VkSwapchainKHR SwapChain;
 	VkSurfaceKHR Surface;
 	TUInt32 Width;
 	TUInt32 Height;
 	VkSurfaceFormatKHR SwapChainSurfaceFormat;
+
+	TDynamicArray<VkImage> SwapChainImages;
+	TDynamicArray<VkImageView> SwapChainImageViews;
 
 	TVulkanRHI* VulkanRHIPointer;
 	TVulkanDevice* VulkanDevicePointer;

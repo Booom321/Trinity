@@ -9,7 +9,8 @@ project "Samples"
 
     files 
     {
-        "Main.cpp"
+        "*.h",
+        "*.cpp"
     }
 
     includedirs

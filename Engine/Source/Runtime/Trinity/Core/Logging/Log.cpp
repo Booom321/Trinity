@@ -54,98 +54,105 @@ void TLog::ClearAllMessageHandlerCallbacks()
 	LogMutex.Unlock();
 }
 
-void TLog::DefaultStdoutMessageHandler(TLogLevel LogLevel, const TChar* FormattedMessageA, TSize_T FormattedMessageALen, const TWChar* FormattedMessageW, TSize_T FormattedMessageWLen)
+void TLog::DefaultStdoutMessageHandler(TLogLevel LogLevel, TLogCharType CharType, void* FormattedMessage, TSize_T FormattedMsgLen)
 {
 #if defined(TRNT_DEBUG) // Only write to console in debug mode!
-	static constexpr const TChar* DefaultTextColorA = "\033[39m";
-	static constexpr const TWChar* DefaultTextColorW = L"\033[39m";
+	static TRNT_CONSTEXPR const TChar*   DefaultTextColorA = "\033[39m";
+	static TRNT_CONSTEXPR const TWChar*  DefaultTextColorW = L"\033[39m";
 	FILE* StdoutType = nullptr;
-
-	if (FormattedMessageA != nullptr)
+	
+	if (FormattedMessage)
 	{
-		const TChar* TextColor = nullptr;
-
-		switch (LogLevel)
+		if (CharType == TLogCharType::EChar)
 		{
-		case TLogLevel::EDebug:
-			StdoutType = stdout;
-			TextColor = "\x1B[36m";
-			break;
-		case TLogLevel::EInfo:
-			StdoutType = stdout;
-			TextColor = "";
-			break;
-		case TLogLevel::ESuccess:
-			StdoutType = stdout;
-			TextColor = "\033[92m";
-			break;
-		case TLogLevel::EWarning:
-			StdoutType = stderr;
-			TextColor = "\033[33m";
-			break;
-		case TLogLevel::EError:
-			StdoutType = stderr;
-			TextColor = "\033[91m";
-			break;
-		case TLogLevel::EFatal:
-			StdoutType = stderr;
-			TextColor = "\x1B[41m\033[97m";
-			break;
+			const TChar* TextColor = nullptr;
+
+			switch (LogLevel)
+			{
+			case TLogLevel::EDebug:
+				StdoutType = stdout;
+				TextColor = "\x1B[36m";
+				break;
+			case TLogLevel::EInfo:
+				StdoutType = stdout;
+				TextColor = "";
+				break;
+			case TLogLevel::ESuccess:
+				StdoutType = stdout;
+				TextColor = "\033[92m";
+				break;
+			case TLogLevel::EWarning:
+				StdoutType = stderr;
+				TextColor = "\033[33m";
+				break;
+			case TLogLevel::EError:
+				StdoutType = stderr;
+				TextColor = "\033[91m";
+				break;
+			case TLogLevel::EFatal:
+				StdoutType = stderr;
+				TextColor = "\x1B[41m\033[97m";
+				break;
+			}
+
+			fprintf(StdoutType, "%s%s%s", TextColor, static_cast<const TChar*>(FormattedMessage), (LogLevel == TLogLevel::EFatal) ? "\033[39m\x1B[40m" : DefaultTextColorA);
 		}
-
-		fprintf(StdoutType, "%s%s%s", TextColor, FormattedMessageA, (LogLevel == TLogLevel::EFatal) ? "\033[39m\x1B[40m" : DefaultTextColorA);
-	}
-	else if (FormattedMessageW != nullptr)
-	{
-		const TWChar* TextColor = nullptr;
-
-		switch (LogLevel)
+		else if (CharType == TLogCharType::EWChar)
 		{
-		case TLogLevel::EDebug:
-			StdoutType = stdout;
-			TextColor = L"\x1B[36m";
-			break;
-		case TLogLevel::EInfo:
-			StdoutType = stdout;
-			TextColor = L"";
-			break;
-		case TLogLevel::ESuccess:
-			StdoutType = stdout;
-			TextColor = L"\033[92m";
-			break;
-		case TLogLevel::EWarning:
-			StdoutType = stderr;
-			TextColor = L"\033[33m";
-			break;
-		case TLogLevel::EError:
-			StdoutType = stderr;
-			TextColor = L"\033[91m";
-			break;
-		case TLogLevel::EFatal:
-			StdoutType = stderr;
-			TextColor = L"\x1B[41m\033[97m";
-			break;
-		}
+			const TWChar* TextColor = nullptr;
 
-		fwprintf(StdoutType, L"%ls%ls%ls", TextColor, FormattedMessageW, (LogLevel == TLogLevel::EFatal) ? L"\033[39m\x1B[40m" : DefaultTextColorW);
+			switch (LogLevel)
+			{
+			case TLogLevel::EDebug:
+				StdoutType = stdout;
+				TextColor = L"\x1B[36m";
+				break;
+			case TLogLevel::EInfo:
+				StdoutType = stdout;
+				TextColor = L"";
+				break;
+			case TLogLevel::ESuccess:
+				StdoutType = stdout;
+				TextColor = L"\033[92m";
+				break;
+			case TLogLevel::EWarning:
+				StdoutType = stderr;
+				TextColor = L"\033[33m";
+				break;
+			case TLogLevel::EError:
+				StdoutType = stderr;
+				TextColor = L"\033[91m";
+				break;
+			case TLogLevel::EFatal:
+				StdoutType = stderr;
+				TextColor = L"\x1B[41m\033[97m";
+				break;
+			}
+
+			fwprintf(StdoutType, L"%ls%ls%ls", TextColor, static_cast<const TWChar*>(FormattedMessage), (LogLevel == TLogLevel::EFatal) ? L"\033[39m\x1B[40m" : DefaultTextColorW);
+		}
 	}
 #endif
 }
 
-void TLog::DefaultFileMessageHandler(TLogLevel LogLevel, const TChar* FormattedMessageA, TSize_T FormattedMessageALen, const TWChar* FormattedMessageW, TSize_T FormattedMessageWLen)
+void TLog::DefaultFileMessageHandler(TLogLevel LogLevel, TLogCharType CharType, void* FormattedMessage, TSize_T FormattedMsgLen)
 {
 	if (OutputLogFile == nullptr)
 	{
 		return;
 	}
 
-	if (FormattedMessageA != nullptr)
+	if (FormattedMessage)
 	{
-		std::fwrite(FormattedMessageA, sizeof(TChar), FormattedMessageALen, OutputLogFile);
-	}
-	else if (FormattedMessageW != nullptr)
-	{
-		std::fputws(FormattedMessageW, OutputLogFile);
+		switch (CharType)
+		{
+		case TLogCharType::EChar:
+			std::fwrite(static_cast<const TChar*>(FormattedMessage), sizeof(TChar), FormattedMsgLen, OutputLogFile);
+			break;
+		case TLogCharType::EWChar:
+			std::fputws(static_cast<const TWChar*>(FormattedMessage), OutputLogFile);
+			break;
+		}
 	}
 }
 

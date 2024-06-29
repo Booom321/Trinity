@@ -14,8 +14,10 @@ workspace( WorkspaceSettings.Name )
 -----------------------------------------------------------------------------------------------------------------------------
 	group "ThirdParty"
 		include "Engine/ThirdParty/glfw/premake5"
+		include "Engine/ThirdParty/imgui/premake5"
 	group ""
 -----------------------------------------------------------------------------------------------------------------------------
 	include "Engine/premake5"
+	include "Editor/premake5"
 	include "Samples/premake5"
 	include "UnitTests/premake5"

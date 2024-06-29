@@ -40,6 +40,10 @@ public:
 	PFN_vkDestroySurfaceKHR DestroySurfaceKHR = nullptr;
 	PFN_vkDestroySwapchainKHR DestroySwapchainKHR = nullptr;
 
+	PFN_vkGetSwapchainImagesKHR GetSwapchainImagesKHR = nullptr;
+	PFN_vkCreateImageView CreateImageView = nullptr;
+	PFN_vkDestroyImageView DestroyImageView = nullptr;
+
 	TBool LoadVulkanInstanceFunctions();
 	TBool LoadVulkanPFNFunctions(VkInstance Instance);
 };

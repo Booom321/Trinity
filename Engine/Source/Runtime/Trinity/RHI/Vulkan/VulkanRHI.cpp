@@ -77,6 +77,11 @@ TBool TVulkanPFNFunctions::LoadVulkanPFNFunctions(VkInstance Instance)
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroySurfaceKHR, DestroySurfaceKHR);
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroySwapchainKHR, DestroySwapchainKHR);
 
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkGetSwapchainImagesKHR, GetSwapchainImagesKHR);
+
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateImageView, CreateImageView);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroyImageView, DestroyImageView);
+
 #undef TRNT_LOAD_VULKAN_PFN_FUNCTION
 	
 	return true;

@@ -19,6 +19,7 @@ IncludeDirs["fmt"] = "%{ThirdPartyLocation}/fmt/include"
 IncludeDirs["glfw"] = "%{ThirdPartyLocation}/glfw/include"
 IncludeDirs["stb"] = "%{ThirdPartyLocation}/stb"
 IncludeDirs["xxHash"] = "%{ThirdPartyLocation}/xxHash"
+IncludeDirs["imgui"] = "%{ThirdPartyLocation}/imgui"
 IncludeDirs["Vulkan"] = "%{VULKAN_SDK}/Include"
 IncludeDirs["EngineRuntime"] = EngineRuntimeLocation
 --------------------------------------------------------------------------------------------------------------------

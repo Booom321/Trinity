@@ -35,7 +35,15 @@ public:
 
 TRNT_DECLARE_LOG_INFO(Default, TLogLevel::EDebug);
 
-using TLogMessageHandlerCallback = void(*)(TLogLevel LogLevel, const TChar* FormattedMessageA, TSize_T FormattedMessageALen, const TWChar* FormattedMessageW, TSize_T FormattedMessageWLen);
+enum class TLogCharType : unsigned char
+{
+	EChar = 0,
+	EWChar,
+};
+
+// using TLogMessageHandlerCallback = void(*)(TLogLevel LogLevel, const TChar* FormattedMessageA, TSize_T FormattedMessageALen, const TWChar* FormattedMessageW, TSize_T FormattedMessageWLen);
+
+using TLogMessageHandlerCallback = void(*) (TLogLevel LogLevel, TLogCharType CharType, void* FormattedMessage, TSize_T FormattedMsgLen);
 
 class TRNT_API TLog
 {
@@ -136,9 +144,7 @@ private:
 	using LogMessageHandlerList = TDoublyLinkedList<TLogMessageHandlerCallback>;
 
 	static TMutex LogMutex;
-
 	static FILE* OutputLogFile;
-
 	static LogMessageHandlerList MessageHandlers;
 
 private:
@@ -189,11 +195,13 @@ private:
 			{
 				if constexpr (TAreTheSameType<CharType, TChar>::Value)
 				{
-					CurrentMessageHandler->Value(LogLevel, MemoryBuffer.data(), MemoryBuffer.size() - 1, nullptr, 0);
+					//CurrentMessageHandler->Value(LogLevel, MemoryBuffer.data(), MemoryBuffer.size() - 1, nullptr, 0);
+					CurrentMessageHandler->Value(LogLevel, TLogCharType::EChar, MemoryBuffer.data(), MemoryBuffer.size() - 1);
 				}
 				else if constexpr (TAreTheSameType<CharType, TWChar>::Value)
 				{
-					CurrentMessageHandler->Value(LogLevel, nullptr, 0, MemoryBuffer.data(), MemoryBuffer.size() - 1);
+					//CurrentMessageHandler->Value(LogLevel, nullptr, 0, MemoryBuffer.data(), MemoryBuffer.size() - 1);
+					CurrentMessageHandler->Value(LogLevel, TLogCharType::EWChar, MemoryBuffer.data(), MemoryBuffer.size() - 1);
 				}
 				CurrentMessageHandler = CurrentMessageHandler->Next;
 			}
@@ -249,9 +257,9 @@ public:
 	static void ClearAllMessageHandlerCallbacks();
 
 public:
-	static void DefaultStdoutMessageHandler(TLogLevel LogLevel, const TChar* FormattedMessageA, TSize_T FormattedMessageALen, const TWChar* FormattedMessageW, TSize_T FormattedMessageWLen);
+	static void DefaultStdoutMessageHandler(TLogLevel LogLevel, TLogCharType CharType, void* FormattedMessage, TSize_T FormattedMsgLen);
 
-	static void DefaultFileMessageHandler(TLogLevel LogLevel, const TChar* FormattedMessageA, TSize_T FormattedMessageALen, const TWChar* FormattedMessageW, TSize_T FormattedMessageWLen);
+	static void DefaultFileMessageHandler(TLogLevel LogLevel, TLogCharType CharType, void* FormattedMessage, TSize_T FormattedMsgLen);
 	
 	static TRNT_FORCE_INLINE FILE* GetOutputLogFile()
 	{

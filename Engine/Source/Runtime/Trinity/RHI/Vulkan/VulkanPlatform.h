@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(TRNT_USE_VULKAN_RHI)
+#if defined(TRNT_SUPPORT_VULKAN_RHI)
 
 #include "Trinity/Core/Defines.h"
 #include "Trinity/Core/PlatformDetection.h"

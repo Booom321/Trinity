@@ -2,6 +2,8 @@
 
 #if defined (TRNT_PLATFORM_WIN64)
 
+#include "Trinity/Platform/Timer.h"
+
 TDouble TTimer::GetQueryPerfomanceFrequency()
 {
 	TimeStampType Result;

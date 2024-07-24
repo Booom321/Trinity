@@ -6,6 +6,10 @@
 #pragma warning(push)
 #pragma warning(disable: 6387)
 
+TFileReader::TFileReader()
+	: FileHandle(nullptr)
+{}
+
 TFileReader::TFileReader(const TChar* FilePath, TFileOpenMode OpenMode)
 	: FileHandle(CreateFileA(FilePath, GENERIC_READ, FILE_SHARE_READ, NULL, static_cast<DWORD>(OpenMode), FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL))
 {
@@ -87,6 +91,9 @@ TInt64 TFileReader::GetFileSize() const
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+TFileWriter::TFileWriter()
+	: FileHandle(nullptr)
+{}
 
 TFileWriter::TFileWriter(const TChar* FilePath, TFileOpenMode OpenMode, TBool EnableToAppend)
 	: FileHandle(CreateFileA(FilePath, GENERIC_WRITE, 0, NULL, static_cast<DWORD>(OpenMode), FILE_ATTRIBUTE_NORMAL, NULL))

@@ -55,6 +55,8 @@ public:
 
 	void Maximize();
 
+	void Minimize();
+
 	void Iconify();
 
 	void Focus();
@@ -96,6 +98,8 @@ public:
 public:
 	void ProcessInput();
 
+	void WaitEvents();
+
 public:
 	TRNT_FORCE_INLINE TFloat AspectRatio() const
 	{
@@ -109,8 +113,6 @@ public:
 	TRNT_FORCE_INLINE TBool IsInitialized() const { return Initialized; }
 
 	TRNT_FORCE_INLINE TBool IsFocused() const { return Focused; }
-
-	TRNT_FORCE_INLINE TBool IsResized() const { return Resized; }
 
 	TRNT_FORCE_INLINE TBool IsIconified() const { return Iconified; }
 
@@ -157,7 +159,6 @@ private:
 
 	TBool Initialized;
 	TBool Focused;
-	TBool Resized;
 	TBool Iconified;
 	TBool Closed;
 

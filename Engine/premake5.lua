@@ -14,7 +14,9 @@ project "Engine"
     links
     {
         "Glfw",
-        "imgui",
+        "ImGui",
+        "Glslang",
+        "SPIRVCross",
     }
 
     files 
@@ -28,14 +30,37 @@ project "Engine"
     includedirs
     {
         "Source/PCH",
-        "%{IncludeDirs.EngineRuntime}",
-        "%{IncludeDirs.glfw}",
         "%{IncludeDirs.fmt}",
-        "%{IncludeDirs.xxHash}",
         "%{IncludeDirs.stb}",
+        "%{IncludeDirs.glfw}",
         "%{IncludeDirs.imgui}",
-        "%{IncludeDirs.Vulkan}",
+        "%{IncludeDirs.xxHash}",
+        "%{IncludeDirs.glslang}",
+        "%{IncludeDirs.SPIRVCross}",
+        "%{IncludeDirs.EngineRuntime}",
     }
+
+    if (EngineFeatures.SupportVulkan == true) then
+        includedirs
+        {
+            "%{IncludeDirs.Vulkan}"
+        }
+
+        defines
+        {
+            "TRNT_SUPPORT_VULKAN_RHI"
+        }
+        
+        libdirs
+        {
+            "%{LibDirs.Vulkan}"
+        }
+
+        links 
+        {
+            "vulkan-1"
+        }
+    end
 
     defines
     {
@@ -57,25 +82,18 @@ project "Engine"
         defines
         {
             ---- RHI ------------------
-            "TRNT_USE_NULL_RHI",
-            "TRNT_USE_VULKAN_RHI",
-            "TRNT_USE_DIRECTX11_RHI",
-            "TRNT_USE_DIRECTX12_RHI",
+            "TRNT_SUPPORT_NULL_RHI",
+            "TRNT_SUPPORT_DIRECTX11_RHI",
+            "TRNT_SUPPORT_DIRECTX12_RHI",
             --------------------------- 
             "TRNT_SUPPORT_GLFW",
             "WIN32_LEAN_AND_MEAN",
 			"_CRT_SECURE_NO_WARNINGS"
         }
 
-        libdirs
-        {
-            VULKAN_SDK .. "/Lib"
-        }
-
         links
         {
             "Shlwapi",
-            "vulkan-1"
         }
 
     filter "configurations:Debug"

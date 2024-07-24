@@ -1,6 +1,6 @@
 #pragma once
 
-#if defined(TRNT_USE_VULKAN_RHI)
+#if defined(TRNT_SUPPORT_VULKAN_RHI)
 
 #include "Trinity/Core/Config.h"
 #include "Trinity/Core/Logging/Log.h"
@@ -25,11 +25,10 @@
 #	define VK_USE_PLATFORM_METAL_EXT
 #endif
 
+#include <vulkan/vulkan.h>
+
 #ifdef TRNT_USE_GLFW
-#	define GLFW_INCLUDE_VULKAN
 #	include <GLFW/glfw3.h>
-#else
-#	include <vulkan/vulkan.h>
 #endif
 
 #if !defined(TRNT_USE_VULKAN_DEBUG_UTILS) && defined(VK_EXT_debug_utils)

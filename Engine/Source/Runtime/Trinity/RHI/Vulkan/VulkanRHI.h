@@ -1,11 +1,13 @@
 #pragma once
 
-#if defined(TRNT_USE_VULKAN_RHI)
+#if defined(TRNT_SUPPORT_VULKAN_RHI)
 
 #include "Trinity/RHI/RHI.h"
 
 #include "VulkanPlatform.h"
 #include "IncludeVulkanHeader.h"
+
+#undef CreateSemaphore 
 
 class TRNT_API TVulkanPFNFunctions
 {
@@ -43,6 +45,57 @@ public:
 	PFN_vkGetSwapchainImagesKHR GetSwapchainImagesKHR = nullptr;
 	PFN_vkCreateImageView CreateImageView = nullptr;
 	PFN_vkDestroyImageView DestroyImageView = nullptr;
+
+	PFN_vkCreateShaderModule CreateShaderModule = nullptr;
+	PFN_vkDestroyShaderModule DestroyShaderModule = nullptr;
+
+	PFN_vkCreateRenderPass CreateRenderPass = nullptr;
+	PFN_vkDestroyRenderPass DestroyRenderPass = nullptr;
+
+	PFN_vkCreatePipelineLayout CreatePipelineLayout = nullptr;
+	PFN_vkDestroyPipelineLayout DestroyPipelineLayout = nullptr;
+	PFN_vkCreateGraphicsPipelines CreateGraphicsPipelines = nullptr;
+	PFN_vkDestroyPipeline DestroyPipeline = nullptr;
+
+	PFN_vkCreateDescriptorSetLayout CreateDescriptorSetLayout = nullptr;
+	PFN_vkDestroyDescriptorSetLayout DestroyDescriptorSetLayout = nullptr;
+
+	PFN_vkGetPhysicalDeviceFormatProperties GetPhysicalDeviceFormatProperties = nullptr;
+
+	PFN_vkCreateFramebuffer CreateFramebuffer = nullptr;
+	PFN_vkDestroyFramebuffer DestroyFramebuffer = nullptr;
+
+	PFN_vkCreateImage CreateImage = nullptr;
+	PFN_vkDestroyImage DestroyImage = nullptr;
+	PFN_vkAllocateMemory AllocateMemory = nullptr;
+	PFN_vkFreeMemory FreeMemory = nullptr;
+	PFN_vkBindImageMemory BindImageMemory = nullptr;
+	PFN_vkGetImageMemoryRequirements GetImageMemoryRequirements = nullptr;
+
+	PFN_vkCreateCommandPool CreateCommandPool = nullptr;
+	PFN_vkDestroyCommandPool DestroyCommandPool = nullptr;
+	PFN_vkAllocateCommandBuffers AllocateCommandBuffers = nullptr;
+	PFN_vkFreeCommandBuffers FreeCommandBuffers = nullptr;
+
+	PFN_vkBeginCommandBuffer BeginCommandBuffer = nullptr;
+	PFN_vkEndCommandBuffer EndCommandBuffer = nullptr;
+	PFN_vkResetCommandBuffer ResetCommandBuffer = nullptr;
+	PFN_vkCmdBeginRenderPass CmdBeginRenderPass = nullptr;
+	PFN_vkCmdBeginRenderPass2KHR CmdBeginRenderPass2KHR = nullptr;
+	PFN_vkCmdEndRenderPass CmdEndRenderPass = nullptr;
+	PFN_vkCmdEndRenderPass2KHR CmdEndRenderPass2KHR = nullptr;
+
+	PFN_vkCreateSemaphore CreateSemaphore = nullptr;
+	PFN_vkCreateFence CreateFence = nullptr;
+	PFN_vkDestroySemaphore DestroySemaphore = nullptr;
+	PFN_vkDestroyFence DestroyFence = nullptr;
+	PFN_vkWaitForFences WaitForFences = nullptr;
+	PFN_vkResetFences ResetFences = nullptr;
+	PFN_vkAcquireNextImageKHR AcquireNextImageKHR = nullptr;
+
+	PFN_vkQueueSubmit QueueSubmit = nullptr;
+	PFN_vkQueuePresentKHR QueuePresentKHR = nullptr;
+	PFN_vkQueueWaitIdle QueueWaitIdle = nullptr;
 
 	TBool LoadVulkanInstanceFunctions();
 	TBool LoadVulkanPFNFunctions(VkInstance Instance);
@@ -98,6 +151,7 @@ public:
 	TBool SupportsPushDescriptor = false;
 
 	TBool SupportsHDRMetadata = false;
+	TBool SupportsCreateRenderPass2KHR = false;
 };
 
 class TVulkanPhysicalDevice
@@ -117,12 +171,13 @@ public:
 
 class TVulkanDevice;
 
-class TRNT_API TVulkanRHI : public TRHI
+class TRNT_API TVulkanRHI : public TGenericRHI
 {
 public:
 	friend class TVulkanPlatform;
 	friend class TVulkanDevice;
 	friend class TVulkanPhysicalDevice;
+	friend class TVulkanCommandBuffer; 
 
 	TVulkanRHI();
 	virtual ~TVulkanRHI();
@@ -132,7 +187,7 @@ public:
 	virtual void Shutdown() override;
 	virtual const TChar* GetName() override;
 	virtual TVersion GetVersion() const override;
-	virtual TRHIType GetType() override;
+	virtual TGraphicsAPI GetGraphicsAPI() override;
 
 public:
 	static TRNT_NODISCARD TRNT_FORCE_INLINE TVulkanRHI* GetGlobalVulkanRHIInstance() { return static_cast<TVulkanRHI*>(GlobalRHIInstance); }
@@ -150,8 +205,9 @@ public:
 
 	TRNT_NODISCARD TRNT_FORCE_INLINE TVulkanDevice* GetVulkanDevice() { return VulkanDevice; }
 	TRNT_NODISCARD TRNT_FORCE_INLINE const TVulkanDevice* GetVulkanDevice() const { return VulkanDevice; }
+	TRNT_NODISCARD TRNT_FORCE_INLINE const TVersion GetVulkanAPIVersion() const { return VulkanAPIVersion; }
 
-	static TRNT_NODISCARD TRNT_FORCE_INLINE const TVulkanPFNFunctions& GetVulkanPFNFunctions() { return VulkanPFNFunctions; }
+	static TVulkanPFNFunctions VulkanPFNFunctions;
 
 private:
 	VkInstance Instance;
@@ -159,7 +215,6 @@ private:
 	TVersion VulkanInstanceVersion;
 	TVulkanRHIFeatures VulkanRHIFeatures;
 
-	static TVulkanPFNFunctions VulkanPFNFunctions;
 
 	TDynamicArray<const TChar*> InstanceExtensions;
 	TDynamicArray<const TChar*> InstanceLayers;
@@ -206,7 +261,7 @@ private:
 
 private:
 	TVulkanDevice* VulkanDevice;
-
+	TVersion VulkanAPIVersion;
 	VkPhysicalDevice ChoosePhysicalDevice();
 	TBool CreateVulkanDevice(const TVulkanPhysicalDevice& SelectedPhysicalDevice);
 	static TInt32 RatePhysicalDeviceSuitability(VkPhysicalDevice PhysicalDevice);

@@ -7,6 +7,7 @@
 #include <shlwapi.h>
 
 #include "WindowsDeclarations.h"
+#include "Trinity/Platform/FileSystem.h"
 
 TBool TFileSystem::FileExists(const TChar* FilePath)
 {

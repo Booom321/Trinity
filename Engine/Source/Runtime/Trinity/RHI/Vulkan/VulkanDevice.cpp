@@ -3,7 +3,7 @@
 #include "VulkanUtils.h"
 #include "VulkanDevice.h"
 
-#if defined(TRNT_USE_VULKAN_RHI)
+#if defined(TRNT_SUPPORT_VULKAN_RHI)
 
 TVulkanDevice::TVulkanDevice(const TVulkanPhysicalDevice& PhysicalDevice, TVulkanRHI* VulkanRHIPointer)
 	: Device(VK_NULL_HANDLE), VulkanRHIPointer(VulkanRHIPointer), PhysicalDevice(PhysicalDevice)
@@ -197,7 +197,7 @@ TBool TVulkanDevice::Initialize()
 
 	GetEnabledPhysicalDeviceFeatures();
 
-	VkDeviceCreateInfo DeviceCreateInfo = {};
+	VkDeviceCreateInfo DeviceCreateInfo;
 	TMemory::Memset(&DeviceCreateInfo, 0, sizeof(DeviceCreateInfo));
 
 	DeviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -226,6 +226,13 @@ TBool TVulkanDevice::Initialize()
 			Queues[Index].QueueFamilyIndex = QueueFamilyIndices[Index];
 			TVulkanRHI::VulkanPFNFunctions.GetDeviceQueue(Device, QueueFamilyIndices[Index], 0, &Queues[Index].QueueHandle);
 		}
+	}
+
+	// Setup present queue
+	{
+		TVulkanQueue& PresentQueue = Queues[(TUInt32)TVulkanQueueFlags::EPresentQueue];
+		PresentQueue.QueueFamilyIndex = QueueFamilyIndices[(TUInt32)TVulkanQueueFlags::EGraphicsQueue];
+		TVulkanRHI::VulkanPFNFunctions.GetDeviceQueue(Device, PresentQueue.QueueFamilyIndex, 0, &PresentQueue.QueueHandle);
 	}
 	
 	TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("================ Enabling {} device extension(s) ================", EnabledDeviceExtensions.GetElementCount());
@@ -488,7 +495,6 @@ TBool TVulkanDevice::GetEnabledDeviceExtensions(const TDynamicArray<VkExtensionP
 		EnabledDeviceExtensions.EmplaceBack(VK_KHR_EXTERNAL_MEMORY_EXTENSION_NAME);
 	}
 #endif
-
 	if (HasDeviceExtension(VK_EXT_CONSERVATIVE_RASTERIZATION_EXTENSION_NAME, AvailableDeviceExtensions))
 	{
 		VulkanRHIPointer->VulkanRHIFeatures.SupportsConservativeRasterization = true;
@@ -502,7 +508,9 @@ TBool TVulkanDevice::GetEnabledDeviceExtensions(const TDynamicArray<VkExtensionP
 			TLog::Warning<TRNT_GET_LOG_INFO(VulkanRHI)>("VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME is not supported!");
 			return false;
 		}
+
 		EnabledDeviceExtensions.EmplaceBack(VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME);
+		VulkanRHIPointer->VulkanRHIFeatures.SupportsCreateRenderPass2KHR = true;
 
 		if (HasDeviceExtension(VK_KHR_IMAGE_FORMAT_LIST_EXTENSION_NAME, AvailableDeviceExtensions))
 		{
@@ -669,6 +677,82 @@ TBool TVulkanDevice::GetEnabledDeviceExtensions(const TDynamicArray<VkExtensionP
 	}
 
 	return true;
+}
+
+VkFormat TVulkanDevice::FindSupportedFormat(const TDynamicArray<VkFormat>& Formats, VkImageTiling Tiling, VkFormatFeatureFlags FormatFeatures)
+{
+	for (VkFormat Format : Formats)
+	{
+		VkFormatProperties FormatProperties;
+		TVulkanRHI::VulkanPFNFunctions.GetPhysicalDeviceFormatProperties(PhysicalDevice.Handle, Format, &FormatProperties);
+
+		if (Tiling == VK_IMAGE_TILING_LINEAR && (FormatProperties.linearTilingFeatures & FormatFeatures) == FormatFeatures)
+		{
+			return Format;
+		}
+		else if (Tiling == VK_IMAGE_TILING_OPTIMAL && (FormatProperties.optimalTilingFeatures & FormatFeatures) == FormatFeatures)
+		{
+			return Format;
+		}
+	}
+
+	return VK_FORMAT_UNDEFINED;
+}
+
+TUInt32 TVulkanDevice::GetMemoryTypeIndex(TUInt32 TypeFilter, VkMemoryPropertyFlags MemoryProperty)
+{
+	for (TUInt32 MemoryTypeIdx = 0; MemoryTypeIdx < MemoryProperties.memoryTypeCount; ++MemoryTypeIdx)
+	{
+		if ((TypeFilter & (1 << MemoryTypeIdx)) && (MemoryProperties.memoryTypes[MemoryTypeIdx].propertyFlags & MemoryProperty) == MemoryProperty)
+		{
+			return MemoryTypeIdx;
+		}
+	}
+
+	static constexpr TUInt32 MaxUInt32Value = 0xffffffffui32;
+	TLog::Warning<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to get memory type index! Maximum value of TUInt32 will be returned");
+	return MaxUInt32Value;
+}
+
+TBool TVulkanDevice::CreateVulkanImageWithInfo(const VkImageCreateInfo& ImageCreateInfo, VkMemoryPropertyFlags MemoryProp, VkImage& Image, VkDeviceMemory& ImageMemory)
+{
+	if (TVulkanRHI::VulkanPFNFunctions.CreateImage(Device, &ImageCreateInfo, nullptr, &Image) != VK_SUCCESS)
+	{
+		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to create Vulkan image [format: {}, extent: {}x{}x{}, type: {}]",
+			static_cast<TUInt32>(ImageCreateInfo.format), ImageCreateInfo.extent.width, ImageCreateInfo.extent.height, ImageCreateInfo.extent.depth, static_cast<TUInt32>(ImageCreateInfo.imageType));
+		return false;
+	}
+
+	VkMemoryRequirements MemoryRequirements;
+	TVulkanRHI::VulkanPFNFunctions.GetImageMemoryRequirements(Device, Image, &MemoryRequirements);
+
+	VkMemoryAllocateInfo MemoryAllocateInfo;
+	TMemory::Memset(&MemoryAllocateInfo, 0, sizeof(MemoryAllocateInfo));
+	MemoryAllocateInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	MemoryAllocateInfo.allocationSize = MemoryRequirements.size;
+	MemoryAllocateInfo.memoryTypeIndex = GetMemoryTypeIndex(MemoryRequirements.memoryTypeBits, MemoryProp);
+
+	if (TVulkanRHI::VulkanPFNFunctions.AllocateMemory(Device, &MemoryAllocateInfo, nullptr, &ImageMemory) != VK_SUCCESS)
+	{
+		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to allocate image memory (allocation size: {}).", (TUInt32)MemoryAllocateInfo.allocationSize);
+		return false;
+	}
+
+	if (TVulkanRHI::VulkanPFNFunctions.BindImageMemory(Device, Image, ImageMemory, 0) != VK_SUCCESS)
+	{
+		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to bind image memory (allocation size: {}).", (TUInt32)MemoryAllocateInfo.allocationSize);
+		return false;
+	}
+
+	return true;
+}
+
+void TVulkanDevice::WaitIdle()
+{
+	if (Device)
+	{
+		TVulkanRHI::VulkanPFNFunctions.DeviceWaitIdle(Device);
+	}
 }
 
 void TVulkanDevice::Destroy()

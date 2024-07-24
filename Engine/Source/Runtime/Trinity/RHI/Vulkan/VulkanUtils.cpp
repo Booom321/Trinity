@@ -1,6 +1,6 @@
 #include "TrinityPCH.h"
 
-#if defined(TRNT_USE_VULKAN_RHI)
+#if defined(TRNT_SUPPORT_VULKAN_RHI)
 
 #include "VulkanUtils.h"
 
@@ -176,6 +176,141 @@ TString TVulkanUtils::ConvertQueueFlagsToString(const VkQueueFlags QueueFlags)
 	FinalOutput.TrimEndInternal();
 
 	return FinalOutput;
+}
+
+const TChar* TVulkanUtils::ConvertShaderStageToCString(TShaderStage ShaderStage)
+{
+	switch (ShaderStage)
+	{
+	case TShaderStage::EVertex:
+		return "Vertex";
+	case TShaderStage::ETessellationControl:
+		return "TessellationControl";
+	case TShaderStage::ETessellationEvaluation:
+		return "TessellationEvaluation";
+	case TShaderStage::EGeometry:
+		return "Geometry";
+	case TShaderStage::EFragment:
+		return "Fragment";
+	case TShaderStage::ECompute:
+		return "Compute";
+	case TShaderStage::EHull:
+		return "Hull";
+	case TShaderStage::EDomain:
+		return "Domain";
+	case TShaderStage::EPixel:
+		return "Pixel";
+	case TShaderStage::EMax:
+		return "Max";
+	}
+
+	return "<Unknown>";
+}
+
+VkShaderStageFlagBits TVulkanUtils::ConvertTShaderStageToVkStage(TShaderStage ShaderStage)
+{
+	switch (ShaderStage)
+	{
+	case TShaderStage::EVertex:
+		return VK_SHADER_STAGE_VERTEX_BIT;
+	case TShaderStage::EHull:
+	case TShaderStage::ETessellationControl:
+		return VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+	case TShaderStage::EDomain:
+	case TShaderStage::ETessellationEvaluation:
+		return VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+	case TShaderStage::EGeometry:
+		return VK_SHADER_STAGE_GEOMETRY_BIT;
+	case TShaderStage::EFragment:
+		return VK_SHADER_STAGE_FRAGMENT_BIT;
+	case TShaderStage::EPixel:
+	case TShaderStage::ECompute:
+		return VK_SHADER_STAGE_COMPUTE_BIT;
+	}
+	return VK_SHADER_STAGE_ALL;
+}
+
+VkPolygonMode TVulkanUtils::ConvertTPolygonModeToVkPolygonMode(TPolygonMode PolygonMode)
+{
+	switch (PolygonMode)
+	{
+	case TPolygonMode::EFill:
+		return VK_POLYGON_MODE_FILL;
+	case TPolygonMode::ELine:
+		return VK_POLYGON_MODE_LINE;
+	case TPolygonMode::EPoint:
+		return VK_POLYGON_MODE_POINT;
+	case TPolygonMode::ERectangleNV:
+		return VK_POLYGON_MODE_FILL_RECTANGLE_NV;
+	case TPolygonMode::EMax:
+		return VK_POLYGON_MODE_MAX_ENUM;
+	}
+	return VK_POLYGON_MODE_FILL;
+}
+
+VkCullModeFlagBits TVulkanUtils::ConvertTCullModeToVkCullMode(TCullMode CullMode)
+{
+	switch (CullMode)
+	{
+	case TCullMode::ENONE:
+		return VK_CULL_MODE_NONE;
+	case TCullMode::EFrontBit:
+		return VK_CULL_MODE_FRONT_BIT;
+	case TCullMode::EBackBit:
+		return VK_CULL_MODE_BACK_BIT;
+	case TCullMode::EFrontAndBack:
+		return VK_CULL_MODE_FRONT_AND_BACK;
+	case TCullMode::EMax:
+		return VK_CULL_MODE_FLAG_BITS_MAX_ENUM;
+	}
+	return VK_CULL_MODE_NONE;
+}
+
+VkPrimitiveTopology TVulkanUtils::ConvertTPrimitiveTopologyToVkPrimitiveTopology(TPrimitiveTopology Topology)
+{
+	switch (Topology)
+	{
+	case TPrimitiveTopology::EPointList:
+		return VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+	case TPrimitiveTopology::ELineList:
+		return VK_PRIMITIVE_TOPOLOGY_LINE_LIST;
+	case TPrimitiveTopology::ELineStrip:
+		return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP;
+	case TPrimitiveTopology::ETriangleList:
+		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	case TPrimitiveTopology::ETriangleStrip:
+		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+	case TPrimitiveTopology::ETriangleFan:
+		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_FAN;
+	case TPrimitiveTopology::ELineListWithAdjacency:
+		return VK_PRIMITIVE_TOPOLOGY_LINE_LIST_WITH_ADJACENCY;
+	case TPrimitiveTopology::ELineStripWithAdjacency:
+		return VK_PRIMITIVE_TOPOLOGY_LINE_STRIP_WITH_ADJACENCY;
+	case TPrimitiveTopology::ETriangleListWithAdjacency:
+		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST_WITH_ADJACENCY;
+	case TPrimitiveTopology::ETriangleStripWithAdjacency:
+		return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP_WITH_ADJACENCY;
+	case TPrimitiveTopology::EPatchList:
+		return VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+	case TPrimitiveTopology::EMax:
+		return VK_PRIMITIVE_TOPOLOGY_MAX_ENUM;
+	}
+	return VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST; // return default topology
+}
+
+VkFrontFace TVulkanUtils::ConvertTFrontFaceToVkFrontFace(TFrontFace FrontFace)
+{
+	switch (FrontFace)
+	{
+	case TFrontFace::ECounterClockwise:
+		return VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	case TFrontFace::EClockwise:
+		return VK_FRONT_FACE_CLOCKWISE;
+	case TFrontFace::EMax:
+		return VK_FRONT_FACE_MAX_ENUM;
+	}
+
+	return VK_FRONT_FACE_CLOCKWISE;
 }
 
 #endif

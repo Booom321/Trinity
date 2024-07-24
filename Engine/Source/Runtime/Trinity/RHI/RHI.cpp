@@ -2,70 +2,84 @@
 
 #include "RHI.h"
 
-#ifdef TRNT_USE_VULKAN_RHI
+#ifdef TRNT_SUPPORT_VULKAN_RHI
 #	include "Vulkan/VulkanRHI.h"
 #endif
 
 #ifdef TRNT_PLATFORM_WIN64
-#	ifdef TRNT_USE_DIRECTX11_RHI
+#	ifdef TRNT_SUPPORT_DIRECTX11_RHI
 //#		include "DirectX11/DirectX11RHI.h"
 #	endif // 
 
-#	ifdef TRNT_USE_DIRECTX12_RHI
+#	ifdef TRNT_SUPPORT_DIRECTX12_RHI
 //#		include "DirectX12/DirectX12RHI.h"
 #	endif // 
 #endif
 
-#ifdef TRNT_USE_NULL_RHI
+#ifdef TRNT_SUPPORT_NULL_RHI
 #	include "Null/NullRHI.h"
 #endif
 
 TRNT_DECLARE_LOG_INFO(RHI, TLogLevel::EDebug);
 
-TRHI* TRHI::GlobalRHIInstance = nullptr;
+TGenericRHI* TGenericRHI::GlobalRHIInstance = nullptr;
 
-TRHI::~TRHI() = default;
+TGenericRHI::~TGenericRHI() = default;
 
-TRHI* TRHI::CreateRHI(const TRHIType RHIType)
+TGenericRHI* TGenericRHI::CreateRHI(const TGraphicsAPI GraphicsAPI, TBool& Initialized)
 {
-	TRHI* RHI = nullptr;
+	TGenericRHI* RHI = nullptr;
+	Initialized = false;
 
-	switch (RHIType)
+	switch (GraphicsAPI)
 	{
-	case TRHIType::EUnknown:
-		TLog::Error<TRNT_GET_LOG_INFO(RHI)>("Can not create `RHI` with TRHIType::EUnknown!");
+	case TGraphicsAPI::EUnknown:
+		TLog::Error<TRNT_GET_LOG_INFO(RHI)>("Can not create `RHI` with TGraphicsAPI::EUnknown!");
 		return nullptr;
-	case TRHIType::ENull:
+	case TGraphicsAPI::ENull:
 		RHI = new TNullRHI();
+		RHI->RHIName = TRNT_NULL_RHI;
 		break;
-	case TRHIType::EVulkan:
+	case TGraphicsAPI::EVulkan:
 		RHI = new TVulkanRHI();
+		RHI->RHIName = TRNT_VULKAN_RHI_NAME;
 		break;
-#if defined(TRNT_PLATFORM_WIN64)
-	case TRHIType::EDirectX11:
+#if defined(TRNT_SUPPORT_DIRECTX11_RHI)
+	case TGraphicsAPI::EDirectX11:
 		//RHI = new TDirectX11RHI();
-		break;
-	case TRHIType::EDirectX12:
-		//RHI = new TDirectX12RHI();
+		RHI->RHIName = TRNT_DIRECTX11_RHI_NAME;
 		break;
 #else
-	case TRHIType::EDirectX11:
+	case TGraphicsAPI::EDirectX11:
 		TLog::Error<TRNT_GET_LOG_INFO(RHI)>("DirectX 11 RHI is not supported on current platform!");
 		break;
-	case TRHIType::EDirectX12:
-		TLog::Error<TRNT_GET_LOG_INFO(RHI)>("DirectX 11 RHI is not supported on current platform!");
+#endif
+
+#if defined(TRNT_SUPPORT_DIRECTX12_RHI)
+	case TGraphicsAPI::EDirectX12:
+		//RHI = new TDirectX12RHI();
+		RHI->RHIName = TRNT_DIRECTX12_RHI_NAME;
+		break;
+#else
+	case TGraphicsAPI::EDirectX12:
+		TLog::Error<TRNT_GET_LOG_INFO(RHI)>("DirectX 12 RHI is not supported on current platform!");
 		break;
 #endif
 	}
 
 	if (RHI)
 	{
-		RHI->Initialize();
+		RHI->GraphicsAPI = GraphicsAPI;
+		if (!RHI->Initialize())
+		{
+			Initialized = false;
+		}
+		Initialized = true;
 	}
 	return RHI;
 }
 
-void TRHI::DestroyRHI(TRHI* RHIPointer)
+void TGenericRHI::DestroyRHI(TGenericRHI* RHIPointer)
 {
 	if (RHIPointer)
 	{
@@ -76,7 +90,7 @@ void TRHI::DestroyRHI(TRHI* RHIPointer)
 	}
 }
 
-void TRHI::SetGlobalInstance(TRHI* RHIPointer)
+void TGenericRHI::SetGlobalInstance(TGenericRHI* RHIPointer)
 {
 	TRNT_ASSERT_IS_NOT_NULL(RHIPointer);
 
@@ -84,17 +98,17 @@ void TRHI::SetGlobalInstance(TRHI* RHIPointer)
 	return;
 }
 
-const TChar* TRHI::ConvertRHITypeToCString(const TRHIType RHIType)
+const TChar* TGenericRHI::ConvertGraphicsAPIToCString(const TGraphicsAPI GraphicsAPI)
 {
-	switch (RHIType)
+	switch (GraphicsAPI)
 	{
-	case TRHIType::ENull:
+	case TGraphicsAPI::ENull:
 		return TRNT_NULL_RHI_NAME;
-	case TRHIType::EVulkan:
+	case TGraphicsAPI::EVulkan:
 		return TRNT_VULKAN_RHI_NAME;
-	case TRHIType::EDirectX11:
+	case TGraphicsAPI::EDirectX11:
 		return TRNT_DIRECTX11_RHI_NAME;
-	case TRHIType::EDirectX12:
+	case TGraphicsAPI::EDirectX12:
 		return TRNT_DIRECTX12_RHI_NAME;
 	}
 

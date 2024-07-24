@@ -1,276 +1,334 @@
 #include "TrinityPCH.h"
 #include "CommandLine.h"
 
-TCommandLineParser TCommandLineParser::Instance = TCommandLineParser();
+TCommandLine TCommandLine::Instance = TCommandLine{};
 
-TCommandLineParser::~TCommandLineParser()
+TCommandLine::TCommandLine() : ArgCount(0), CommandLineArgs()
 {
+}
+
+TCommandLine::~TCommandLine()
+{
+}
+
+void TCommandLine::SetCommandLine(TInt32 ArgCount, TChar** Argv)
+{
+	this->ArgCount = ArgCount;
+	this->CommandLineArgs.Reserve(ArgCount);
+
+	for (TInt32 Index = 0; Index < ArgCount; ++Index)
+	{
+		this->CommandLineArgs.EmplaceBack(Argv[Index]);
+	}
+}
+
+void TCommandLine::Reset()
+{
+	ArgCount = 0;
 	CommandLineArgs.Clear();
-	CommandLineOptions.Clear();
 }
 
-void TCommandLineParser::Delete(TCommandLineParser* CmdLineParser)
+void TCommandLine::AddCommandLineArgument(const TChar* Argument)
 {
-	if (!CmdLineParser)
-	{
-		return;
-	}
-
-	delete CmdLineParser;
-	return;
+	CommandLineArgs.EmplaceBack(Argument);
+	++ArgCount;
 }
 
-void TCommandLineParser::SetCommandLine(TInt32 ArgCount, TChar** ArgV)
+TBool TCommandLine::CommandLineOptionExists(const TChar* OptionName, TStringSearchCase SearchChase) const
 {
-	CommandLineArgs.Clear();
-	CommandLineArgs.Reserve(ArgCount);
+	TRNT_ASSERT_MESSAGE(OptionName[0] == '-', "Command line option name must start with a hyphen (-).");
+	
+	TSize_T OptionNameLen = strlen(OptionName);
 
-	for (TInt32 Index = 1; Index < ArgCount; ++Index)
+	for (TInt32 Index = 0; Index < ArgCount; ++Index)
 	{
-		CommandLineArgs.EmplaceBack(ArgV[Index]);
-	}
-}
-
-TBool TCommandLineParser::IsCommandLineOptionExists(TString OptName)
-{
-	TRNT_ASSERT_MESSAGE(OptName[0] == '-', "Command line option name must start with a hyphen (\"-\").");
-
-	for (TInt32 Index = 0, OptionCount = (TInt32)CommandLineOptions.GetElementCount(); Index < OptionCount; ++Index)
-	{
-		if (CommandLineOptions[Index].OptName == OptName)
+		switch (SearchChase)
 		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
-#pragma warning( push )
-#pragma warning(disable: 6031)
-
-TBool IsCommandLineArgValueValid(TCommandLineOptType OptType, const TString& Value)
-{
-	TChar* StrEnd;
-
-	switch (OptType)
-	{
-	case TCommandLineOptType::EString:
-		return true;
-	case TCommandLineOptType::EInt32:
-		::strtol(Value.GetData(), &StrEnd, 10);
-		return StrEnd[0] == '\0';
-	case TCommandLineOptType::EInt64:
-		::strtoll(Value.GetData(), &StrEnd, 10);
-		return StrEnd[0] == '\0';
-	case TCommandLineOptType::EUInt32:
-		::strtoul(Value.GetData(), &StrEnd, 10);
-		return StrEnd[0] == '\0';
-	case TCommandLineOptType::EUInt64:
-		::strtoull(Value.GetData(), &StrEnd, 10);
-		return StrEnd[0] == '\0';
-	case TCommandLineOptType::EFloat:
-		::strtof(Value.GetData(), &StrEnd);
-		return StrEnd[0] == '\0';
-	case TCommandLineOptType::EDouble:
-		::strtod(Value.GetData(), &StrEnd);
-		return StrEnd[0] == '\0';
-	case TCommandLineOptType::EBool:
-		return Value == "1" || Value == "0" || Value.IsEquals("true", TStringSearchCase::EIgnoreCase) || Value.IsEquals("false", TStringSearchCase::EIgnoreCase);
-	}
-
-	return false;
-}
-
-#pragma warning( pop )
-
-TBool TCommandLineParser::Parse()
-{
-	TDynamicArray<TString> CommandArgParts(2);
-
-	for (TInt32 Index = 0, CommandLineArgCount = (TInt32)CommandLineArgs.GetElementCount(); Index < CommandLineArgCount; ++Index)
-	{
-		CommandLineArgs[Index].SplitByString(CommandArgParts, "=");
-
-		const TString& Argument = CommandArgParts[0];
-
-		////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		if (Argument[0] != '-')
-		{
-			return false;
-		}
-		////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		TInt64 FoundIndex = CommandLineOptions.FindElementIf([&Argument](const TCommandLineOption& Option) -> TBool
-		{
-			return Option.OptName == Argument;
-		});
-
-		if (FoundIndex == TDynamicArray<TCommandLineOption>::Npos)
-		{
-			// Unknown command line argument
-			CommandArgParts.Clear();
-			continue;
-		}
-		////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-		if (CommandArgParts.GetElementCount() > 1)
-		{
-			const TString& Value = CommandArgParts[1];
-
-			if (!IsCommandLineArgValueValid(CommandLineOptions[FoundIndex].OptType, Value))
+		case TStringSearchCase::EIgnoreCase:
+			if (TCString<TChar>::Strnicmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
 			{
-				// invalid value!
-				return false;
+				return true;
 			}
-			CommandLineOptions[FoundIndex].Value = Value;
+			break;
+		case TStringSearchCase::ECaseSensitive:
+			if (::strncmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
+			{
+				return true;
+			}
+			break;
+		}
+	}
+
+	return false;
+}
+
+TInt32 TCommandLine::GetCommandLineOptionIndex(const TChar* OptionName, TStringSearchCase SearchChase) const
+{ 
+	TRNT_ASSERT_MESSAGE(OptionName[0] == '-', "Command line option name must start with a hyphen (-).");
+
+	TSize_T OptionNameLen = strlen(OptionName);
+
+	for (TInt32 Index = 0; Index < ArgCount; ++Index)
+	{
+		switch (SearchChase)
+		{
+		case TStringSearchCase::EIgnoreCase:
+			if (TCString<TChar>::Strnicmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
+			{
+				return Index;
+			}
+			break;
+		case TStringSearchCase::ECaseSensitive:
+			if (::strncmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
+			{
+				return Index;
+			}
+			break;
+		}
+	}
+
+	return (TInt32)TDynamicArray<TString>::Npos;
+}
+
+TString TCommandLine::GetCommandLineAsString() const
+{
+	TString Output;
+
+	for (TInt32 Index = 0; Index < ArgCount; ++Index)
+	{
+		Output.Append(CommandLineArgs[Index]);
+		Output.Append(1, ' ');
+	}
+
+	Output.TrimEndInternal();
+	return Output;
+}
+
+namespace TNsPrivate
+{
+	static TInt32 GetCommandLineOptionIndex(
+		const TDynamicArray<TString>& CommandLineArgs, TInt32 ArgCount, const TChar* OptionName, TSize_T OptionNameLen, TStringSearchCase SearchChase)
+	{
+		TRNT_ASSERT_MESSAGE(OptionName[0] == '-', "Command line option name must start with a hyphen (-).");
+
+		for (TInt32 Index = 0; Index < ArgCount; ++Index)
+		{
+			switch (SearchChase)
+			{
+			case TStringSearchCase::EIgnoreCase:
+				if (TCString<TChar>::Strnicmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
+				{
+					return Index;
+				}
+				break;
+			case TStringSearchCase::ECaseSensitive:
+				if (::strncmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
+				{
+					return Index;
+				}
+				break;
+			}
 		}
 
-		CommandArgParts.Clear();
+		return (TInt32)TDynamicArray<TString>::Npos;
 	}
-
-	return true;
 }
 
-TRNT_NODISCARD TBool TCommandLineParser::GetStringOption(TString& Value, const TString& OptionName, TStringSearchCase SearchCase)
+TBool TCommandLine::GetValueOf(const TChar* OptionName, TString* OutValue, TStringSearchCase SearchChase) const
 {
-	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
-		{
-			return Option.OptName.IsEquals(OptionName, SearchCase);
-		});
-
-	if (Index == TDynamicArray<TCommandLineOption>::Npos)
-	{
-		return false;
-	}
-
-	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EString);
-
-	Value = CommandLineOptions[Index].Value;
-	return true;
-}
-
-TRNT_NODISCARD TBool TCommandLineParser::GetBooleanOption(TBool& Value, const TString& OptionName, TStringSearchCase SearchCase)
-{
-	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
-		{
-			return Option.OptName.IsEquals(OptionName, SearchCase);
-		});
-
-	if (Index == TDynamicArray<TCommandLineOption>::Npos)
+	TSize_T OptionNameLen = ::strlen(OptionName);
+	TInt32 Index = TNsPrivate::GetCommandLineOptionIndex(CommandLineArgs, ArgCount, OptionName, OptionNameLen, SearchChase);
+	if (Index == TDynamicArray<TString>::Npos || !OutValue)
 	{
 		return false;
 	}
 	
-	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EBool);
+	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
+	OutValue->Append(ValuePos);
 
-	Value = TNsStringConversion::StringToBool(CommandLineOptions[Index].Value);
 	return true;
 }
 
-TRNT_NODISCARD TBool TCommandLineParser::GetFloatOption(TFloat& Value, const TString& OptionName, TStringSearchCase SearchCase)
+TBool TCommandLine::GetValueOf(const TChar* OptionName, TBool* OutValue, TStringSearchCase SearchChase) const
 {
-	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
-		{
-			return Option.OptName.IsEquals(OptionName, SearchCase);
-		});
-
-	if (Index == TDynamicArray<TCommandLineOption>::Npos)
+	TSize_T OptionNameLen = ::strlen(OptionName);
+	TInt32 Index = TNsPrivate::GetCommandLineOptionIndex(CommandLineArgs, ArgCount, OptionName, OptionNameLen, SearchChase);
+	if (Index == TDynamicArray<TString>::Npos || !OutValue)
 	{
 		return false;
 	}
 
-	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EFloat);
+	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
+	
+	if (!TCString<TChar>::Stricmp(ValuePos, "true") || !TCString<TChar>::Stricmp(ValuePos, "on") || !TCString<TChar>::Stricmp(ValuePos, "1"))
+	{
+		*OutValue = true;
+	}
 
-	Value = ::strtof(CommandLineOptions[Index].Value.GetData(), nullptr);
+	if (!TCString<TChar>::Stricmp(ValuePos, "false") || !TCString<TChar>::Stricmp(ValuePos, "off") || !TCString<TChar>::Stricmp(ValuePos, "0"))
+	{
+		*OutValue = true;
+	}
+
 	return true;
 }
 
-TRNT_NODISCARD TBool TCommandLineParser::GetDoubleOption(TDouble& Value, const TString& OptionName, TStringSearchCase SearchCase)
+TBool TCommandLine::GetValueOf(const TChar* OptionName, TInt8* OutValue, TStringSearchCase SearchChase) const
 {
-	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
-		{
-			return Option.OptName.IsEquals(OptionName, SearchCase);
-		});
-
-	if (Index == TDynamicArray<TCommandLineOption>::Npos)
+	TSize_T OptionNameLen = ::strlen(OptionName);
+	TInt32 Index = TNsPrivate::GetCommandLineOptionIndex(CommandLineArgs, ArgCount, OptionName, OptionNameLen, SearchChase);
+	if (Index == TDynamicArray<TString>::Npos || !OutValue)
 	{
 		return false;
 	}
 
-	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EDouble);
+	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
+	TChar* StrEnd;
+	*OutValue = static_cast<TInt8>(::strtol(ValuePos, &StrEnd, 10));
 
-	Value = ::atof(CommandLineOptions[Index].Value.GetData());
-	return true;
+	return StrEnd[0] == '\0';
 }
 
-TRNT_NODISCARD TBool TCommandLineParser::GetInt32Option(TInt32& Value, const TString& OptionName, TStringSearchCase SearchCase)
+TBool TCommandLine::GetValueOf(const TChar* OptionName, TUInt8* OutValue, TStringSearchCase SearchChase) const
 {
-	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
-		{
-			return Option.OptName.IsEquals(OptionName, SearchCase);
-		});
-
-	if (Index == TDynamicArray<TCommandLineOption>::Npos)
+	TSize_T OptionNameLen = ::strlen(OptionName);
+	TInt32 Index = TNsPrivate::GetCommandLineOptionIndex(CommandLineArgs, ArgCount, OptionName, OptionNameLen, SearchChase);
+	if (Index == TDynamicArray<TString>::Npos || !OutValue)
 	{
 		return false;
 	}
 
-	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EInt32);
+	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
+	TChar* StrEnd;
+	*OutValue = static_cast<TUInt8>(::strtoul(ValuePos, &StrEnd, 10));
 
-	Value = ::atoi(CommandLineOptions[Index].Value.GetData());
-	return true;
+	return StrEnd[0] == '\0';
 }
 
-TRNT_NODISCARD TBool TCommandLineParser::GetUInt32Option(TUInt32& Value, const TString& OptionName, TStringSearchCase SearchCase)
+TBool TCommandLine::GetValueOf(const TChar* OptionName, TInt16* OutValue, TStringSearchCase SearchChase) const
 {
-	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
-		{
-			return Option.OptName.IsEquals(OptionName, SearchCase);
-		});
-
-	if (Index == TDynamicArray<TCommandLineOption>::Npos)
+	TSize_T OptionNameLen = ::strlen(OptionName);
+	TInt32 Index = TNsPrivate::GetCommandLineOptionIndex(CommandLineArgs, ArgCount, OptionName, OptionNameLen, SearchChase);
+	if (Index == TDynamicArray<TString>::Npos || !OutValue)
 	{
 		return false;
 	}
 
-	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EUInt32);
+	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
+	TChar* StrEnd;
+	*OutValue = static_cast<TInt16>(::strtol(ValuePos, &StrEnd, 10));
 
-	Value = TNsStringConversion::StringToUInt32(CommandLineOptions[Index].Value);
-	return true;
+	return StrEnd[0] == '\0';
 }
 
-TRNT_NODISCARD TBool TCommandLineParser::GetInt64Option(TInt64& Value, const TString& OptionName, TStringSearchCase SearchCase)
+TBool TCommandLine::GetValueOf(const TChar* OptionName, TUInt16* OutValue, TStringSearchCase SearchChase) const
 {
-	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
-		{
-			return Option.OptName.IsEquals(OptionName, SearchCase);
-		});
-
-	if (Index == TDynamicArray<TCommandLineOption>::Npos)
+	TSize_T OptionNameLen = ::strlen(OptionName);
+	TInt32 Index = TNsPrivate::GetCommandLineOptionIndex(CommandLineArgs, ArgCount, OptionName, OptionNameLen, SearchChase);
+	if (Index == TDynamicArray<TString>::Npos || !OutValue)
 	{
 		return false;
 	}
 
-	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EInt64);
+	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
+	TChar* StrEnd;
+	*OutValue = static_cast<TUInt16>(::strtoul(ValuePos, &StrEnd, 10));
 
-	Value = ::atoll(CommandLineOptions[Index].Value.GetData());
-	return true;
+	return StrEnd[0] == '\0';
 }
 
-TRNT_NODISCARD TBool TCommandLineParser::GetUInt64Option(TUInt64& Value, const TString& OptionName, TStringSearchCase SearchCase)
+TBool TCommandLine::GetValueOf(const TChar* OptionName, TInt32* OutValue, TStringSearchCase SearchChase) const
 {
-	TInt64 Index = CommandLineOptions.FindElementIf([&OptionName, SearchCase](const TCommandLineOption& Option) -> TBool
-		{
-			return Option.OptName.IsEquals(OptionName, SearchCase);
-		});
-
-	if (Index == TDynamicArray<TCommandLineOption>::Npos)
+	TSize_T OptionNameLen = ::strlen(OptionName);
+	TInt32 Index = TNsPrivate::GetCommandLineOptionIndex(CommandLineArgs, ArgCount, OptionName, OptionNameLen, SearchChase);
+	if (Index == TDynamicArray<TString>::Npos || !OutValue)
 	{
 		return false;
 	}
 
-	TRNT_ASSERT(CommandLineOptions[Index].OptType == TCommandLineOptType::EUInt64);
+	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
+	TChar* StrEnd;
+	*OutValue = static_cast<TInt32>(::strtol(ValuePos, &StrEnd, 10));
 
-	Value = TNsStringConversion::StringToUInt64(CommandLineOptions[Index].Value);
-	return true;
+	return StrEnd[0] == '\0';
+}
+
+TBool TCommandLine::GetValueOf(const TChar* OptionName, TUInt32* OutValue, TStringSearchCase SearchChase) const
+{
+	TSize_T OptionNameLen = ::strlen(OptionName);
+	TInt32 Index = TNsPrivate::GetCommandLineOptionIndex(CommandLineArgs, ArgCount, OptionName, OptionNameLen, SearchChase);
+	if (Index == TDynamicArray<TString>::Npos || !OutValue)
+	{
+		return false;
+	}
+
+	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
+	TChar* StrEnd;
+	*OutValue = static_cast<TUInt32>(::strtoul(ValuePos, &StrEnd, 10));
+
+	return StrEnd[0] == '\0';
+}
+
+TBool TCommandLine::GetValueOf(const TChar* OptionName, TInt64* OutValue, TStringSearchCase SearchChase) const
+{
+	TSize_T OptionNameLen = ::strlen(OptionName);
+	TInt32 Index = TNsPrivate::GetCommandLineOptionIndex(CommandLineArgs, ArgCount, OptionName, OptionNameLen, SearchChase);
+	if (Index == TDynamicArray<TString>::Npos || !OutValue)
+	{
+		return false;
+	}
+
+	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
+	TChar* StrEnd;
+	*OutValue = (::strtoll(ValuePos, &StrEnd, 10));
+
+	return StrEnd[0] == '\0';
+}
+
+TBool TCommandLine::GetValueOf(const TChar* OptionName, TUInt64* OutValue, TStringSearchCase SearchChase) const
+{
+	TSize_T OptionNameLen = ::strlen(OptionName);
+	TInt32 Index = TNsPrivate::GetCommandLineOptionIndex(CommandLineArgs, ArgCount, OptionName, OptionNameLen, SearchChase);
+	if (Index == TDynamicArray<TString>::Npos || !OutValue)
+	{
+		return false;
+	}
+
+	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
+	TChar* StrEnd;
+	*OutValue = (::strtoull(ValuePos, &StrEnd, 10));
+
+	return StrEnd[0] == '\0';
+}
+
+TBool TCommandLine::GetValueOf(const TChar* OptionName, TFloat* OutValue, TStringSearchCase SearchChase) const
+{
+	TSize_T OptionNameLen = ::strlen(OptionName);
+	TInt32 Index = TNsPrivate::GetCommandLineOptionIndex(CommandLineArgs, ArgCount, OptionName, OptionNameLen, SearchChase);
+	if (Index == TDynamicArray<TString>::Npos || !OutValue)
+	{
+		return false;
+	}
+
+	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
+	TChar* StrEnd;
+	*OutValue = ::strtof(ValuePos, & StrEnd);
+
+	return StrEnd[0] == '\0';
+}
+
+TBool TCommandLine::GetValueOf(const TChar* OptionName, TDouble* OutValue, TStringSearchCase SearchChase) const
+{
+	TSize_T OptionNameLen = ::strlen(OptionName);
+	TInt32 Index = TNsPrivate::GetCommandLineOptionIndex(CommandLineArgs, ArgCount, OptionName, OptionNameLen, SearchChase);
+	if (Index == TDynamicArray<TString>::Npos || !OutValue)
+	{
+		return false;
+	}
+
+	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
+	TChar* StrEnd;
+	*OutValue = ::strtof(ValuePos, &StrEnd);
+
+	return StrEnd[0] == '\0';
 }

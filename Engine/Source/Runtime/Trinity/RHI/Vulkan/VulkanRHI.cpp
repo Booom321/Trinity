@@ -1,6 +1,6 @@
 #include "TrinityPCH.h"
 
-#if defined(TRNT_USE_VULKAN_RHI)
+#if defined(TRNT_SUPPORT_VULKAN_RHI)
 
 #include "VulkanRHI.h"
 #include "VulkanUtils.h"
@@ -82,6 +82,55 @@ TBool TVulkanPFNFunctions::LoadVulkanPFNFunctions(VkInstance Instance)
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateImageView, CreateImageView);
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroyImageView, DestroyImageView);
 
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateShaderModule, CreateShaderModule);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroyShaderModule, DestroyShaderModule);
+
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateRenderPass, CreateRenderPass);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroyRenderPass, DestroyRenderPass);
+
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreatePipelineLayout, CreatePipelineLayout);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroyPipelineLayout, DestroyPipelineLayout);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateGraphicsPipelines, CreateGraphicsPipelines);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroyPipeline, DestroyPipeline);
+
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateDescriptorSetLayout, CreateDescriptorSetLayout);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroyDescriptorSetLayout, DestroyDescriptorSetLayout);
+
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkGetPhysicalDeviceFormatProperties, GetPhysicalDeviceFormatProperties);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateFramebuffer, CreateFramebuffer);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroyFramebuffer, DestroyFramebuffer);
+
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateImage, CreateImage);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroyImage, DestroyImage);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkAllocateMemory, AllocateMemory);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkFreeMemory, FreeMemory);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkBindImageMemory, BindImageMemory);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkGetImageMemoryRequirements, GetImageMemoryRequirements);
+
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateCommandPool, CreateCommandPool);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroyCommandPool, DestroyCommandPool);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkAllocateCommandBuffers, AllocateCommandBuffers);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkFreeCommandBuffers, FreeCommandBuffers);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkBeginCommandBuffer, BeginCommandBuffer);
+	
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkEndCommandBuffer, EndCommandBuffer);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkResetCommandBuffer, ResetCommandBuffer);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdBeginRenderPass, CmdBeginRenderPass);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdBeginRenderPass2KHR, CmdBeginRenderPass2KHR);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdEndRenderPass, CmdEndRenderPass);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdEndRenderPass, CmdEndRenderPass);
+
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateSemaphore, CreateSemaphore);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateFence, CreateFence);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroySemaphore, DestroySemaphore);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroyFence, DestroyFence);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkWaitForFences, WaitForFences);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkResetFences, ResetFences);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkAcquireNextImageKHR, AcquireNextImageKHR);
+
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkQueueSubmit, QueueSubmit);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkQueuePresentKHR, QueuePresentKHR);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkQueueWaitIdle, QueueWaitIdle);
 #undef TRNT_LOAD_VULKAN_PFN_FUNCTION
 	
 	return true;
@@ -152,19 +201,19 @@ VKAPI_ATTR VkBool32 VKAPI_PTR TVulkanRHI::DebugUtilsCallback(
 
 	if (MessageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
 	{
-		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("[Error:{}]: {}", MsgType, CallbackData->pMessage);
+		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("[Error:{}] {}", MsgType, CallbackData->pMessage);
 	}
 	else if (MessageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
 	{
-		TLog::Warning<TRNT_GET_LOG_INFO(VulkanRHI)>("[Warning:{}]: {}", MsgType, CallbackData->pMessage);
+		TLog::Warning<TRNT_GET_LOG_INFO(VulkanRHI)>("[Warning:{}] {}", MsgType, CallbackData->pMessage);
 	}
 	else if (MessageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
 	{
-		TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("[Info:{}]: {}", MsgType, CallbackData->pMessage);
+		TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("[Info:{}] {}", MsgType, CallbackData->pMessage);
 	}
 	else if (MessageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
 	{
-		TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("[Verbose:{}]: {}", MsgType, CallbackData->pMessage);
+		TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("[Verbose:{}] {}", MsgType, CallbackData->pMessage);
 	}
 
 	return VK_FALSE;
@@ -384,9 +433,9 @@ TVersion TVulkanRHI::GetVersion() const
 	return VulkanInstanceVersion;
 }
 
-TRHIType TVulkanRHI::GetType()
+TGraphicsAPI TVulkanRHI::GetGraphicsAPI()
 {
-	return TRHIType::EVulkan;
+	return TGraphicsAPI::EVulkan;
 }
 
 TUInt32 TVulkanRHI::EnumerateInstanceExtensionProperties(const TChar* LayerName, TDynamicArray<VkExtensionProperties>& AvailableExtensionProps)
@@ -664,7 +713,7 @@ TBool TVulkanRHI::CreateVulkanInstance()
 		TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("* \"{}\"", InstanceLayer);
 	}
 
-	VkApplicationInfo ApplicationInfo{};
+	VkApplicationInfo ApplicationInfo;
 	TMemory::Memset(&ApplicationInfo, 0, sizeof(ApplicationInfo));
 
 	ApplicationInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -678,13 +727,13 @@ TBool TVulkanRHI::CreateVulkanInstance()
 	ApplicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 
 	////////////////////// Create the Vulkan Instance //////////////////////
-	VkInstanceCreateInfo InstanceCreateInfo{};
+	VkInstanceCreateInfo InstanceCreateInfo;
 	TMemory::Memset(&InstanceCreateInfo, 0, sizeof(InstanceCreateInfo));
 
 	InstanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	InstanceCreateInfo.pApplicationInfo = &ApplicationInfo;
 
-	VkValidationFeaturesEXT ValidationFeatures{};
+	VkValidationFeaturesEXT ValidationFeatures;
 	TMemory::Memset(&ValidationFeatures, 0, sizeof(ValidationFeatures));
 
 	if (VulkanRHIFeatures.HasValidationFeaturesExtension)
@@ -778,7 +827,7 @@ void TVulkanRHI::SetupDebugLayerCallback()
 #if defined(TRNT_USE_VULKAN_DEBUG_UTILS)
 	if (VulkanRHIFeatures.SupportsDebugUtils)
 	{
-		VkDebugUtilsMessengerCreateInfoEXT DebugUtilsMessengerCreateInfo{};
+		VkDebugUtilsMessengerCreateInfoEXT DebugUtilsMessengerCreateInfo;
 		TMemory::Memset(&DebugUtilsMessengerCreateInfo, 0, sizeof(DebugUtilsMessengerCreateInfo));
 
 		DebugUtilsMessengerCreateInfo.sType				= VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -793,7 +842,7 @@ void TVulkanRHI::SetupDebugLayerCallback()
 #elif TRNT_USE_VULKAN_DEBUG_REPORT
 	if (SupportsDebugReport)
 	{
-		VkDebugReportCallbackCreateInfoEXT DebugReportCallbackCreateInfo{};
+		VkDebugReportCallbackCreateInfoEXT DebugReportCallbackCreateInfo;
 		TMemory::Memset(&DebugReportCallbackCreateInfo, 0, sizeof(DebugReportCallbackCreateInfo));
 
 		DebugReportCallbackCreateInfo.sType			= VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
@@ -846,7 +895,7 @@ VkPhysicalDevice TVulkanRHI::ChoosePhysicalDevice()
 	VkPhysicalDevice FinalPhysicalDevice = VK_NULL_HANDLE;
 
 	TInt64 GPUIndex = -1;
-	if (TCommandLineParser::GetInstance()->GetInt64Option(GPUIndex, "-gpuindex"))
+	if (TCommandLine::GetInstance()->GetValueOf("-gpuindex", &GPUIndex))
 	{
 		if (GPUIndex >= 0 && GPUIndex < PhysicalDeviceCount)
 		{
@@ -925,6 +974,10 @@ TInt32 TVulkanRHI::RatePhysicalDeviceSuitability(VkPhysicalDevice PhysicalDevice
 
 TBool TVulkanRHI::CreateVulkanDevice(const TVulkanPhysicalDevice& SelectedPhysicalDevice)
 {
+	VulkanAPIVersion.Major = VK_API_VERSION_MAJOR(SelectedPhysicalDevice.PhysicalDeviceProperties.apiVersion);
+	VulkanAPIVersion.Minor = VK_API_VERSION_MINOR(SelectedPhysicalDevice.PhysicalDeviceProperties.apiVersion);
+	VulkanAPIVersion.Patch = VK_API_VERSION_PATCH(SelectedPhysicalDevice.PhysicalDeviceProperties.apiVersion);
+
 	VulkanDevice = new TVulkanDevice(SelectedPhysicalDevice, this);
 
 	if (!VulkanDevice->Initialize())
@@ -942,7 +995,6 @@ TBool TVulkanRHI::CreateVulkanDevice(const TVulkanPhysicalDevice& SelectedPhysic
 	{
 		TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>("Vulkan device has been initialized successful!");
 	}
-
 	return true;
 }
 

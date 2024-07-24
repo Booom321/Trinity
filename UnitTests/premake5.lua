@@ -22,10 +22,9 @@ project "UnitTests"
     includedirs
     {
         "%{prj.location}",
-
-        "%{IncludeDirs.EngineRuntime}",
         "%{IncludeDirs.fmt}",
-        "%{IncludeDirs.xxHash}"
+        "%{IncludeDirs.xxHash}",
+        "%{IncludeDirs.EngineRuntime}",
     }
 
     links

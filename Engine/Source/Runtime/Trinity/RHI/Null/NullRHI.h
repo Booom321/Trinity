@@ -1,10 +1,10 @@
 #pragma once
 
-#if defined(TRNT_USE_NULL_RHI) 
+#if defined(TRNT_SUPPORT_NULL_RHI) 
 
 #include "Trinity/RHI/RHI.h"
 
-class TRNT_API TNullRHI : public TRHI
+class TRNT_API TNullRHI : public TGenericRHI
 {
 public:
 	TNullRHI();
@@ -14,7 +14,7 @@ public:
 	virtual void Shutdown() override;
 	virtual const TChar* GetName() override;
 	virtual TVersion GetVersion() const override;
-	virtual TRHIType GetType() override;
+	virtual TGraphicsAPI GetGraphicsAPI() override;
 };
 
 #endif 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "TrinityPCH.h"
+
 #include "Config.h"
 #include "Defines.h"
 #include "PlatformDetection.h"

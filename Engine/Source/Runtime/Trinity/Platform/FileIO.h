@@ -29,7 +29,7 @@ class TRNT_API TFileReader
     TRNT_DISALLOW_COPY_AND_ASSIGN(TFileReader);
 
 public:
-    TRNT_FORCE_INLINE TFileReader() = default;
+    TFileReader();
 
     TFileReader(const TChar* FilePath, TFileOpenMode OpenMode = TFileOpenMode::EOpenExisting);
 
@@ -63,7 +63,7 @@ class TRNT_API TFileWriter
     TRNT_DISALLOW_COPY_AND_ASSIGN(TFileWriter);
 
 public:
-    TRNT_FORCE_INLINE TFileWriter() = default;
+    TFileWriter();
 
     TFileWriter(const TChar* FilePath, TFileOpenMode OpenMode = TFileOpenMode::ECreateNew, TBool EnableToAppend = true);
 

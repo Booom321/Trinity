@@ -41,8 +41,6 @@ enum class TLogCharType : unsigned char
 	EWChar,
 };
 
-// using TLogMessageHandlerCallback = void(*)(TLogLevel LogLevel, const TChar* FormattedMessageA, TSize_T FormattedMessageALen, const TWChar* FormattedMessageW, TSize_T FormattedMessageWLen);
-
 using TLogMessageHandlerCallback = void(*) (TLogLevel LogLevel, TLogCharType CharType, void* FormattedMessage, TSize_T FormattedMsgLen);
 
 class TRNT_API TLog
@@ -195,12 +193,10 @@ private:
 			{
 				if constexpr (TAreTheSameType<CharType, TChar>::Value)
 				{
-					//CurrentMessageHandler->Value(LogLevel, MemoryBuffer.data(), MemoryBuffer.size() - 1, nullptr, 0);
 					CurrentMessageHandler->Value(LogLevel, TLogCharType::EChar, MemoryBuffer.data(), MemoryBuffer.size() - 1);
 				}
 				else if constexpr (TAreTheSameType<CharType, TWChar>::Value)
 				{
-					//CurrentMessageHandler->Value(LogLevel, nullptr, 0, MemoryBuffer.data(), MemoryBuffer.size() - 1);
 					CurrentMessageHandler->Value(LogLevel, TLogCharType::EWChar, MemoryBuffer.data(), MemoryBuffer.size() - 1);
 				}
 				CurrentMessageHandler = CurrentMessageHandler->Next;

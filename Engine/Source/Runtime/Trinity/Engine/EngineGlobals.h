@@ -8,11 +8,11 @@
 class TEngineGlobals
 {
 public:
-	static TString EngineDir;
+	//static TString EngineDir;
 
-	static TString EngineShadersDir;
+	//static TString EngineShadersDir;
 
-	static TString EngineCompiledSPIRVShadersDir;
+	//static TString EngineCompiledSPIRVShadersDir;
 
 public:
 	static TVersion EngineVersion;

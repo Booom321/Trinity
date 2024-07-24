@@ -4,46 +4,46 @@
 #include <mutex>
 
 template<typename MutexT>
-class FLockGuard
+class TScopeLock
 {
 public:
 	using MutexType = MutexT;
 
-	TRNT_FORCE_INLINE explicit FLockGuard(MutexType& Mutex)
+	TRNT_FORCE_INLINE explicit TScopeLock(MutexType& Mutex)
 		: Mutex(Mutex)
 	{
 		Mutex.Lock();
 	}
 
-	~FLockGuard() noexcept
+	~TScopeLock() noexcept
 	{
 		Mutex.Unlock();
 	}
 
-	TRNT_DISALLOW_COPY_AND_ASSIGN(FLockGuard);
+	TRNT_DISALLOW_COPY_AND_ASSIGN(TScopeLock);
 
 private:
 	MutexType& Mutex;
 };
 
 template<>
-class FLockGuard<std::mutex>
+class TScopeLock<std::mutex>
 {
 public:
 	using MutexType = std::mutex;
 
-	TRNT_FORCE_INLINE explicit FLockGuard(std::mutex& Mutex)
+	TRNT_FORCE_INLINE explicit TScopeLock(std::mutex& Mutex)
 		: Mutex(Mutex)
 	{
 		Mutex.lock();
 	}
 
-	~FLockGuard() noexcept
+	~TScopeLock() noexcept
 	{
 		Mutex.unlock();
 	}
 
-	TRNT_DISALLOW_COPY_AND_ASSIGN(FLockGuard);
+	TRNT_DISALLOW_COPY_AND_ASSIGN(TScopeLock);
 
 private:
 	std::mutex& Mutex;

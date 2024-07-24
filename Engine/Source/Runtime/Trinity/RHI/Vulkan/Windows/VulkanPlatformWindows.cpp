@@ -1,6 +1,6 @@
 #include "TrinityPCH.h"
 
-#if defined(TRNT_USE_VULKAN_RHI)
+#if defined(TRNT_SUPPORT_VULKAN_RHI)
 
 #ifdef TRNT_USE_WINDOWS_WINDOW
 

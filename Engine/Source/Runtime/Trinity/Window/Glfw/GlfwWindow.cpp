@@ -348,6 +348,7 @@ void WindowSizeCallback(GLFWwindow* GLFWWindow, TInt32 Width, TInt32 Height)
 		}
 	}
 
+
 	if (Window->OnWindowResize)
 	{
 		Window->OnWindowResize(Window, Width, Height);
@@ -402,6 +403,7 @@ void WindowIconifyCallback(GLFWwindow* GLFWWindow, TInt32 Iconified)
 void FramebufferSizeCallback(GLFWwindow* GLFWWindow, TInt32 Width, TInt32 Height)
 {
 	TWindow* Window = static_cast<TWindow*>(glfwGetWindowUserPointer(GLFWWindow));
+
 	if (Window->OnFramebufferSize)
 	{
 		Window->OnFramebufferSize(Window, Width, Height);
@@ -533,7 +535,6 @@ TWindow::TWindow(const TWindowProperties& WindowProperties, TBool ForceInit)
 	: 	WindowProperties(WindowProperties), 
 		Initialized(false), 
 		Focused(false), 
-		Resized(false), 
 		Iconified(false), 
 		Closed(true), 
 		CursorHidden(false), 
@@ -690,6 +691,11 @@ void TWindow::Maximize()
 	glfwMaximizeWindow(WindowHandle);
 }
 
+void TWindow::Minimize()
+{
+	glfwIconifyWindow(WindowHandle);
+}
+
 void TWindow::Iconify()
 {
 	glfwIconifyWindow(WindowHandle);
@@ -814,6 +820,11 @@ void TWindow::SetCursorHide(TBool Hide)
 void TWindow::ProcessInput()
 {
 	glfwPollEvents();
+}
+
+void TWindow::WaitEvents()
+{
+	glfwWaitEvents();
 }
 
 void TWindow::SetOpacity(TFloat Opacity)

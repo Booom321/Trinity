@@ -1,5 +1,5 @@
 project "Editor"
-    kind "WindowedApp"
+    kind "ConsoleApp"
     language "C++"
     cppdialect "C++17"
     staticruntime "off"
@@ -10,23 +10,53 @@ project "Editor"
 
     files
     {
-        
+        "**.h",
+        "**.cpp",
+        "*.h",
+        "*.cpp"
     }
 
     includedirs
     {
-        "%{IncludeDirs.EngineRuntime}",
         "%{IncludeDirs.fmt}",
+        "%{IncludeDirs.stb}",
         "%{IncludeDirs.glfw}",
         "%{IncludeDirs.xxHash}",
-        "%{IncludeDirs.stb}",
-        "%{IncludeDirs.Vulkan}"
+        "%{IncludeDirs.glslang}",
+        "%{IncludeDirs.SPIRVCross}",
+        "%{IncludeDirs.EngineRuntime}",
     }
+    
+
+    if (EngineFeatures.SupportVulkan == true) then
+        includedirs
+        {
+            "%{IncludeDirs.Vulkan}"
+        }
+
+        defines
+        {
+            "TRNT_SUPPORT_VULKAN_RHI"
+        }
+        
+        libdirs
+        {
+            "%{LibDirs.Vulkan}"
+        }
+
+        links 
+        {
+            "vulkan-1"
+        }
+    end
 
     links 
     {
         "Engine",
-        "Glfw"
+        "Glfw",
+        "ImGui",
+        "Glslang",
+        "SPIRVCross",
     }
 
     defines
@@ -41,21 +71,17 @@ project "Editor"
         conformancemode "on"
         defines
         {
-            "TRNT_USE_VULKAN",
+            "TRNT_SUPPORT_NULL_RHI",
+            "TRNT_SUPPORT_DIRECTX11_RHI",
+            "TRNT_SUPPORT_DIRECTX12_RHI",
             "TRNT_SUPPORT_GLFW",
             "WIN32_LEAN_AND_MEAN",
             "_CRT_SECURE_NO_WARNINGS"
         }
 
-        libdirs
-        {
-            VULKAN_SDK .. "/Lib"
-        }
-
         links
         {
             "Shlwapi",
-            "vulkan-1"
         }
 
     filter "configurations:Debug"

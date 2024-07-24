@@ -1,6 +1,6 @@
 #include "TrinityPCH.h"
 
-#if defined(TRNT_USE_NULL_RHI)
+#if defined(TRNT_SUPPORT_NULL_RHI)
 
 #include "NullRHI.h"
 
@@ -31,9 +31,9 @@ TVersion TNullRHI::GetVersion()	const
 	return TVersion(1, 0, 0);
 }
 
-TRHIType TNullRHI::GetType()
+TGraphicsAPI TNullRHI::GetGraphicsAPI()
 {
-	return TRHIType::ENull;
+	return TGraphicsAPI::ENull;
 }
 
 #endif

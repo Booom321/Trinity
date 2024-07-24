@@ -1,15 +1,18 @@
 #include "TrinityPCH.h"
 
-#if defined(TRNT_USE_VULKAN_RHI)
-
+#if defined(TRNT_SUPPORT_VULKAN_RHI)
 
 #include "VulkanSwapChain.h"
 #include "VulkanUtils.h"
 #include "VulkanDevice.h"
+#include "VulkanCommandBuffer.h"
+
+#include "Trinity/Core/Math/Math.h"
 
 TVulkanSwapChain::TVulkanSwapChain(TVulkanRHI* VulkanRHIPointer, TWindow* WindowHandle, TUInt32 Width, TUInt32 Height)
-	:	SwapChain(VK_NULL_HANDLE), 
+	:	SwapChain(VK_NULL_HANDLE),
 		Surface(VK_NULL_HANDLE),
+		RenderPass(nullptr),
 		VulkanRHIPointer(VulkanRHIPointer),
 		WindowHandle(WindowHandle),
 		Width(Width),
@@ -25,23 +28,30 @@ TVulkanSwapChain::~TVulkanSwapChain()
 
 }
 
-TBool TVulkanSwapChain::Initialize()
+TBool TVulkanSwapChain::Initialize(TRecreateDesc* RecreateDesc)
 {
-	const TVulkanPFNFunctions& VulkanPFNFunctions = TVulkanRHI::GetVulkanPFNFunctions();
-	VkPhysicalDevice PhysicalDevice = VulkanDevicePointer->GetPhysicalDeviceHandle();
-	TRNT_ASSERT_IS_NOT_NULL(PhysicalDevice);
+	TVulkanPhysicalDevice& PhysicalDevice = VulkanDevicePointer->GetPhysicalDevice();
+	TRNT_ASSERT_IS_NOT_NULL(PhysicalDevice.Handle);
 
-	const TVulkanQueue* Queues = VulkanDevicePointer->GetVulkanQueuesData();
-
-	if (TVulkanPlatform::CreateVulkanSurface(WindowHandle, VulkanRHIPointer->GetVkInstance(), &Surface) != VK_SUCCESS)
+	const TVulkanQueue& GraphicsQueue = VulkanDevicePointer->GetVulkanQueueByFlag(TVulkanQueueFlags::EGraphicsQueue);
+	
+	if (Surface == VK_NULL_HANDLE)
 	{
-		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to create Vulkan surface!");
+		if (RecreateDesc && RecreateDesc->OldSurfaceHandle != VK_NULL_HANDLE)
+		{
+			Surface = RecreateDesc->OldSurfaceHandle;
+			RecreateDesc->OldSurfaceHandle = VK_NULL_HANDLE;
+		}
+		else if (TVulkanPlatform::CreateVulkanSurface(WindowHandle, VulkanRHIPointer->GetVkInstance(), &Surface) != VK_SUCCESS)
+		{
+			TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to create Vulkan surface!");
 
-		return false;
+			return false;
+		}
 	}
 
 	VkBool32 Supported = VK_FALSE;
-	TRNT_CHECK_VULKAN_RESULT(VulkanPFNFunctions.GetPhysicalDeviceSurfaceSupportKHR(PhysicalDevice, Queues[(TUInt32)TVulkanQueueFlags::EGraphicsQueue].QueueFamilyIndex, Surface, &Supported));
+	TRNT_CHECK_VULKAN_RESULT(TVulkanRHI::VulkanPFNFunctions.GetPhysicalDeviceSurfaceSupportKHR(PhysicalDevice.Handle, GraphicsQueue.QueueFamilyIndex, Surface, &Supported));
 
 	if (Supported == VK_FALSE)
 	{
@@ -51,37 +61,47 @@ TBool TVulkanSwapChain::Initialize()
 
 	// Get surface formats
 	TUInt32 SurfaceFormatCount = 0;
-	TRNT_CHECK_VULKAN_RESULT(VulkanPFNFunctions.GetPhysicalDeviceSurfaceFormatsKHR(PhysicalDevice, Surface, &SurfaceFormatCount, nullptr));
+	TRNT_CHECK_VULKAN_RESULT(TVulkanRHI::VulkanPFNFunctions.GetPhysicalDeviceSurfaceFormatsKHR(PhysicalDevice.Handle, Surface, &SurfaceFormatCount, nullptr));
 
 	TDynamicArray<VkSurfaceFormatKHR> SurfaceFormats;
 	if (SurfaceFormatCount > 0)
 	{
 		SurfaceFormats.Resize(SurfaceFormatCount);
-		TRNT_CHECK_VULKAN_RESULT(VulkanPFNFunctions.GetPhysicalDeviceSurfaceFormatsKHR(PhysicalDevice, Surface, &SurfaceFormatCount, SurfaceFormats.GetData()));
+		TRNT_CHECK_VULKAN_RESULT(TVulkanRHI::VulkanPFNFunctions.GetPhysicalDeviceSurfaceFormatsKHR(PhysicalDevice.Handle, Surface, &SurfaceFormatCount, SurfaceFormats.GetData()));
 
 		TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("Found {} surface formats.", SurfaceFormatCount);
+		for (TUInt32 SurfaceFormatIndex = 0; SurfaceFormatIndex < SurfaceFormatCount; ++SurfaceFormatIndex)
+		{
+			TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>(
+				"* Format={} | Colorspace={}", static_cast<unsigned>(SurfaceFormats[SurfaceFormatIndex].format), static_cast<unsigned>(SurfaceFormats[SurfaceFormatIndex].colorSpace));
+		}
 	}
 
 	// Get surface present modes
 	TUInt32 PresentModeCount = 0;
-	TRNT_CHECK_VULKAN_RESULT(VulkanPFNFunctions.GetPhysicalDeviceSurfacePresentModesKHR(PhysicalDevice, Surface, &PresentModeCount, nullptr));
+	TRNT_CHECK_VULKAN_RESULT(TVulkanRHI::VulkanPFNFunctions.GetPhysicalDeviceSurfacePresentModesKHR(PhysicalDevice.Handle, Surface, &PresentModeCount, nullptr));
 
 	TDynamicArray<VkPresentModeKHR> PresentModes;
 	if (PresentModeCount > 0)
 	{
 		PresentModes.Resize(PresentModeCount);
-		TRNT_CHECK_VULKAN_RESULT(VulkanPFNFunctions.GetPhysicalDeviceSurfacePresentModesKHR(PhysicalDevice, Surface, &PresentModeCount, PresentModes.GetData()));
+		TRNT_CHECK_VULKAN_RESULT(TVulkanRHI::VulkanPFNFunctions.GetPhysicalDeviceSurfacePresentModesKHR(PhysicalDevice.Handle, Surface, &PresentModeCount, PresentModes.GetData()));
 
 		TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("Found {} surface present modes.", PresentModeCount);
+		for (TUInt32 PresentModeIndex = 0; PresentModeIndex < PresentModeCount; ++PresentModeIndex)
+		{
+			TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("* Present mode {}: {}", PresentModeIndex + 1, static_cast<unsigned>(PresentModes[PresentModeIndex]));
+		}
 	}
 
 	// Get surface capabilities
 	VkSurfaceCapabilitiesKHR SurfaceCapabilities;
-	TRNT_CHECK_VULKAN_RESULT(VulkanPFNFunctions.GetPhysicalDeviceSurfaceCapabilitiesKHR(PhysicalDevice, Surface, &SurfaceCapabilities));
+	TRNT_CHECK_VULKAN_RESULT(TVulkanRHI::VulkanPFNFunctions.GetPhysicalDeviceSurfaceCapabilitiesKHR(PhysicalDevice.Handle, Surface, &SurfaceCapabilities));
 
 	TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("SwapChain current extent: {}x{}.", SurfaceCapabilities.currentExtent.width, SurfaceCapabilities.currentExtent.height);
 
-	VkExtent2D SwapChainExtent2D = {};
+	VkExtent2D SwapChainExtent2D{};
+
 	if (SurfaceCapabilities.currentExtent.width != 0xFFFFFFFF && SurfaceCapabilities.currentExtent.height != 0xFFFFFFFF)
 	{
 		SwapChainExtent2D = SurfaceCapabilities.currentExtent;
@@ -121,7 +141,7 @@ TBool TVulkanSwapChain::Initialize()
 		CompositeAlpha = VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR;
 	}
 
-	VkSwapchainCreateInfoKHR SwapChainCreateInfo = {};
+	VkSwapchainCreateInfoKHR SwapChainCreateInfo;
 	TMemory::Memset(&SwapChainCreateInfo, 0, sizeof(SwapChainCreateInfo));
 
 	SwapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
@@ -135,18 +155,19 @@ TBool TVulkanSwapChain::Initialize()
 	SwapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	SwapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	SwapChainCreateInfo.clipped = VK_TRUE;
-	SwapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
+	SwapChainCreateInfo.oldSwapchain = (RecreateDesc == nullptr) ? VK_NULL_HANDLE : RecreateDesc->OldSwapChainHandle;
 	SwapChainCreateInfo.preTransform = SurfaceCapabilities.currentTransform;
 	SwapChainCreateInfo.imageExtent = SwapChainExtent2D;
-	SwapChainCreateInfo.pNext = nullptr;
 
 #if defined(TRNT_PLATFORM_WIN64)
+	VkSurfaceFullScreenExclusiveInfoEXT SurfaceFullScreenExclusiveInfo;
+	TMemory::Memset(&SurfaceFullScreenExclusiveInfo, 0, sizeof(SurfaceFullScreenExclusiveInfo));
+	SurfaceFullScreenExclusiveInfo.sType = VK_STRUCTURE_TYPE_SURFACE_FULL_SCREEN_EXCLUSIVE_INFO_EXT;
+
 	if (VulkanRHIPointer->GetVulkanRHIFeatures().SupportsFullscreenExclusive)
 	{
-		VkSurfaceFullScreenExclusiveInfoEXT SurfaceFullScreenExclusiveInfo;
-		TMemory::Memset(&SurfaceFullScreenExclusiveInfo, 0, sizeof(SurfaceFullScreenExclusiveInfo));
-	
 		SurfaceFullScreenExclusiveInfo.fullScreenExclusive = WindowHandle->IsFullscreen() ? VK_FULL_SCREEN_EXCLUSIVE_ALLOWED_EXT : VK_FULL_SCREEN_EXCLUSIVE_DISALLOWED_EXT;
+		SurfaceFullScreenExclusiveInfo.pNext = (void*)SwapChainCreateInfo.pNext;
 		SwapChainCreateInfo.pNext = &SurfaceFullScreenExclusiveInfo;
 	}
 #endif
@@ -155,47 +176,144 @@ TBool TVulkanSwapChain::Initialize()
 
 	VkDevice VulkanDeviceHandle = VulkanDevicePointer->GetDevice();
 
-	VkResult Result = VulkanPFNFunctions.CreateSwapchainKHR(VulkanDeviceHandle, &SwapChainCreateInfo, nullptr, &SwapChain);
+	VkResult Result = TVulkanRHI::VulkanPFNFunctions.CreateSwapchainKHR(VulkanDeviceHandle, &SwapChainCreateInfo, nullptr, &SwapChain);
 	if (Result != VK_SUCCESS)
 	{
-		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to create Vulkan SwapChain!");
+		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to create Vulkan SwapChain (result: {}).", TVulkanUtils::ConvertVkResultToCString(Result));
 		SwapChain = VK_NULL_HANDLE;
 		return false;
 	}
 
-
-	TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>(
-		"Created SwapChain successfully [{}x{}, format: {}, min image count: {}].", this->Width, this->Height, static_cast<unsigned>(this->SwapChainSurfaceFormat.format), ImageCount);
-
-	// Retrieving the swap chain images
-	TUInt32 SwapChainImageCount = 0;
-	TRNT_CHECK_VULKAN_RESULT(VulkanPFNFunctions.GetSwapchainImagesKHR(VulkanDeviceHandle, SwapChain, &SwapChainImageCount, nullptr));
-
-	SwapChainImages.Resize(SwapChainImageCount);
-	TRNT_CHECK_VULKAN_RESULT(VulkanPFNFunctions.GetSwapchainImagesKHR(VulkanDeviceHandle, SwapChain, &SwapChainImageCount, SwapChainImages.GetData()));
-
-	if (!CreateVulkanImageViews())
+	if (RecreateDesc && RecreateDesc->OldSwapChainHandle != VK_NULL_HANDLE)
 	{
-		return false;
+		if (RecreateDesc->OldSwapChainHandle != VK_NULL_HANDLE)
+		{
+			TVulkanRHI::VulkanPFNFunctions.DestroySwapchainKHR(VulkanDeviceHandle, RecreateDesc->OldSwapChainHandle, VK_NULL_HANDLE);
+			RecreateDesc->OldSwapChainHandle = VK_NULL_HANDLE;
+		}
+
+		if (RecreateDesc->OldSurfaceHandle != VK_NULL_HANDLE)
+		{
+			TVulkanRHI::VulkanPFNFunctions.DestroySurfaceKHR(VulkanRHIPointer->GetVkInstance(), RecreateDesc->OldSurfaceHandle, VK_NULL_HANDLE);
+			RecreateDesc->OldSurfaceHandle = VK_NULL_HANDLE;
+		}
 	}
 
 	this->Width = SwapChainExtent2D.width;
 	this->Height = SwapChainExtent2D.height;
+
+	TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>(
+		"Created SwapChain successfully [{}x{}, format: {}, minimum image count: {}].", this->Width, this->Height, static_cast<unsigned>(SuitableSurfaceFormat.format), ImageCount);
+
+	// Retrieving the swap chain images
+	TUInt32 SwapChainImageCount = 0;
+	TRNT_CHECK_VULKAN_RESULT(TVulkanRHI::VulkanPFNFunctions.GetSwapchainImagesKHR(VulkanDeviceHandle, SwapChain, &SwapChainImageCount, nullptr));
+
+	SwapChainImages.Resize(SwapChainImageCount);
+	TRNT_CHECK_VULKAN_RESULT(TVulkanRHI::VulkanPFNFunctions.GetSwapchainImagesKHR(VulkanDeviceHandle, SwapChain, &SwapChainImageCount, SwapChainImages.GetData()));
+
+	if (!CreateVulkanImageViews(SuitableSurfaceFormat.format))
+	{
+		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>(
+			"Failed to create {} Vulkan image views with format {}", SwapChainImageViews.GetElementCount(), static_cast<TInt32>(SuitableSurfaceFormat.format));
+		return false;
+	}
+	else
+	{
+		TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>(
+			" Created {} Vulkan image views with format {} successfully!", SwapChainImageViews.GetElementCount(), static_cast<TInt32>(SuitableSurfaceFormat.format));
+	}
+
 	this->SwapChainSurfaceFormat = SuitableSurfaceFormat;
+	this->DepthFormat = FindDepthFormat();
+
+	if (this->DepthFormat == VK_FORMAT_UNDEFINED)
+	{
+		TLog::Warning<TRNT_GET_LOG_INFO(VulkanRHI)>("Couldn't find supported depth format!");
+	}
+	else
+	{
+		TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("Found swap chain depth format: {}.", static_cast<TUInt32>(this->DepthFormat));
+	}
+
+	if (!CreateVulkanDepthImageViews(this->DepthFormat))
+	{
+		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>(
+			"Failed to create {} Vulkan depth image views with format {}", SwapChainDepthImageViews.GetElementCount(), static_cast<TInt32>(this->DepthFormat));
+		return false;
+	}
+	else
+	{
+		TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>(
+			" Created {} Vulkan depth image views with format {} successfully!", SwapChainDepthImageViews.GetElementCount(), static_cast<TInt32>(this->DepthFormat));
+	}
+
+	if (!CreateRenderPass())
+	{
+		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to create Vulkan render pass!");
+		return false;
+	}
+	else
+	{
+		TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>("Created Vulkan render pass successfully!");
+	}
+
+	if (!CreateSwapChainFrameBuffers())
+	{
+		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to create swap chain frame buffers!");
+		return false;
+	}
+	else
+	{
+		TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>("Created {} swap chain frame buffers successfully!", SwapChainFrameBuffers.GetElementCount());
+	}
+
+	if (!CreateSynchronousObjects())
+	{
+		return false;
+	}
+	else
+	{
+		TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>("Created {} Vulkan semaphore(s) successfully!", ImageAcquiredSemaphores.GetElementCount());
+		TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>("Created {} Vulkan fence(s) successfully!", ImageAcquiredFences.GetElementCount());
+	}
+
+	CurrentImageIndex = 0;
 
 	return true;
 }
 
-TBool TVulkanSwapChain::CreateVulkanImageViews()
+TBool TVulkanSwapChain::RecreateSwapChain()
+{
+	// If the window handle is iconified, that means window width = 0 and window height = 0
+	while (WindowHandle->IsIconified()) 
+	{
+		WindowHandle->WaitEvents();
+	}
+	VulkanDevicePointer->WaitIdle();
+
+	TRecreateDesc RecreateDesc{};
+	RecreateDesc.OldSwapChainHandle = SwapChain;
+	RecreateDesc.OldSurfaceHandle = Surface;
+	SwapChain = VK_NULL_HANDLE;
+	Surface = VK_NULL_HANDLE;
+
+	Destroy();
+	const TBool Result = Initialize(&RecreateDesc);
+
+	return Result;
+}
+
+TBool TVulkanSwapChain::CreateVulkanImageViews(VkFormat Format)
 {
 	VkImageViewCreateInfo ImageViewCreateInfo;
 	TMemory::Memset(&ImageViewCreateInfo, 0, sizeof(ImageViewCreateInfo));
 
+	ImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	ImageViewCreateInfo.pNext = nullptr;
 	ImageViewCreateInfo.flags = 0;
-	ImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	ImageViewCreateInfo.format = SwapChainSurfaceFormat.format;
+	ImageViewCreateInfo.format = Format;
 	
 	ImageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 	ImageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -211,12 +329,11 @@ TBool TVulkanSwapChain::CreateVulkanImageViews()
 	SwapChainImageViews.Resize(SwapChainImages.GetElementCount());
 
 	VkResult Result;
-	const TVulkanPFNFunctions& VulkanPFNFuncs = TVulkanRHI::GetVulkanPFNFunctions();
 	for (TInt64 ImageIndex = 0, ImageCount = SwapChainImages.GetElementCount(); ImageIndex < ImageCount; ++ImageIndex)
 	{
 		ImageViewCreateInfo.image = SwapChainImages[ImageIndex];
 
-		Result = VulkanPFNFuncs.CreateImageView(VulkanDevicePointer->GetDevice(), &ImageViewCreateInfo, nullptr, &SwapChainImageViews[ImageIndex]);
+		Result = TVulkanRHI::VulkanPFNFunctions.CreateImageView(VulkanDevicePointer->GetDevice(), &ImageViewCreateInfo, nullptr, &SwapChainImageViews[ImageIndex]);
 		if (Result != VK_SUCCESS)
 		{
 			TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to create VkImageView at index {}.", ImageIndex);
@@ -224,6 +341,62 @@ TBool TVulkanSwapChain::CreateVulkanImageViews()
 		}
 	}
 
+	return true;
+}
+
+TBool TVulkanSwapChain::CreateVulkanDepthImageViews(VkFormat DepthFormat)
+{
+	VkDevice Device = VulkanDevicePointer->GetDevice();
+
+	const TInt64 SwapChainImgCount = SwapChainImages.GetElementCount();
+	SwapChainDepthImages.Resize(SwapChainImgCount);
+	SwapChainDepthImageViews.Resize(SwapChainImgCount);
+	SwapChainDepthImageMemories.Resize(SwapChainImgCount);
+
+	for (TInt64 ImgIndex = 0; ImgIndex < SwapChainImgCount; ++ImgIndex)
+	{
+		VkImageCreateInfo ImageCreateInfo;
+		TMemory::Memset(&ImageCreateInfo, 0, sizeof(ImageCreateInfo));
+
+		ImageCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		ImageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+		ImageCreateInfo.extent.width = Width;
+		ImageCreateInfo.extent.height = Height;
+		ImageCreateInfo.extent.depth = 1;
+		ImageCreateInfo.mipLevels = 1;
+		ImageCreateInfo.arrayLayers = 1;
+		ImageCreateInfo.format = DepthFormat;
+		ImageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		ImageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		ImageCreateInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		ImageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		ImageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		ImageCreateInfo.flags = 0;
+
+		if (!VulkanDevicePointer->CreateVulkanImageWithInfo(ImageCreateInfo, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, SwapChainDepthImages[ImgIndex], SwapChainDepthImageMemories[ImgIndex]))
+		{
+			return false;
+		}
+
+		VkImageViewCreateInfo ImageViewCreateInfo;
+		TMemory::Memset(&ImageViewCreateInfo, 0, sizeof(ImageViewCreateInfo));
+
+		ImageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		ImageViewCreateInfo.image = SwapChainDepthImages[ImgIndex];
+		ImageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		ImageViewCreateInfo.format = DepthFormat;
+		ImageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+		ImageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+		ImageViewCreateInfo.subresourceRange.levelCount = 1;
+		ImageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+		ImageViewCreateInfo.subresourceRange.layerCount = 1;
+
+		if (TVulkanRHI::VulkanPFNFunctions.CreateImageView(Device, &ImageViewCreateInfo, nullptr, &SwapChainDepthImageViews[ImgIndex]) != VK_SUCCESS)
+		{
+			TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to create depth image view (format: {}).", static_cast<TUInt32>(DepthFormat));
+			return false;
+		}
+	}
 	return true;
 }
 
@@ -295,14 +468,217 @@ VkPresentModeKHR TVulkanSwapChain::ChoosePresentMode(const TDynamicArray<VkPrese
 	return PresentMode;
 }
 
+VkFormat TVulkanSwapChain::FindDepthFormat()
+{
+	return VulkanDevicePointer->FindSupportedFormat(
+		{ VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT }, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+}
+
+TBool TVulkanSwapChain::CreateRenderPass()
+{
+	RenderPass = new TVulkanRenderPass(VulkanDevicePointer);
+
+	if (!RenderPass->Initialize(SwapChainSurfaceFormat.format, DepthFormat))
+	{
+		return false;
+	}
+
+	return true;
+}
+
+TBool TVulkanSwapChain::CreateSwapChainFrameBuffers()
+{
+	VkDevice Device = VulkanDevicePointer->GetDevice();
+
+	TInt64 ImageCount = SwapChainImages.GetElementCount();
+	SwapChainFrameBuffers.Resize(ImageCount);
+
+	for (TInt64 ImageIndex = 0; ImageIndex < ImageCount; ++ImageIndex)
+	{
+		VkImageView Attachment[] = { SwapChainImageViews[ImageIndex], SwapChainDepthImageViews[ImageIndex] };
+		
+		VkFramebufferCreateInfo FrameBufferCreateInfo;
+		TMemory::Memset(&FrameBufferCreateInfo, 0, sizeof(FrameBufferCreateInfo));
+		FrameBufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		FrameBufferCreateInfo.renderPass = RenderPass->GetVulkanRenderPass();
+		FrameBufferCreateInfo.attachmentCount = TRNT_GET_ARRAY_LENGTH(Attachment);
+		FrameBufferCreateInfo.pAttachments = Attachment;
+		FrameBufferCreateInfo.width = Width;
+		FrameBufferCreateInfo.height = Height;
+		FrameBufferCreateInfo.layers = 1;
+
+		if (TVulkanRHI::VulkanPFNFunctions.CreateFramebuffer(Device, &FrameBufferCreateInfo, nullptr, &SwapChainFrameBuffers[ImageIndex]) != VK_SUCCESS)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+TBool TVulkanSwapChain::CreateSynchronousObjects()
+{
+	const TInt64 ImageCount = SwapChainImages.GetElementCount();
+	VkDevice Device = VulkanDevicePointer->GetDevice();
+
+	ImageAcquiredSemaphores.Resize(ImageCount);
+	RenderFinishedSemaphores.Resize(ImageCount);
+	ImageAcquiredFences.Resize(ImageCount);
+
+	VkSemaphoreCreateInfo SemaphoreCreateInfo;
+	TMemory::Memset(&SemaphoreCreateInfo, 0, sizeof(SemaphoreCreateInfo));
+	SemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	SemaphoreCreateInfo.pNext = nullptr;
+
+	VkFenceCreateInfo FenceCreateInfo;
+	TMemory::Memset(&FenceCreateInfo, 0, sizeof(FenceCreateInfo));
+	FenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	FenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+	FenceCreateInfo.pNext = nullptr;
+
+	for (TInt64 Index = 0; Index < ImageCount; ++Index)
+	{
+		if (TVulkanRHI::VulkanPFNFunctions.CreateSemaphore(Device, &SemaphoreCreateInfo, nullptr, &ImageAcquiredSemaphores[Index]) != VK_SUCCESS)
+		{
+			TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to create image acquired semaphore at index {}.", Index);
+			return false;
+		}
+
+		if (TVulkanRHI::VulkanPFNFunctions.CreateSemaphore(Device, &SemaphoreCreateInfo, nullptr, &RenderFinishedSemaphores[Index]) != VK_SUCCESS)
+		{
+			TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to create render finished semaphore at index {}.", Index);
+			return false;
+		}
+
+		if (TVulkanRHI::VulkanPFNFunctions.CreateFence(Device, &FenceCreateInfo, nullptr, &ImageAcquiredFences[Index]) != VK_SUCCESS)
+		{
+			TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to create fence at index {}.", Index);
+			return false;
+		}
+
+		TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>("Created semaphores and fence at index {} successfully.", Index);
+	}
+
+	return true;
+}
+
+VkResult TVulkanSwapChain::AcquireNextImage(TUInt32* ImageIndex)
+{
+	const TInt64 ImageCount = SwapChainImages.GetElementCount();
+	VkDevice Device = VulkanDevicePointer->GetDevice();
+
+	VkFence CurrentAcquireFence = ImageAcquiredFences[CurrentImageIndex];
+
+	TRNT_CHECK_VULKAN_RESULT(TVulkanRHI::VulkanPFNFunctions.WaitForFences(Device, 1, &CurrentAcquireFence, VK_TRUE, UINT64_MAX));
+	TRNT_CHECK_VULKAN_RESULT(TVulkanRHI::VulkanPFNFunctions.ResetFences(Device, 1, &CurrentAcquireFence));
+
+	VkResult Result = TVulkanRHI::VulkanPFNFunctions.AcquireNextImageKHR(Device, SwapChain, UINT64_MAX, ImageAcquiredSemaphores[CurrentImageIndex], CurrentAcquireFence, ImageIndex);
+
+	if (Result == VK_ERROR_OUT_OF_DATE_KHR || Result == VK_SUBOPTIMAL_KHR)
+	{
+		TLog::Warning<TRNT_GET_LOG_INFO(VulkanRHI)>("Acquire image result {}", (Result == VK_ERROR_OUT_OF_DATE_KHR) ? TRNT_STRINGIFY(VK_ERROR_OUT_OF_DATE_KHR) : TRNT_STRINGIFY(VK_SUBOPTIMAL_KHR));
+
+		if (Result == VK_ERROR_OUT_OF_DATE_KHR)
+		{
+			if (!RecreateSwapChain())
+			{
+				TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to recreate swap chain.");
+			}
+			else
+			{
+				TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>("Recreated swap chain successfully.");
+			}
+		}
+	}
+	else if (Result != VK_SUCCESS)
+	{
+		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to acquire next image (result={})", TVulkanUtils::ConvertVkResultToCString(Result));
+	}
+	
+	return Result;
+}
+
+VkResult TVulkanSwapChain::Present()
+{
+	VkPresentInfoKHR PresentInfoKHR;
+	TMemory::Memset(&PresentInfoKHR, 0, sizeof(PresentInfoKHR));
+	PresentInfoKHR.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	PresentInfoKHR.waitSemaphoreCount = 1;
+	PresentInfoKHR.pWaitSemaphores = &RenderFinishedSemaphores[CurrentImageIndex];
+	PresentInfoKHR.swapchainCount = 1;
+	PresentInfoKHR.pSwapchains = &SwapChain;
+	PresentInfoKHR.pNext = nullptr;
+	PresentInfoKHR.pImageIndices = (TUInt32*)&CurrentImageIndex;
+
+	VkResult Result = TVulkanRHI::VulkanPFNFunctions.QueuePresentKHR(VulkanDevicePointer->GetVulkanQueueByFlag(TVulkanQueueFlags::EPresentQueue).QueueHandle, &PresentInfoKHR);
+
+	if (Result == VK_ERROR_OUT_OF_DATE_KHR || Result == VK_SUBOPTIMAL_KHR)
+	{
+		if (!RecreateSwapChain())
+		{
+			TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to recreate swap chain.");
+		}
+		else
+		{
+			TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>("Recreated swap chain successfully.");
+		}
+
+		return Result;
+	}
+	else if (Result != VK_SUCCESS)
+	{
+		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Present result: {}", TVulkanUtils::ConvertVkResultToCString(Result));
+	}
+
+	CurrentImageIndex = (CurrentImageIndex + 1) % SwapChainImages.GetElementCount();
+
+	return Result;
+}
+
+void TVulkanSwapChain::SubmitCommandBuffer(TVulkanCommandBuffer& CmdBuffer)
+{
+	CmdBuffer.SubmitCommandBuffer(
+		VulkanDevicePointer->GetVulkanQueueByFlag(TVulkanQueueFlags::EGraphicsQueue),
+		VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+		ImageAcquiredSemaphores[CurrentImageIndex],
+		RenderFinishedSemaphores[CurrentImageIndex],
+		ImageAcquiredFences[CurrentImageIndex]);
+}
+
 void TVulkanSwapChain::Destroy()
 {
-	const TVulkanPFNFunctions& VulkanPFNFunctions = TVulkanRHI::GetVulkanPFNFunctions();
+	const TVulkanPFNFunctions& VulkanPFNFunctions = TVulkanRHI::VulkanPFNFunctions;
+	const TInt64 ImageCount = SwapChainImages.GetElementCount();
 	VkDevice Device = VulkanDevicePointer->GetDevice();
+
+	for (TInt64 Index = 0; Index < ImageCount; ++Index)
+	{
+		VulkanPFNFunctions.DestroySemaphore(Device, ImageAcquiredSemaphores[Index], nullptr);
+		VulkanPFNFunctions.DestroySemaphore(Device, RenderFinishedSemaphores[Index], nullptr);
+		VulkanPFNFunctions.DestroyFence(Device, ImageAcquiredFences[Index], nullptr);
+	}
 
 	for (TInt64 ImageViewIndex = 0, ImageViewCount = SwapChainImageViews.GetElementCount(); ImageViewIndex < ImageViewCount; ++ImageViewIndex)
 	{
 		VulkanPFNFunctions.DestroyImageView(Device, SwapChainImageViews[ImageViewIndex], nullptr);
+	}
+
+	for (TInt64 DepthImgIndex = 0, DepthImageCount = SwapChainDepthImages.GetElementCount(); DepthImgIndex < DepthImageCount; ++DepthImgIndex)
+	{
+		VulkanPFNFunctions.DestroyImageView(Device, SwapChainDepthImageViews[DepthImgIndex], nullptr);
+		VulkanPFNFunctions.DestroyImage(Device, SwapChainDepthImages[DepthImgIndex], nullptr);
+		VulkanPFNFunctions.FreeMemory(Device, SwapChainDepthImageMemories[DepthImgIndex], nullptr);
+	}
+
+	for (VkFramebuffer& Framebuffer : SwapChainFrameBuffers)
+	{
+		VulkanPFNFunctions.DestroyFramebuffer(Device, Framebuffer, nullptr);
+	}
+
+	if (SwapChain)
+	{
+		VulkanPFNFunctions.DestroySwapchainKHR(Device, SwapChain, nullptr);
+		SwapChain = VK_NULL_HANDLE;
 	}
 
 	if (Surface)
@@ -311,10 +687,11 @@ void TVulkanSwapChain::Destroy()
 		Surface = VK_NULL_HANDLE;
 	}
 
-	if (SwapChain)
+	if (RenderPass)
 	{
-		VulkanPFNFunctions.DestroySwapchainKHR(Device, SwapChain, nullptr);
-		SwapChain = VK_NULL_HANDLE;
+		RenderPass->Destroy();
+		delete RenderPass;
+		RenderPass = nullptr;
 	}
 }
 

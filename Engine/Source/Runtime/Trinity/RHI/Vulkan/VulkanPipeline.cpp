@@ -216,7 +216,7 @@ TBool TVulkanGraphicsPipeline::CreatePipelineLayout(const TVulkanShader* VulkanS
 	const TInt64 SetLayoutCount = DescriptorSetLayouts.GetElementCount();
 
 	TDynamicArray<VkDescriptorSetLayout> FinalSetLayouts{};
-	FinalSetLayouts.Resize(FinalSetLayouts.GetElementCount());
+	FinalSetLayouts.Resize(SetLayoutCount);
 
 	for (TInt64 Index = 0; Index < SetLayoutCount; ++Index)
 	{
@@ -233,18 +233,14 @@ TBool TVulkanGraphicsPipeline::CreatePipelineLayout(const TVulkanShader* VulkanS
 	PipelineLayoutCreateInfo.pSetLayouts = FinalSetLayouts.GetData();
 	PipelineLayoutCreateInfo.pNext = nullptr;
 
-	if (TVulkanRHI::VulkanPFNFunctions.CreatePipelineLayout(VulkanDevice->GetDevice(), &PipelineLayoutCreateInfo, nullptr, &PipelineLayout) != VK_SUCCESS)
-	{
-		return false;
-	}
+	VkResult Result = TVulkanRHI::VulkanPFNFunctions.CreatePipelineLayout(VulkanDevice->GetDevice(), &PipelineLayoutCreateInfo, nullptr, &PipelineLayout);
 
-	// Just to be safe! :v
 	for (TInt64 Index = 0; Index < SetLayoutCount; ++Index)
 	{
 		FinalSetLayouts[Index] = VK_NULL_HANDLE;
 	}
 
-	return true;
+	return Result == VK_SUCCESS;
 }
 
 void TVulkanGraphicsPipeline::Destroy()

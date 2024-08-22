@@ -45,7 +45,7 @@ enum class TPolygonMode : signed char
 
 enum class TCullMode : signed char
 {
-	ENONE,
+	ENone,
 	EFrontBit,
 	EBackBit,
 	EFrontAndBack,

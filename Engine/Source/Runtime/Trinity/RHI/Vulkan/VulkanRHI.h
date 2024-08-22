@@ -84,6 +84,14 @@ public:
 	PFN_vkCmdBeginRenderPass2KHR CmdBeginRenderPass2KHR = nullptr;
 	PFN_vkCmdEndRenderPass CmdEndRenderPass = nullptr;
 	PFN_vkCmdEndRenderPass2KHR CmdEndRenderPass2KHR = nullptr;
+	PFN_vkCmdBindPipeline CmdBindPipeline = nullptr;
+	PFN_vkCmdDraw CmdDraw = nullptr;
+	PFN_vkCmdSetViewport CmdSetViewport = nullptr;
+	PFN_vkCmdSetScissor CmdSetScissor = nullptr;
+	PFN_vkCmdBindVertexBuffers CmdBindVertexBuffers = nullptr;
+	PFN_vkCmdBindIndexBuffer CmdBindIndexBuffer = nullptr;
+	PFN_vkCmdDrawIndexed CmdDrawIndexed = nullptr;
+	PFN_vkCmdCopyBuffer CmdCopyBuffer = nullptr;
 
 	PFN_vkCreateSemaphore CreateSemaphore = nullptr;
 	PFN_vkCreateFence CreateFence = nullptr;
@@ -96,6 +104,17 @@ public:
 	PFN_vkQueueSubmit QueueSubmit = nullptr;
 	PFN_vkQueuePresentKHR QueuePresentKHR = nullptr;
 	PFN_vkQueueWaitIdle QueueWaitIdle = nullptr;
+
+	PFN_vkCreateBuffer CreateBuffer = nullptr;
+	PFN_vkDestroyBuffer DestroyBuffer = nullptr;
+
+	PFN_vkBindBufferMemory BindBufferMemory = nullptr;
+
+	PFN_vkMapMemory MapMemory = nullptr;
+	PFN_vkUnmapMemory UnmapMemory = nullptr;
+
+	PFN_vkInvalidateMappedMemoryRanges InvalidateMappedMemoryRanges = nullptr;
+	PFN_vkFlushMappedMemoryRanges FlushMappedMemoryRanges = nullptr;
 
 	TBool LoadVulkanInstanceFunctions();
 	TBool LoadVulkanPFNFunctions(VkInstance Instance);

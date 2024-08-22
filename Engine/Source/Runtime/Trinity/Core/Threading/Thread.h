@@ -40,20 +40,9 @@ public:
 
 	void Detach();
 
-public:
-	void SetMainThreadID();
-
-	TThreadID GetMainThreadID();
-
-	TBool CurrentThreadIsMainThread();
-
 private:
 	TThreadData ThreadData;
-
-	static TThreadID MainThreadID;
 };
-
-TThreadID TThread::MainThreadID;
 
 #if defined(TRNT_PLATFORM_WIN64)
 #include "Windows/WindowsThreadImpl.h"

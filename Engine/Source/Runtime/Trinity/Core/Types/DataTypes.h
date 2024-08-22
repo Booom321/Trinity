@@ -94,3 +94,7 @@ static_assert(sizeof(TChar) == 1, "The size of TChar must be equal to 1.");
 static_assert(sizeof(TWChar) == 2 || sizeof(TWChar) == 4, "The size of TWChar must be equal to 2 or 4.");
 
 static_assert(sizeof(TBool) == 1, "The size of TBool must be equal to 1.");
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+using TNullPtr = std::nullptr_t;

@@ -21,19 +21,24 @@ public:
 	void SetCommandLine(TInt32 ArgCount, TChar** Argv);
 	void Reset();
 
-	void AddCommandLineArgument(const TChar* Argument);
 	TBool CommandLineOptionExists(const TChar* OptionName, TStringSearchCase SearchChase = TStringSearchCase::ECaseSensitive) const;
 	TInt32 GetCommandLineOptionIndex(const TChar* OptionName, TStringSearchCase SearchChase = TStringSearchCase::ECaseSensitive) const;
-
 	TString GetCommandLineAsString() const;
 
+	void AddCommandLineArgument(const TChar* CmdLineArgument);
 	template<typename T>
 	void AddCommandLineArgument(const TChar* OptionName, T Value)
 	{
-		static_assert(TStringable<T>::Value, "TNsStringConversion::ToString does not support this type `T`");
-		TString Argument(OptionName);
-		Argument += "=";
-		TNsStringConversion::ToString(Value, Argument);
+		static_assert(TIsStringable<T, TChar>::Value, "TStringConverter<TChar>::ToString does not support this type `T`");
+
+		TString ValueAsString{};
+		TNsStringConversion::ToString<TChar>(Value, &ValueAsString);
+
+		TString CmdLineArgument(OptionName);
+		CmdLineArgument += "=";
+		CmdLineArgument += ValueAsString;
+
+		CommandLineArgs.EmplaceBack(CmdLineArgument);
 		++ArgCount;
 	}
 

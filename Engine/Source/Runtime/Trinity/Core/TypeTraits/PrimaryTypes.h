@@ -3,6 +3,10 @@
 #include "Trinity/Core/Types/Base.h"
 #include "Trinity/Core/Types/DataTypes.h"
 
+#include "Logical.h"
+#include "RemoveCVRef.h"
+#include "TypeRelationships.h"
+
 #include <type_traits>
 
 template <typename T>
@@ -246,4 +250,55 @@ class TIsPointer<const volatile T*> : public TTrueType
 
 template<typename T>
 class TIsClass : public TBoolConstant<std::is_class<T>::value>
+{};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename>
+class TIsUnboundedArray : public TFalseType
+{
+};
+
+template<typename T>
+class TIsUnboundedArray<T[]> : public TTrueType
+{
+};
+
+template<typename>
+class TIsBoundedArray : public TFalseType
+{
+};
+
+template<typename T, TSize_T N>
+class TIsBoundedArray<T[N]> : public TTrueType
+{
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
+class TIsCharacterType
+{
+public:
+	using CharacterType = typename TRemoveCVRef<T>::Type;
+
+	static TRNT_CONSTEXPR bool Value = TOr<
+		TAreTheSameType<CharacterType, char>,
+		TAreTheSameType<CharacterType, wchar_t>,
+#ifdef __cpp_char8_t
+		TAreTheSameType<CharacterType, char8_t>,
+#endif
+		TAreTheSameType<CharacterType, char16_t>,
+		TAreTheSameType<CharacterType, char32_t>
+	>::Value;
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<typename T>
+class TIsEmpty : public TBoolConstant<std::is_empty<T>::value>
+{};
+
+template<typename T>
+class TIsFinal : public TBoolConstant<std::is_final<T>::value>
 {};

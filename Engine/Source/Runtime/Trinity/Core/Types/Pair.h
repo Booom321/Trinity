@@ -14,6 +14,18 @@ public:
 		: First(First), Second(Second)
 	{}
 
+	TPair(T&& First, U&& Second) noexcept
+		: First(Move(First)), Second(Move(Second))
+	{}
+
+	TPair(T&& First, const U& Second) noexcept
+		: First(Move(First)), Second(Second)
+	{}
+
+	TPair(const T& First, U&& Second) noexcept
+		: First(First), Second(Move(Second))
+	{}
+
 	TPair(const TPair& Other)
 		: First(Other.First), Second(Other.Second)
 	{}

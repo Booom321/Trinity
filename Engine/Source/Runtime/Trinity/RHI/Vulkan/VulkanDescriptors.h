@@ -27,4 +27,13 @@ private:
 	THashMap<TUInt32, VkDescriptorSetLayoutBinding> DescriptorSetLayoutBindings;
 };
 
+class TRNT_API TVulkanDescriptorPool
+{
+public:
+	TVulkanDescriptorPool(TVulkanDevice* VulkanDevice);
+
+private:
+	TVulkanDevice* VulkanDevice;
+};
+
 #endif

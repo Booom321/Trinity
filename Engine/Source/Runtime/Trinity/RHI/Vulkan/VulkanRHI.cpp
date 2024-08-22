@@ -119,6 +119,14 @@ TBool TVulkanPFNFunctions::LoadVulkanPFNFunctions(VkInstance Instance)
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdBeginRenderPass2KHR, CmdBeginRenderPass2KHR);
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdEndRenderPass, CmdEndRenderPass);
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdEndRenderPass, CmdEndRenderPass);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdBindPipeline, CmdBindPipeline);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdDraw, CmdDraw);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdSetViewport, CmdSetViewport);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdSetScissor, CmdSetScissor);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdBindVertexBuffers, CmdBindVertexBuffers);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdBindIndexBuffer, CmdBindIndexBuffer);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdCopyBuffer, CmdCopyBuffer);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCmdDrawIndexed, CmdDrawIndexed);
 
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateSemaphore, CreateSemaphore);
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateFence, CreateFence);
@@ -131,6 +139,17 @@ TBool TVulkanPFNFunctions::LoadVulkanPFNFunctions(VkInstance Instance)
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkQueueSubmit, QueueSubmit);
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkQueuePresentKHR, QueuePresentKHR);
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkQueueWaitIdle, QueueWaitIdle);
+
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateBuffer, CreateBuffer);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroyBuffer, DestroyBuffer);
+
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkBindBufferMemory, BindBufferMemory);
+
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkMapMemory, MapMemory);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkUnmapMemory, UnmapMemory);
+
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkInvalidateMappedMemoryRanges, InvalidateMappedMemoryRanges);
+	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkFlushMappedMemoryRanges, FlushMappedMemoryRanges);
 #undef TRNT_LOAD_VULKAN_PFN_FUNCTION
 	
 	return true;
@@ -201,19 +220,19 @@ VKAPI_ATTR VkBool32 VKAPI_PTR TVulkanRHI::DebugUtilsCallback(
 
 	if (MessageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT)
 	{
-		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("[Error:{}] {}", MsgType, CallbackData->pMessage);
+		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("MsgType: {} | Message: {}", MsgType, CallbackData->pMessage);
 	}
 	else if (MessageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT)
 	{
-		TLog::Warning<TRNT_GET_LOG_INFO(VulkanRHI)>("[Warning:{}] {}", MsgType, CallbackData->pMessage);
+		TLog::Warning<TRNT_GET_LOG_INFO(VulkanRHI)>("MsgType: {} | Message: {}", MsgType, CallbackData->pMessage);
 	}
 	else if (MessageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT)
 	{
-		TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("[Info:{}] {}", MsgType, CallbackData->pMessage);
+		TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("MsgType: {} | Message: {}", MsgType, CallbackData->pMessage);
 	}
 	else if (MessageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT)
 	{
-		TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("[Verbose:{}] {}", MsgType, CallbackData->pMessage);
+		TLog::Info<TRNT_GET_LOG_INFO(VulkanRHI)>("MsgType: {} | Message: {}", MsgType, CallbackData->pMessage);
 	}
 
 	return VK_FALSE;
@@ -329,6 +348,7 @@ TVulkanRHI::TVulkanRHI()
 
 	VulkanRHIFeatures.EnableValidationLayer = true;
 }
+
 
 TVulkanRHI::~TVulkanRHI()
 {

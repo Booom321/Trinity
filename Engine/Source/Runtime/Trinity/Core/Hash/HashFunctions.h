@@ -169,17 +169,17 @@ namespace TNsHash
 		return GetHashCodeFromCString<TWChar>(WString.GetData(), WString.GetElementCount());
 	}
 
-	inline TSize_T GetHashCode(const FXxHash32& Hash)
+	inline TSize_T GetHashCode(const TXxHash32& Hash)
 	{
 		return static_cast<TSize_T>(Hash.HashCode);
 	}
 
-	inline TSize_T GetHashCode(const FXxHash64& Hash)
+	inline TSize_T GetHashCode(const TXxHash64& Hash)
 	{
 		return static_cast<TSize_T>(Hash.HashCode);
 	}
 
-	inline TSize_T GetHashCode(const FXxHash128& Hash)
+	inline TSize_T GetHashCode(const TXxHash128& Hash)
 	{
 		return static_cast<TSize_T>(Hash.HashLow64);
 	}
@@ -192,7 +192,10 @@ namespace TNsHash
 
 	template<typename T>
 	inline typename TEnableIf<
-		!TOr<TAreTheSameType<TChar*, typename TRemoveCV<T>::Type>, TAreTheSameType<TWChar*, typename TRemoveCV<T>::Type>>::Value && TOr<TIsEnum<T>, TIsPointer<T>, TIsBaseOf<THashable, T>>::Value, 
+		!TOr<
+			TAreTheSameType<TChar*, 
+			typename TRemoveCV<T>::Type>, 
+			TAreTheSameType<TWChar*, typename TRemoveCV<T>::Type>>::Value && TOr<TIsEnum<T>, TIsPointer<T>, TIsBaseOf<THashable, T>>::Value, 
 		TSize_T
 	>::Type GetHashCode(const T& Value)
 	{

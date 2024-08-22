@@ -13,7 +13,7 @@ class TIsBitwiseConstructible : public TFalseType
 {
 	static_assert(!TIsReferenceType<T>::Value && !TIsReferenceType<Arg>::Value);
 
-	static_assert(TAreTheSameType<T, TRemoveCV<T>::Type>::Value && TAreTheSameType<Arg, TRemoveCV<Arg>::Type>::Value);
+	static_assert(TAreTheSameType<T, typename TRemoveCV<T>::Type>::Value && TAreTheSameType<Arg, typename TRemoveCV<Arg>::Type>::Value);
 };
 
 template <typename T>

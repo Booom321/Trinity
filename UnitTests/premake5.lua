@@ -35,7 +35,8 @@ project "UnitTests"
     defines
     {
         "FMT_HEADER_ONLY",
-        "TRNT_ROOT_DIRECTORY="..__ROOT_DIRECTORY__
+        "TRNT_ROOT_DIRECTORY="..__ROOT_DIRECTORY__,
+        "TRNT_ROOT_DIRECTORY_W=L"..__ROOT_DIRECTORY__
     }
 
     filter "system:windows"

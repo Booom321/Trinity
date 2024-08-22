@@ -252,7 +252,7 @@ VkCullModeFlagBits TVulkanUtils::ConvertTCullModeToVkCullMode(TCullMode CullMode
 {
 	switch (CullMode)
 	{
-	case TCullMode::ENONE:
+	case TCullMode::ENone:
 		return VK_CULL_MODE_NONE;
 	case TCullMode::EFrontBit:
 		return VK_CULL_MODE_FRONT_BIT;

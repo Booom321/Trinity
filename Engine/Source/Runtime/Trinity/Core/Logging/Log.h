@@ -181,7 +181,7 @@ private:
 					MemoryBuffer,
 					fmt::wstring_view{ Message.GetData(), static_cast<TSize_T>(Message.GetElementCount()) },
 					fmt::make_wformat_args(Now, CTLogInfoType::LogNameAsWCString, LogLevelToWCString[static_cast<TUInt8>(LogLevel)], Arguments...));
-				
+
 				MemoryBuffer.push_back(L'\0');
 			}
 

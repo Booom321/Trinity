@@ -1,4 +1,4 @@
 ﻿#include "Trinity/Application/ApplicationEntryPoint.h"
-#include "VulkanApp/VulkanApp.h"
+#include "VulkanSamples/VulkanRectangle.h"
 
-TRNT_ENTRY_POINT(TVulkanApp, "Vulkan");
+TRNT_ENTRY_POINT(TVulkanRectangleApp, "");

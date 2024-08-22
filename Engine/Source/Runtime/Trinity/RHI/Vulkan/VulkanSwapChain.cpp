@@ -301,6 +301,20 @@ TBool TVulkanSwapChain::RecreateSwapChain()
 	Destroy();
 	const TBool Result = Initialize(&RecreateDesc);
 
+	if (RecreateDesc.OldSwapChainHandle != VK_NULL_HANDLE)
+	{
+		TLog::Warning<TRNT_GET_LOG_INFO(VulkanRHI)>("Old swap chain handle has not been deleted yet, it will be deleted automatically");
+		TVulkanRHI::VulkanPFNFunctions.DestroySwapchainKHR(VulkanDevicePointer->GetDevice(), RecreateDesc.OldSwapChainHandle, nullptr);
+		RecreateDesc.OldSwapChainHandle = VK_NULL_HANDLE;
+	}
+
+	if (RecreateDesc.OldSurfaceHandle != VK_NULL_HANDLE)
+	{
+		TLog::Warning<TRNT_GET_LOG_INFO(VulkanRHI)>("Old surface handle has not been deleted yet, it will be deleted automatically");
+		TVulkanRHI::VulkanPFNFunctions.DestroySurfaceKHR(VulkanRHIPointer->GetVkInstance(), RecreateDesc.OldSurfaceHandle, nullptr);
+		RecreateDesc.OldSurfaceHandle = VK_NULL_HANDLE;
+	}
+
 	return Result;
 }
 

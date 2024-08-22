@@ -7,64 +7,100 @@
 #include "Trinity/Core/TypeTraits/RemoveCVRef.h"
 #include "Trinity/Core/TypeTraits/Decay.h"
 
+template<typename T>
 class TRNT_API TPathUtils
 {
-	template<typename T>
-	class TIsAnsiStringExceptStdString
+public:
+	static_assert(TIsCharTypeSupported<T>::Value, "TPathUtils<T> is not implemented for this char type.");
+
+	using CharType = typename TRemoveCVRef<T>::Type;
+
+	template<typename U>
+	class TIsString
 	{
 	public:
 		static constexpr TBool Value = TOr<
-			TAreTheSameType<typename TRemoveCVRef<T>::Type, TString>, TAreTheSameType<const TChar*, typename TDecay<T>::Type>, TAreTheSameType<TChar*, typename TDecay<T>::Type>
+			TAreTheSameType<typename TRemoveCVRef<U>::Type, TStringBase<CharType>>,
+			TAreTheSameType<const CharType*, typename TDecay<U>::Type>,
+			TAreTheSameType<CharType*, typename TDecay<U>::Type>
 		>::Value;
 	};
 
+	static constexpr TBool IsCharType = TAreTheSameType<CharType, TChar>::Value;
+	static constexpr TBool IsWCharType = TAreTheSameType<CharType, TWChar>::Value;
+
+	template<typename U>
+	class TPathComponents;
+
+	template<>
+	class TPathComponents<TChar>
+	{
+	public:
+		static TRNT_CONSTEXPR const TChar* Empty		= "";
+		static TRNT_CONSTEXPR const TChar* Dot			= ".";
+		static TRNT_CONSTEXPR const TChar* ForwardSlash = "/";
+		static TRNT_CONSTEXPR const TChar* BackSlash	= "\\";
+		static TRNT_CONSTEXPR const TChar* Separators	= "/\\";
+		static TRNT_CONSTEXPR const TChar* TwoDots		= "..";
+	};
+
+	template<>
+	class TPathComponents<TWChar>
+	{
+	public:
+		static TRNT_CONSTEXPR const TWChar* Empty			= L"";
+		static TRNT_CONSTEXPR const TWChar* Dot				= L".";
+		static TRNT_CONSTEXPR const TWChar* ForwardSlash	= L"/";
+		static TRNT_CONSTEXPR const TWChar* BackSlash		= L"\\";
+		static TRNT_CONSTEXPR const TWChar* Separators		= L"/\\";
+		static TRNT_CONSTEXPR const TWChar* TwoDots			= L"..";
+	};
+
+	using CString = TCString<CharType>;
+	using PathComponents = TPathComponents<CharType>;
+
 public:
-	static TString GetFileName(const TChar* Path);
+	static TStringBase<CharType> GetFileName(const CharType* Path);
+	
+	static TStringBase<CharType> GetFileExtension(const CharType* Path);
 
-	static TString GetFileNameWithoutExtension(const TChar* Path);
+	static TStringBase<CharType> GetFileNameWithoutExtension(const CharType* Path);
+	
+	static TStringBase<CharType> RemoveFileExtension(const CharType* Path);
 
-	static TString GetFileExtension(const TChar* Path);
+	static TStringBase<CharType> ChangeFileExtension(const CharType* Path, const CharType* NewExtension);
+	
+	static TStringBase<CharType> ParentPathOf(const CharType* Path);
 
-	static TString RemoveFileExtension(const TChar* Path);
-
-	static void NormalizePath(TString& Path);
-
-	static void ResolvePath(const TChar* OriginalPath, TString* Extension, TString* FileName, TString* FileNameWithoutExtension, TString* ParentPath);
-
-	static TString ParentPathOf(const TChar* Path);
+	static void NormalizePath(TStringBase<CharType>& Path);
+	
+	static void ResolvePath(
+		const CharType* OriginalPath, 
+		TStringBase<CharType>* Extension, 
+		TStringBase<CharType>* FileName,
+		TStringBase<CharType>* FileNameWithoutExtension, 
+		TStringBase<CharType>* ParentPath);
+	
+	static TBool IsSeparator(CharType Chr);
 
 	template<typename ... PathArgs>
-	static TString CombinePaths(PathArgs&&... Paths)
-	{
-		static_assert(TConjunction<TIsAnsiStringExceptStdString<PathArgs>...>::Value);
-
-		const TString PathArray[] = { Forward<PathArgs>(Paths)... };
-		const TInt32 PathCount = TRNT_GET_ARRAY_LENGTH(PathArray);
-
-		if (PathCount <= 0)
+	static TStringBase<CharType> CombinePaths(PathArgs&&... Paths);
+	
+public:
+	static TRNT_INLINE constexpr const TChar* GetRootDirectory()
+	{ 
+		if constexpr (IsCharType)
 		{
-			return "";
-		}
-		
-		TInt64 NewPathCapacity = 0;
-		for (TInt32 Index = 0; Index < PathCount; ++Index)
+			return TRNT_ROOT_DIRECTORY;
+		} 
+		else if constexpr (IsWCharType)
 		{
-			NewPathCapacity += PathArray[Index].GetElementCount();
+			return TRNT_ROOT_DIRECTORY_W;
 		}
-		NewPathCapacity += PathCount;
-		
-		TString OutputPath;
-		OutputPath.Reserve(NewPathCapacity);
-		OutputPath += PathArray[0];
-
-		for (TInt32 Index = 1; Index < PathCount; ++Index)
-		{
-			OutputPath /= PathArray[Index];
-		}
-
-		return OutputPath;
 	}
 
-public:
-	static TRNT_INLINE constexpr const TChar* GetRootDirectory() { return TRNT_ROOT_DIRECTORY; }
+private:
+	static TInt64 FindLastSlashInPath(const CharType* Path, TSize_T PathLen = (TSize_T)-1);
 };
+
+#include "PathUtils_inl.h"

@@ -881,7 +881,7 @@ public:
 		return Output.GetElementCount();
 	}
 
-	SizeType GetValues(TDynamicArray<KeyType>& Output) const
+	SizeType GetValues(TDynamicArray<ValueType>& Output) const
 	{
 		Output.Reserve(ElementCount);
 
@@ -937,7 +937,7 @@ public:
 	}
 
 	template<typename PredicateType>
-	void FilterValues(PredicateType Predicate, TDynamicArray<KeyType>& Output) const
+	void FilterValues(PredicateType Predicate, TDynamicArray<ValueType>& Output) const
 	{
 		for (SizeType BucketIndex = 0; BucketIndex < BucketCount; ++BucketIndex)
 		{

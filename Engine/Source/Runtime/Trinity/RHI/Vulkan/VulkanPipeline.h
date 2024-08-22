@@ -14,7 +14,7 @@ public:
 	virtual ~TVulkanPipelineBase() = default;
 
 public:
-	TRNT_INLINE VkPipeline GetVulkanPipeline() const
+	virtual TRNT_INLINE VkPipeline GetVulkanPipeline() const
 	{
 		return PipelineHandle;
 	}

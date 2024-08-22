@@ -77,19 +77,4 @@ void TThread::Detach()
 	ThreadData = {};
 }
 
-void TThread::SetMainThreadID()
-{
-	MainThreadID = GetCurrentThreadId();
-}
-
-TThreadID TThread::GetMainThreadID()
-{
-	return MainThreadID;
-}
-
-TBool TThread::CurrentThreadIsMainThread()
-{
-	return GetCurrentThreadId() == MainThreadID;
-}
-
 #endif

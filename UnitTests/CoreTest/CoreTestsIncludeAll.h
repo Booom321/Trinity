@@ -10,3 +10,4 @@
 #include "String/StringTest.h"
 
 #include "Types/DelegateTest.h"
+#include "Types/UniquePtrTest.h"

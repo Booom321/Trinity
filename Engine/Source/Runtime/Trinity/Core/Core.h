@@ -1,6 +1,5 @@
 #pragma once
 
-#include "TrinityPCH.h"
 
 #include "Config.h"
 #include "Defines.h"
@@ -16,6 +15,7 @@
 #include "Containers/StaticArray.h"
 
 #include "Types/Base.h"
+#include "Types/CompressedPair.h"
 #include "Types/DataTypes.h"
 #include "Types/Delegate.h"
 #include "Types/Iterators.h"
@@ -28,11 +28,14 @@
 #include "Logging/LogLevel.h"
 
 #include "Math/Math.h"
+#include "Math/Vector2.h"
+#include "Math/Vector3.h"
 
 #include "TypeTraits/Conjunction.h"
 #include "TypeTraits/Decay.h"
 #include "TypeTraits/EnableIf.h"
 #include "TypeTraits/IsBitwiseConstructible.h"
+#include "TypeTraits/IsCharTypeSupported.h"
 #include "TypeTraits/IsCopyAssignable.h"
 #include "TypeTraits/IsCopyConstructible.h"
 #include "TypeTraits/IsMoveAssignable.h"
@@ -45,11 +48,13 @@
 #include "TypeTraits/MakeSigned.h"
 #include "TypeTraits/MakeUnsigned.h"
 #include "TypeTraits/PrimaryTypes.h"
+#include "TypeTraits/RemoveAllExtents.h"
 #include "TypeTraits/RemoveCV.h"
 #include "TypeTraits/RemoveCVRef.h"
 #include "TypeTraits/RemoveExtent.h"
 #include "TypeTraits/RemoveReference.h"
 #include "TypeTraits/Trivial.h"
+#include "TypeTraits/TypeChooser.h"
 #include "TypeTraits/TypeRelationships.h"
 
 #include "Utilities/CommandLine.h"
@@ -62,7 +67,7 @@
 #include "String/PathUtils.h"
 #include "String/StringConversion.h"
 
-#include "Threading/LockGuard.h"
+#include "Threading/ScopeLock.h"
 #include "Threading/Mutex.h"
 #include "Threading/Thread.h"
 

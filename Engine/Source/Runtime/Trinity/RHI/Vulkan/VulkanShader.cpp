@@ -792,11 +792,11 @@ TBool TVulkanShader::LoadFromFile(TShaderStage ShaderStage, const TString& FileP
 
 	if (CompiledOk)
 	{
-		TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>("Shader file \"{}\" was compiled successfully!", FilePath.GetData());
+		TLog::Success<TRNT_GET_LOG_INFO(VulkanShaderCompiler)>("Shader file \"{}\" was compiled successfully!", FilePath.GetData());
 	}
 	else
 	{
-		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to compile shader file \"{}\"!", FilePath.GetData());
+		TLog::Error<TRNT_GET_LOG_INFO(VulkanShaderCompiler)>("Failed to compile shader file \"{}\"!", FilePath.GetData());
 		return false;
 	}
 	
@@ -811,11 +811,11 @@ TBool TVulkanShader::LoadFromSourceCode(TShaderStage ShaderStage, const TString&
 	TBool CompiledOk = TVulkanShaderCompiler::CompileIntoSPIRVCode(VulkanDevice->GetVulkanAPIVersion(), ShaderStage, SourceCode.GetData(), SPIRVResult);
 	if (CompiledOk)
 	{
-		TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>("Shader source code was compiled successfully!");
+		TLog::Success<TRNT_GET_LOG_INFO(VulkanShaderCompiler)>("Shader source code was compiled successfully!");
 	}
 	else
 	{
-		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to compile shader source code!");
+		TLog::Error<TRNT_GET_LOG_INFO(VulkanShaderCompiler)>("Failed to compile shader source code!");
 		return false;
 	}
 

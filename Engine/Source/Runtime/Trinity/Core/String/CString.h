@@ -13,24 +13,35 @@
 template<typename T>
 class TCString
 {
-private:
-	static constexpr TBool IsCharType = TAreTheSameType<typename TRemoveCV<T>::Type, TChar>::Value;
-	static constexpr TBool IsWCharType = TAreTheSameType<typename TRemoveCV<T>::Type, TWChar>::Value;
-
 public:
-	using CharType = T;
+	using CharType = typename TRemoveCVRef<T>::Type;
 	using SizeType = TSize_T;
 
-	static_assert(IsCharType || IsWCharType, "TCString<T> only supports Char and WChar.");
+	static_assert(TIsCharTypeSupported<T>::Value, "TCString<T> is not implemented for this char type.");
+
+	static constexpr TBool IsCharType = TAreTheSameType<CharType, TChar>::Value;
+	static constexpr TBool IsWCharType = TAreTheSameType<CharType, TWChar>::Value;
 
 public:
+	static TRNT_FORCE_INLINE void Memset(CharType* Str, const CharType Chr, TSize_T Count)
+	{
+		if constexpr (IsCharType)
+		{
+			memset(Str, Chr, Count * sizeof(CharType));
+		}
+		else if constexpr (IsWCharType)
+		{
+			wmemset(Str, Chr, Count);
+		}
+	}
+
 	static TRNT_FORCE_INLINE SizeType Strlen(const CharType* Str)
 	{
 		if constexpr (IsCharType)
 		{
 			return strlen(Str);
 		}
-		else
+		else if constexpr (IsWCharType)
 		{
 			return wcslen(Str);
 		}
@@ -42,7 +53,7 @@ public:
 		{
 			return strcmp(A, B);
 		}
-		else
+		else if constexpr (IsWCharType)
 		{
 			return wcscmp(A, B);
 		}
@@ -69,7 +80,7 @@ public:
 		{
 			return strncmp(A, B, Count);
 		}
-		else
+		else if constexpr (IsWCharType)
 		{
 			return wcsncmp(A, B, Count);
 		}
@@ -110,7 +121,7 @@ public:
 		{
 			Result = strncmp(AFirst, BFirst, TRNT_MIN(ALen, BLen));
 		}
-		else
+		else if constexpr (IsWCharType)
 		{
 			Result = wcsncmp(AFirst, BFirst, TRNT_MIN(ALen, BLen));
 		}
@@ -164,7 +175,7 @@ public:
 		{
 			return strchr(Str, Chr);
 		}
-		else
+		else if constexpr (IsWCharType)
 		{
 			return wcschr(Str, Chr);
 		}
@@ -176,7 +187,7 @@ public:
 		{
 			return strchr(Str, Chr);
 		}
-		else
+		else if constexpr (IsWCharType)
 		{
 			return wcschr(Str, Chr);
 		}
@@ -188,7 +199,7 @@ public:
 		{
 			return strrchr(Str, Chr);
 		}
-		else
+		else if constexpr (IsWCharType)
 		{
 			return wcsrchr(Str, Chr);
 		}
@@ -200,7 +211,7 @@ public:
 		{
 			return strrchr(Str, Chr);
 		}
-		else
+		else if constexpr (IsWCharType)
 		{
 			return wcsrchr(Str, Chr);
 		}
@@ -212,7 +223,7 @@ public:
 		{
 			return strstr(Str, Substr);
 		}
-		else
+		else if constexpr (IsWCharType)
 		{
 			return wcsstr(Str, Substr);
 		}
@@ -224,7 +235,7 @@ public:
 		{
 			return strstr(Str, Substr);
 		}
-		else
+		else if constexpr (IsWCharType)
 		{
 			return wcsstr(Str, Substr);
 		}
@@ -384,7 +395,7 @@ public:
 		{
 			return strpbrk(Str1, Str2);
 		}
-		else
+		else if constexpr (IsWCharType)
 		{
 			return wcspbrk(Str1, Str2);
 		}
@@ -396,43 +407,9 @@ public:
 		{
 			return strpbrk(Str1, Str2);
 		}
-		else
+		else if constexpr (IsWCharType)
 		{
 			return wcspbrk(Str1, Str2);
 		}
-	}
-
-	static TRNT_FORCE_INLINE const CharType* Strrpbrk(const CharType* Str1Begin, const CharType* Str1End, const CharType* Str2)
-	{
-		if (Str1Begin == nullptr || Str1End == nullptr || Str2 == nullptr)
-		{
-			return nullptr;
-		}
-
-		const CharType* Found = nullptr;
-
-		for (--Str1End; Str1End != Str1Begin; --Str1End)
-		{
-			if constexpr (IsCharType)
-			{
-				Found = strchr(Str2, *Str1End);
-			}
-			else
-			{
-				Found = wcschr(Str2, *Str1End);
-			}
-
-			if (Found)
-			{
-				return Str1End;
-			}
-		}
-
-		return nullptr;
-	}
-
-	static TRNT_FORCE_INLINE CharType* Strrpbrk(CharType* Str1, const CharType* Str2)
-	{
-		return (CharType*)Strrpbrk((const CharType*)Str1, Str2);
 	}
 };

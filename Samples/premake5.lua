@@ -18,6 +18,7 @@ project "Samples"
 
     includedirs
     {
+        "%{IncludeDirs.glm}",
         "%{IncludeDirs.fmt}",
         "%{IncludeDirs.stb}",
         "%{IncludeDirs.glfw}",
@@ -62,7 +63,8 @@ project "Samples"
     {
         "FMT_HEADER_ONLY",
         "STB_IMAGE_IMPLEMENTATION",
-        "TRNT_ROOT_DIRECTORY="..__ROOT_DIRECTORY__
+        "TRNT_ROOT_DIRECTORY="..__ROOT_DIRECTORY__,
+        "TRNT_ROOT_DIRECTORY_W=L"..__ROOT_DIRECTORY__
     }
 
     filter "system:windows"

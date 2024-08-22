@@ -31,7 +31,7 @@ public:
 
     TRNT_FORCE_INLINE TDelegate(TDelegate&&) = default;
 
-    TRNT_FORCE_INLINE TDelegate(std::nullptr_t const) noexcept : TDelegate()
+    TRNT_FORCE_INLINE TDelegate(TNullPtr const) noexcept : TDelegate()
     {
     }
 
@@ -77,9 +77,9 @@ public:
     {
         using FunctorType = typename TDecay<T>::Type;
 
-        new (Store.get()) FunctorType(Forward<T>(Func));
+        new (Store.Get()) FunctorType(Forward<T>(Func));
 
-        ObjectPointer = Store.get();
+        ObjectPointer = Store.Get();
 
         StubPointer = FunctorStub<FunctorType>;
 
@@ -204,7 +204,7 @@ public:
     }
 
 public:
-    TRNT_FORCE_INLINE void Reset() { StubPointer = nullptr; Store.reset(); }
+    TRNT_FORCE_INLINE void Reset() { StubPointer = nullptr; Store.Reset(); }
 
     TRNT_FORCE_INLINE void ResetStub() noexcept { StubPointer = nullptr; }
 
@@ -213,7 +213,7 @@ public:
     bool operator==(TDelegate const& Rhs) const noexcept
     {
         if (StoreSize && Rhs.StoreSize && StoreSize == Rhs.StoreSize)
-            return (std::memcmp(Store.get(), Rhs.Store.get(), StoreSize) == 0) && (StubPointer == Rhs.StubPointer);
+            return (std::memcmp(Store.Get(), Rhs.Store.Get(), StoreSize) == 0) && (StubPointer == Rhs.StubPointer);
         return (ObjectPointer == Rhs.ObjectPointer) && (StubPointer == Rhs.StubPointer);
     }
 
@@ -227,12 +227,12 @@ public:
         return (ObjectPointer < Rhs.ObjectPointer) || ((ObjectPointer == Rhs.ObjectPointer) && (StubPointer < Rhs.StubPointer));
     }
 
-    TRNT_FORCE_INLINE bool operator==(std::nullptr_t const) const noexcept
+    TRNT_FORCE_INLINE bool operator==(TNullPtr const) const noexcept
     {
         return !StubPointer;
     }
 
-    TRNT_FORCE_INLINE bool operator!=(std::nullptr_t const) const noexcept
+    TRNT_FORCE_INLINE bool operator!=(TNullPtr const) const noexcept
     {
         return StubPointer;
     }

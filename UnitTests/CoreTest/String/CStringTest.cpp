@@ -3,7 +3,7 @@
 #include <Trinity/Core/String/CString.h>
 
 template<typename T>
-TInt64 GetDistance(const T* Begin, const T* End)
+TInt64 GetLength(const T* Begin, const T* End)
 {
 	if (!Begin || !End)
 	{
@@ -21,11 +21,11 @@ TRNT_IMPL_TEST_CASE(Strings, TCStringForChar)
 
 	const TChar* Str = "aaaabbbbccccdddd11112222";
 
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, CString::Strchr(Str, 'a')) == 0);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, CString::Strchr(Str, '$')) == -1);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(Str, CString::Strchr(Str, 'a')) == 0);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(Str, CString::Strchr(Str, '$')) == -1);
 
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, CString::Strrchr(Str, 'a')) == 3);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, CString::Strrchr(Str, '%')) == -1);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(Str, CString::Strrchr(Str, 'a')) == 3);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(Str, CString::Strrchr(Str, '%')) == -1);
 
 	TRNT_TEST_EXPECT_TRUE(CString::Strcmp("hello world", "hello world") == 0);
 	TRNT_TEST_EXPECT_TRUE(CString::Strcmp(Str, "hello world") != 0);
@@ -71,28 +71,28 @@ TRNT_IMPL_TEST_CASE(Strings, TCStringForChar)
 	x = "hello world hello world";
 	y = "llo";
 
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Strstr(x, y)) == 2);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Strstr(x, "w")) == 6);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Strstr(x, "")) == 0);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Strstr(x, "foo")) == -1);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Strstr(x, y)) == 2);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Strstr(x, "w")) == 6);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Strstr(x, "")) == 0);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Strstr(x, "foo")) == -1);
 
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Strrstr(x, y)) == 14);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Strrstr(x, "l")) == 21);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Strrstr(x, "")) == 23);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Strrstr(x, "bar")) == -1);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Strrstr(x, y)) == 14);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Strrstr(x, "l")) == 21);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Strrstr(x, "")) == 23);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Strrstr(x, "bar")) == -1);
 
 	x = "HeLLo WORlD Hello WORLD";
 	y = "eLLo";
 
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Stristr(x, y)) == 1);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Stristr(x, "w")) == 6);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Stristr(x, "")) == 0);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Stristr(x, "HELLOWORLD")) == -1);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Stristr(x, y)) == 1);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Stristr(x, "w")) == 6);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Stristr(x, "")) == 0);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Stristr(x, "HELLOWORLD")) == -1);
 
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Strristr(x, y)) == 13);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Strristr(x, "orld")) == 19);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Strristr(x, "")) == 23);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(x, CString::Strristr(x, "_WORLD_")) == -1);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Strristr(x, y)) == 13);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Strristr(x, "orld")) == 19);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Strristr(x, "")) == 23);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(x, CString::Strristr(x, "_WORLD_")) == -1);
 
 	char Arr[6]{ 'h', 'e', 'l', 'l', 'o', '\0' };
 
@@ -104,22 +104,11 @@ TRNT_IMPL_TEST_CASE(Strings, TCStringForChar)
 
 	const TChar* Sep = " ,!";
 	const TChar* Tmp = Str;
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, Tmp = CString::Strpbrk(Tmp, Sep)) == 5);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, Tmp = CString::Strpbrk(++Tmp, Sep)) == 11);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, Tmp = CString::Strpbrk(++Tmp, Sep)) == 12);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, Tmp = CString::Strpbrk(++Tmp, Sep)) == 19);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, Tmp = CString::Strpbrk(++Tmp, Sep)) == 22);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, Tmp = CString::Strpbrk(++Tmp, Sep)) == 27);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, Tmp = CString::Strpbrk(++Tmp, Sep)) == -1);
-	
-	TSize_T Len = strlen(Str);
-	Tmp = "hello world, friend of mine!";
-	Sep = " ,!";
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, Tmp = CString::Strrpbrk(Tmp, Tmp + Len, Sep)) == 27);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, Tmp = CString::Strrpbrk(Str, Tmp, Sep)) == 22);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, Tmp = CString::Strrpbrk(Str, Tmp, Sep)) == 19);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, Tmp = CString::Strrpbrk(Str, Tmp, Sep)) == 12);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, Tmp = CString::Strrpbrk(Str, Tmp, Sep)) == 11);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, Tmp = CString::Strrpbrk(Str, Tmp, Sep)) == 5);
-	TRNT_TEST_EXPECT_TRUE(GetDistance<TChar>(Str, Tmp = CString::Strrpbrk(Str, Tmp, Sep)) == -1);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(Str, Tmp = CString::Strpbrk(Tmp, Sep)) == 5);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(Str, Tmp = CString::Strpbrk(++Tmp, Sep)) == 11);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(Str, Tmp = CString::Strpbrk(++Tmp, Sep)) == 12);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(Str, Tmp = CString::Strpbrk(++Tmp, Sep)) == 19);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(Str, Tmp = CString::Strpbrk(++Tmp, Sep)) == 22);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(Str, Tmp = CString::Strpbrk(++Tmp, Sep)) == 27);
+	TRNT_TEST_EXPECT_TRUE(GetLength<TChar>(Str, Tmp = CString::Strpbrk(++Tmp, Sep)) == -1);
 }

@@ -80,7 +80,7 @@ private:
 	}
 
 public:
-	TStringBase(std::nullptr_t) = delete;
+	TStringBase(TNullPtr) = delete;
 
 	TStringBase()
 		: Data(static_cast<PointerType>(malloc(sizeof(ElementType)))), Len(0), Cap(0)
@@ -147,7 +147,7 @@ private:
 	}
 
 public:
-	TStringBase& operator=(std::nullptr_t) = delete;
+	TStringBase& operator=(TNullPtr) = delete;
 
 	TStringBase& operator=(const TStringBase& Other)
 	{
@@ -765,7 +765,7 @@ public:
 	
 		if (NewLength > Len)
 		{
-			memset(Data + Len, Chr, (NewLength - Len) * sizeof(ElementType));
+			CStringHelper::Memset(Data + Len, Chr, NewLength - Len);
 		}
 
 		Data[NewLength] = NullChar;
@@ -883,13 +883,13 @@ public:
 			Cap = static_cast<SizeType>(Cap * GrowSize + Count);
 			PointerType NewData = static_cast<PointerType>(malloc((Cap + 1) * sizeof(ElementType)));
 			memcpy(NewData, Data, Len * sizeof(ElementType));
-			memset(NewData + Len, Chr, Count * sizeof(ElementType));
+		    CStringHelper::Memset(NewData + Len, static_cast<int>(Chr), Count);
 			free(Data);
 			Data = NewData;
 		}
 		else
 		{
-			memset(Data + Len, Chr, Count * sizeof(ElementType));
+			CStringHelper::Memset(Data + Len, static_cast<int>(Chr), Count);
 		}
 
 		Len += Count;
@@ -982,7 +982,7 @@ public:
 			PointerType NewData = static_cast<PointerType>(malloc((Cap + 1) * sizeof(ElementType)));
 			PointerType Dest = NewData + Index;
 			memcpy(NewData, Data, Index * sizeof(ElementType));
-			memset(Dest, Chr, Count * sizeof(ElementType));
+			CStringHelper::Memset(Dest, Chr, Count);
 			memcpy(Dest + Count, Data + Index, (Len - Index) * sizeof(ElementType));
 			free(Data);
 			Data = NewData;
@@ -991,7 +991,7 @@ public:
 		{
 			PointerType Dest = Data + Index;
 			memmove(Dest + Count, Dest, (Len - Index) * sizeof(ElementType));
-			memset(Dest, Chr, Count * sizeof(ElementType));
+			CStringHelper::Memset(Dest, Chr, Count);
 		}
 
 		Len += Count;

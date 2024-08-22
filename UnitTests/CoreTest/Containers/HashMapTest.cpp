@@ -86,6 +86,15 @@ TRNT_IMPL_TEST_CASE(Containers, THashMap)
 	{
 		TStringIDMap m1{ {1, "abc"}, {2, "def"}, {123, "aaa"}, {99, "hello"}, {1234, "aaabbb"}, {100, "world"} };
 
+		TRNT_TEST_EXPECT_TRUE(m1.Contains(1));
+		TRNT_TEST_EXPECT_TRUE(m1.Contains(-9999999) == false);
+
+		TRNT_TEST_EXPECT_TRUE(m1.ContainsByHash(TStringIDMap::GetHashCode(99)));
+		TRNT_TEST_EXPECT_TRUE(m1.ContainsByHash(TStringIDMap::GetHashCode(-100)) == false);
+
+		TRNT_TEST_EXPECT_TRUE(m1.Count(1) == 1);
+		TRNT_TEST_EXPECT_TRUE(m1.Count(-1) == 0); // key -1 does not exist on m1
+
 		TRNT_TEST_EXPECT_TRUE(m1.GetElementCount() == 6);
 		TRNT_TEST_EXPECT_TRUE(m1.GetBucketCount() == 8);
 		
@@ -112,6 +121,83 @@ TRNT_IMPL_TEST_CASE(Containers, THashMap)
 
 		m1.Clear();
 		TRNT_TEST_CHECK_MAP(TStringIDMap, m1, 0);
+	}
+
+	{
+		TStringIDMap m1{ {1, "abc"}, {2, "def"}, {123, "aaa"}, {99, "hello"}, {1234, "aaabbb"}, {100, "world"} };
+
+		TDynamicArray<typename TStringIDMap::KeyType> outKeys;
+		TInt64 keyCount = m1.GetKeys(outKeys);
+
+		TRNT_TEST_EXPECT_TRUE(keyCount == 6);
+		TRNT_TEST_EXPECT_TRUE(outKeys.Contains(1));
+		TRNT_TEST_EXPECT_TRUE(outKeys.Contains(2));
+		TRNT_TEST_EXPECT_TRUE(outKeys.Contains(123));
+		TRNT_TEST_EXPECT_TRUE(outKeys.Contains(99));
+		TRNT_TEST_EXPECT_TRUE(outKeys.Contains(1234));
+		TRNT_TEST_EXPECT_TRUE(outKeys.Contains(100));
+
+		TDynamicArray<typename TStringIDMap::ValueType> outVals;
+		TInt64 valCount = m1.GetValues(outVals);
+		TRNT_TEST_EXPECT_TRUE(valCount == m1.GetElementCount());
+		TRNT_TEST_EXPECT_TRUE(outVals.Contains("abc"));
+		TRNT_TEST_EXPECT_TRUE(outVals.Contains("def"));
+		TRNT_TEST_EXPECT_TRUE(outVals.Contains("aaa"));
+		TRNT_TEST_EXPECT_TRUE(outVals.Contains("hello"));
+		TRNT_TEST_EXPECT_TRUE(outVals.Contains("aaabbb"));
+		TRNT_TEST_EXPECT_TRUE(outVals.Contains("world"));
+
+		TDynamicArray<typename TStringIDMap::ElementType> outElems;
+		TInt64 elemCount = m1.GetElements(outElems);
+		TRNT_TEST_EXPECT_TRUE(elemCount== m1.GetElementCount());
+
+		const auto ContainsElement = [&outElems](TInt32 Id, const typename TStringIDMap::ValueType Value) -> TBool
+		{
+			for (auto& elem : outElems)
+			{
+				if (elem.Key == Id && elem.Value == Value)
+				{
+					return true;
+				}
+			}
+			return false;
+		};
+
+		ContainsElement(1, "abc");
+		ContainsElement(2, "def");
+		ContainsElement(123, "aaa");
+		ContainsElement(99, "hello");
+		ContainsElement(1234, "aaabbb");
+		ContainsElement(100, "world");
+	}
+
+	{
+		TStringIDMap m1{ {1, "abc"}, {2, "def"}, {123, "aaa"}, {99, "hello"}, {1234, "aaabbb"}, {100, "world"} };
+
+		TDynamicArray<typename TStringIDMap::KeyType> outKeys;
+		m1.FilterKeys([](typename TStringIDMap::KeyType Key) { return Key <= 100; }, outKeys);
+		TRNT_TEST_EXPECT_TRUE(outKeys.Contains(1));
+		TRNT_TEST_EXPECT_TRUE(outKeys.Contains(2));
+		TRNT_TEST_EXPECT_TRUE(outKeys.Contains(99));
+		TRNT_TEST_EXPECT_TRUE(outKeys.Contains(100));
+
+		TDynamicArray<typename TStringIDMap::ValueType> outVals;
+		m1.FilterValues([](typename TStringIDMap::ValueType Val) { return Val.GetElementCount() == 3; }, outVals);
+		TRNT_TEST_EXPECT_TRUE(outVals.Contains("abc"));
+		TRNT_TEST_EXPECT_TRUE(outVals.Contains("def"));
+		TRNT_TEST_EXPECT_TRUE(outVals.Contains("aaa"));
+	}
+
+	{
+		TStringIDMap map{};
+		map.Emplace(1, "hello world");
+		TRNT_TEST_CHECK_MAP(TStringIDMap, map, 1, { 1, "hello world" });
+
+		map.Emplace(1, "hello");
+		TRNT_TEST_CHECK_MAP(TStringIDMap, map, 1, { 1, "hello world" });
+
+		map.EmplaceByHash(TStringIDMap::GetHashCode(100), 100, "hehehe");
+		TRNT_TEST_CHECK_MAP(TStringIDMap, map, 2, { 1, "hello world" }, { 100, "hehehe" });
 	}
 }
 

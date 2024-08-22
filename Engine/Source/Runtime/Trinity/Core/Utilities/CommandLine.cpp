@@ -28,9 +28,9 @@ void TCommandLine::Reset()
 	CommandLineArgs.Clear();
 }
 
-void TCommandLine::AddCommandLineArgument(const TChar* Argument)
+void TCommandLine::AddCommandLineArgument(const TChar* CmdLineArgument)
 {
-	CommandLineArgs.EmplaceBack(Argument);
+	CommandLineArgs.EmplaceBack(CmdLineArgument);
 	++ArgCount;
 }
 

@@ -41,6 +41,7 @@ IncludeDirs["xxHash"] = "%{ThirdPartyLocation}/xxHash"
 IncludeDirs["imgui"] = "%{ThirdPartyLocation}/imgui"
 IncludeDirs["glslang"] = "%{ThirdPartyLocation}/glslang"
 IncludeDirs["SPIRVCross"] = "%{ThirdPartyLocation}/SPIRV-Cross"
+IncludeDirs["glm"] = "%{ThirdPartyLocation}/glm"
 if (EngineFeatures.SupportVulkan) then
     IncludeDirs["Vulkan"] = "%{VULKAN_SDK}/Include/"
 end

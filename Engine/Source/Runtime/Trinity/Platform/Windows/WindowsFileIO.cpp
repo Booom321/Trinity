@@ -11,7 +11,7 @@ TFileReader::TFileReader()
 {}
 
 TFileReader::TFileReader(const TChar* FilePath, TFileOpenMode OpenMode)
-	: FileHandle(CreateFileA(FilePath, GENERIC_READ, FILE_SHARE_READ, NULL, static_cast<DWORD>(OpenMode), FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL))
+	: FileHandle(CreateFileA(FilePath, GENERIC_READ, FILE_SHARE_READ, NULL, static_cast<DWORD>(OpenMode), FILE_ATTRIBUTE_NORMAL, NULL))
 {
 	TRNT_ASSERT(FileHandle != INVALID_HANDLE_VALUE);
 }
@@ -28,7 +28,7 @@ void TFileReader::Close()
 TBool TFileReader::Open(const TChar* FilePath, TFileOpenMode OpenMode)
 {
 	TRNT_ASSERT(FileHandle == nullptr);
-	FileHandle = CreateFileA(FilePath, GENERIC_READ, FILE_SHARE_READ, NULL, static_cast<DWORD>(OpenMode), FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OVERLAPPED, NULL);
+	FileHandle = CreateFileA(FilePath, GENERIC_READ, FILE_SHARE_READ, NULL, static_cast<DWORD>(OpenMode), FILE_ATTRIBUTE_NORMAL, NULL);
 	return FileHandle != INVALID_HANDLE_VALUE;
 }
 

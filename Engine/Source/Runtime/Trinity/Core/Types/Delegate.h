@@ -77,9 +77,9 @@ public:
     {
         using FunctorType = typename TDecay<T>::Type;
 
-        new (Store.Get()) FunctorType(Forward<T>(Func));
+        new (Store.get()) FunctorType(Forward<T>(Func));
 
-        ObjectPointer = Store.Get();
+        ObjectPointer = Store.get();
 
         StubPointer = FunctorStub<FunctorType>;
 
@@ -213,7 +213,7 @@ public:
     bool operator==(TDelegate const& Rhs) const noexcept
     {
         if (StoreSize && Rhs.StoreSize && StoreSize == Rhs.StoreSize)
-            return (std::memcmp(Store.Get(), Rhs.Store.Get(), StoreSize) == 0) && (StubPointer == Rhs.StubPointer);
+            return (std::memcmp(Store.get(), Rhs.Store.get(), StoreSize) == 0) && (StubPointer == Rhs.StubPointer);
         return (ObjectPointer == Rhs.ObjectPointer) && (StubPointer == Rhs.StubPointer);
     }
 
@@ -254,7 +254,7 @@ private:
 
     DeleterType Deleter;
 
-    TSharedPtr<void> Store;
+    std::shared_ptr<void> Store;
     TSize_T StoreSize = 0;
 
     template<typename T>

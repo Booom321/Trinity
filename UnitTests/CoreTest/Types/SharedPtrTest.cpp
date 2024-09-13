@@ -23,7 +23,6 @@ TRNT_IMPL_TEST_CASE(Types, TSharedPtr_Object)
 	using SharedPtr = TSharedPtr<Foo>;
 	static_assert(TAreTheSameType<typename SharedPtr::ElementType, Foo>::Value);
 	static_assert(TAreTheSameType<typename SharedPtr::PointerType, Foo*>::Value);
-	static_assert(TAreTheSameType<typename SharedPtr::DeleterType, TDefaultDeleter<Foo>>::Value);
 
 	{
 		SharedPtr sp{};
@@ -102,7 +101,6 @@ TRNT_IMPL_TEST_CASE(Types, TSharedPtr_Array)
 	using SharedPtr = TSharedPtr<Foo[]>;
 	static_assert(TAreTheSameType<typename SharedPtr::ElementType, Foo>::Value);
 	static_assert(TAreTheSameType<typename SharedPtr::PointerType, Foo*>::Value);
-	static_assert(TAreTheSameType<typename SharedPtr::DeleterType, TDefaultDeleter<Foo[]>>::Value);
 
 	{
 		SharedPtr sp{};

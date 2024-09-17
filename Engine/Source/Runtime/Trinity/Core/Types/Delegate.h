@@ -77,12 +77,10 @@ public:
     {
         using FunctorType = typename TDecay<T>::Type;
 
-        new (Store.get()) FunctorType(Forward<T>(Func));
+        new (Store.Get()) FunctorType(Forward<T>(Func));
 
-        ObjectPointer = Store.get();
-
+        ObjectPointer = Store.Get();
         StubPointer = FunctorStub<FunctorType>;
-
         Deleter = DeleterStub<FunctorType>;
     }
 
@@ -107,12 +105,12 @@ public:
     {
         using FunctorType = typename TDecay<T>::Type;
 
-        void* StorePointer = Store.get();
+        void* StorePointer = Store.Get();
 
-        if ((sizeof(FunctorType) > StoreSize) || !Store.unique())
+        if ((sizeof(FunctorType) > StoreSize) || !Store.IsUnique())
         {
-            Store.reset(operator new(sizeof(FunctorType)), FunctorDeleter<FunctorType>);
-
+            Store.Reset();
+            Store = TSharedPtr<void>(operator new(sizeof(FunctorType)), FunctorDeleter<FunctorType>);
             StoreSize = sizeof(FunctorType);
         }
         else
@@ -123,9 +121,7 @@ public:
         new (StorePointer) FunctorType(Forward<T>(Func));
 
         ObjectPointer = StorePointer;
-
         StubPointer = FunctionStub<FunctorType>;
-
         Deleter = DeleterStub<FunctorType>;
 
         return *this;
@@ -213,7 +209,9 @@ public:
     bool operator==(TDelegate const& Rhs) const noexcept
     {
         if (StoreSize && Rhs.StoreSize && StoreSize == Rhs.StoreSize)
-            return (std::memcmp(Store.get(), Rhs.Store.get(), StoreSize) == 0) && (StubPointer == Rhs.StubPointer);
+        {
+            return (std::memcmp(Store.Get(), Rhs.Store.Get(), StoreSize) == 0) && (StubPointer == Rhs.StubPointer);
+        }
         return (ObjectPointer == Rhs.ObjectPointer) && (StubPointer == Rhs.StubPointer);
     }
 
@@ -254,7 +252,7 @@ private:
 
     DeleterType Deleter;
 
-    std::shared_ptr<void> Store;
+    TSharedPtr<void> Store;
     TSize_T StoreSize = 0;
 
     template<typename T>

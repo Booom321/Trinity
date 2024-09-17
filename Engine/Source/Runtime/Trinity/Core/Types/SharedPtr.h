@@ -28,9 +28,9 @@ namespace TNsSharedPtrDetails
 
 		TRNT_FORCE_INLINE ~TReferenceCounterBase()
 		{
-			#ifdef TRNT_DEBUG
+#ifdef TRNT_DEBUG
 			TRNT_ASSERT(SharedRefCount == 0);
-			#endif
+#endif
 		}
 
 	public:
@@ -193,7 +193,7 @@ public:
 		typename TEnableIf<!TIsArray<OtherType>::Value && TNsSharedPtrDetails::TSharedPtrConvertible<OtherType, T>::Value, int>::Type = 0
 	>
 	explicit TRNT_FORCE_INLINE TSharedPtr(OtherType* Ptr, OtherDeleterType&& OtherDeleter) noexcept
-		: RefCounter(new TNsSharedPtrDetails::TReferenceCounterWithDeleter<OtherType, EnableThreadSafety>(Ptr, Move(OtherDeleter))), Ptr(Ptr)
+		: RefCounter(new TNsSharedPtrDetails::TReferenceCounterWithDeleter<OtherType, OtherDeleterType, EnableThreadSafety>(Ptr, Move(OtherDeleter))), Ptr(Ptr)
 	{
 		RefCounter->AddSharedReference();
 	}

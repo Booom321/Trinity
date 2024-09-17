@@ -15,16 +15,16 @@ public:
 
     using Base = LhsType;
 
-    template<typename TEnableIf<std::conjunction<std::is_default_constructible<LhsType>, std::is_default_constructible<RhsType>>::value, int>::Type = 0>
-    TRNT_FORCE_INLINE TCompressedPair() : LhsType(), SecondValue() 
+    TRNT_FORCE_INLINE TCompressedPair() noexcept(std::conjunction<std::is_default_constructible<LhsType>, std::is_default_constructible<RhsType>>::value)
+        : LhsType(), SecondValue() 
     {}
 
-    template<typename TEnableIf<std::conjunction<std::is_copy_constructible<LhsType>, std::is_copy_constructible<RhsType>>::value, int>::Type = 0>
-    TRNT_FORCE_INLINE TCompressedPair(const LhsType& Value1, const RhsType& Value2) : LhsType(Value1), SecondValue(Value2)
+    TRNT_FORCE_INLINE TCompressedPair(const LhsType& Value1, const RhsType& Value2) noexcept(std::conjunction<std::is_copy_constructible<LhsType>, std::is_copy_constructible<RhsType>>::value) 
+        : LhsType(Value1), SecondValue(Value2)
     {}
 
-    template<typename TEnableIf<std::conjunction<std::is_move_constructible<LhsType>, std::is_move_constructible<RhsType>>::value, int>::Type = 0>
-    TRNT_FORCE_INLINE TCompressedPair(LhsType&& Value1, RhsType&& Value2) noexcept : LhsType(Move(Value1)), SecondValue(Move(Value2))
+    TRNT_FORCE_INLINE TCompressedPair(LhsType&& Value1, RhsType&& Value2) noexcept(std::conjunction<std::is_move_constructible<LhsType>, std::is_move_constructible<RhsType>>::value) 
+        : LhsType(Move(Value1)), SecondValue(Move(Value2))
     {}
 
     TRNT_FORCE_INLINE LhsType& GetFirstValue() noexcept { return *this; }
@@ -45,16 +45,16 @@ public:
 
     using Base = LhsType;
 
-    template<typename TEnableIf<std::conjunction<std::is_default_constructible<LhsType>, std::is_default_constructible<RhsType>>::value, int>::Type = 0>
-    TRNT_FORCE_INLINE TCompressedPair() : FirstValue(), SecondValue()
+    TRNT_FORCE_INLINE TCompressedPair() noexcept(std::conjunction<std::is_default_constructible<LhsType>, std::is_default_constructible<RhsType>>::value)
+        : FirstValue(), SecondValue()
     {}
 
-    template<typename TEnableIf<std::conjunction<std::is_copy_constructible<LhsType>, std::is_copy_constructible<RhsType>>::value, int>::Type = 0>
-    TRNT_FORCE_INLINE TCompressedPair(const LhsType& Value1, const RhsType& Value2) : FirstValue(Value1), SecondValue(Value2)
+    TRNT_FORCE_INLINE TCompressedPair(const LhsType& Value1, const RhsType& Value2) noexcept(std::conjunction<std::is_copy_constructible<LhsType>, std::is_copy_constructible<RhsType>>::value)
+        : FirstValue(Value1), SecondValue(Value2)
     {}
 
-    template<typename TEnableIf<std::conjunction<std::is_move_constructible<LhsType>, std::is_move_constructible<RhsType>>::value, int>::Type = 0>
-    TRNT_FORCE_INLINE TCompressedPair(LhsType&& Value1, RhsType&& Value2) noexcept : FirstValue(Move(Value1)), SecondValue(Move(Value2))
+    TRNT_FORCE_INLINE TCompressedPair(LhsType&& Value1, RhsType&& Value2) noexcept(std::conjunction<std::is_move_constructible<LhsType>, std::is_move_constructible<RhsType>>::value)
+        : FirstValue(Move(Value1)), SecondValue(Move(Value2))
     {}
 
     TRNT_FORCE_INLINE LhsType& GetFirstValue() noexcept { return FirstValue; }
@@ -65,3 +65,4 @@ public:
 
     TRNT_FORCE_INLINE const RhsType& GetSecondValue() const noexcept { return SecondValue; }
 };
+

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Trinity/Core/TypeTraits/EnableIf.h"
-#include "Trinity/Core/TypeTraits/RemoveExtent.h"
-#include "Trinity/Core/TypeTraits/IsZeroConstructType.h"
 #include "Trinity/Core/TypeTraits/IsBitwiseConstructible.h"
+#include "Trinity/Core/TypeTraits/IsZeroConstructType.h"
+#include "Trinity/Core/TypeTraits/RemoveExtent.h"
 
 #include "Trinity/Core/Types/CompressedPair.h"
 
@@ -64,7 +64,7 @@ public:
 		: Pair(DeleterType(), nullptr)
 	{}
 
-	explicit TRNT_FORCE_INLINE TUniquePtr(TNullPtr) noexcept 
+	explicit TRNT_FORCE_INLINE TUniquePtr(TNullPtr) noexcept
 		: Pair(DeleterType(), nullptr)
 	{}
 
@@ -95,8 +95,8 @@ public:
 	{}
 
 	template<
-		typename OtherType, 
-		typename OtherDeleterType, 
+		typename OtherType,
+		typename OtherDeleterType,
 		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::PointerType, PointerType>::Value, int>::Type = 0
 	>
 	TRNT_FORCE_INLINE TUniquePtr(TUniquePtr<OtherType, OtherDeleterType>&& Other) noexcept
@@ -107,7 +107,7 @@ public:
 
 	TUniquePtr(const TUniquePtr&) = delete;
 	TUniquePtr& operator=(const TUniquePtr&) = delete;
-	
+
 	~TUniquePtr()
 	{
 		Pair.GetFirstValue()(Pair.SecondValue);
@@ -263,7 +263,7 @@ public:
 	{}
 
 	template<
-		typename OtherType, 
+		typename OtherType,
 		typename OtherDeleterType,
 		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::ElementType(*)[], ElementType(*)[]>::Value, int>::Type = 0
 	>
@@ -297,7 +297,7 @@ public:
 	}
 
 	template<
-		typename OtherType, 
+		typename OtherType,
 		typename OtherDeleterType,
 		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::ElementType(*)[], ElementType(*)[]>::Value, int>::Type = 0
 	>

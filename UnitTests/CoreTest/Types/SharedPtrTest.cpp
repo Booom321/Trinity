@@ -23,13 +23,12 @@ TRNT_IMPL_TEST_CASE(Types, TSharedPtr_Object)
 	using SharedPtr = TSharedPtr<Foo>;
 	static_assert(TAreTheSameType<typename SharedPtr::ElementType, Foo>::Value);
 	static_assert(TAreTheSameType<typename SharedPtr::PointerType, Foo*>::Value);
-
 	{
 		SharedPtr sp{};
 		TRNT_TEST_EXPECT_TRUE(sp.Get() == nullptr);
 		TRNT_TEST_EXPECT_TRUE(!sp.IsUnique());
 		TRNT_TEST_EXPECT_TRUE(sp.GetSharedReferenceCount() == 0);
- 
+
 		SharedPtr sp1{ nullptr };
 		TRNT_TEST_EXPECT_TRUE(sp1.Get() == nullptr);
 		TRNT_TEST_EXPECT_TRUE(!sp1.IsUnique());
@@ -80,7 +79,7 @@ TRNT_IMPL_TEST_CASE(Types, TSharedPtr_Object)
 	{
 		SharedPtr sp1 = MakeShared<Foo>(1, 2.0f);
 		SharedPtr sp2 = MakeShared<Foo>(1, 2.0f);
-		SharedPtr sp3 { nullptr };
+		SharedPtr sp3{ nullptr };
 
 		TRNT_TEST_EXPECT_TRUE(sp1 != nullptr);
 		TRNT_TEST_EXPECT_TRUE(sp2 != nullptr);
@@ -157,7 +156,7 @@ TRNT_IMPL_TEST_CASE(Types, TSharedPtr_Array)
 	{
 		SharedPtr sp1 = MakeShared<Foo[]>(2);
 		SharedPtr sp2 = MakeShared<Foo[]>(2);
-		SharedPtr sp3 { nullptr };
+		SharedPtr sp3{ nullptr };
 
 		TRNT_TEST_EXPECT_TRUE(sp1 != nullptr);
 		TRNT_TEST_EXPECT_TRUE(sp2 != nullptr);

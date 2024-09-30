@@ -362,7 +362,7 @@ namespace TNsHash
 ///////////////////////////////////////////////////////////
 namespace TNsStringConversion
 {
-	template<typename T, typename CharType> TRNT_FORCE_INLINE void ToString(const TVector2<T>& Vec2, TStringBase<CharType>& OutString)
+	/*template<typename T, typename CharType> TRNT_FORCE_INLINE void ToString(const TVector2<T>& Vec2, TStringBase<CharType>& OutString)
 	{
 		OutString.Clear();
 		
@@ -393,5 +393,5 @@ namespace TNsStringConversion
 		ToString<CharType>(Vec2.Y, Temp);
 		OutString.Append(Temp);
 		OutString.Append(1, EndSquareBracket);
-	}
+	}*/
 }

@@ -2,8 +2,8 @@
 
 #include <atomic>
 
-#include "UniquePtr.h"
 #include "Trinity\Core\TypeTraits\TypeChooser.h"
+#include "UniquePtr.h"
 
 namespace TNsSharedPtrDetails
 {
@@ -162,7 +162,7 @@ class TSharedPtr
 public:
 	using ElementType = typename TRemoveExtent<T>::Type;
 	using PointerType = ElementType*;
-	
+
 	using ReferenceCounterType = TNsSharedPtrDetails::TReferenceCounterBase<EnableThreadSafety>;
 
 	template<typename OtherType, TBool OtherEnableThreadSafety>
@@ -179,7 +179,7 @@ public:
 
 	template<
 		typename OtherType,
-		typename TEnableIf<!TIsArray<OtherType>::Value && TNsSharedPtrDetails::TSharedPtrConvertible<OtherType, T>::Value, int>::Type = 0
+		typename TEnableIf<!TIsArray<OtherType>::Value&& TNsSharedPtrDetails::TSharedPtrConvertible<OtherType, T>::Value, int>::Type = 0
 	>
 	explicit TRNT_FORCE_INLINE TSharedPtr(OtherType* Ptr)
 		: RefCounter(new TNsSharedPtrDetails::TDefaultReferenceCounter<OtherType, EnableThreadSafety>(Ptr)), Ptr(Ptr)
@@ -190,7 +190,7 @@ public:
 	template<
 		typename OtherType,
 		typename OtherDeleterType,
-		typename TEnableIf<!TIsArray<OtherType>::Value && TNsSharedPtrDetails::TSharedPtrConvertible<OtherType, T>::Value, int>::Type = 0
+		typename TEnableIf<!TIsArray<OtherType>::Value&& TNsSharedPtrDetails::TSharedPtrConvertible<OtherType, T>::Value, int>::Type = 0
 	>
 	explicit TRNT_FORCE_INLINE TSharedPtr(OtherType* Ptr, OtherDeleterType&& OtherDeleter) noexcept
 		: RefCounter(new TNsSharedPtrDetails::TReferenceCounterWithDeleter<OtherType, OtherDeleterType, EnableThreadSafety>(Ptr, Move(OtherDeleter))), Ptr(Ptr)
@@ -254,38 +254,38 @@ public:
 	{
 		return RefCounter->GetDeleter();
 	}
-	
+
 	TRNT_NODISCARD TRNT_FORCE_INLINE typename ReferenceCounterType::IntegralType GetSharedReferenceCount() const
 	{
 		return (RefCounter != nullptr) ? RefCounter->GetSharedReferenceCount() : 0;
 	}
-	
+
 	TRNT_NODISCARD TRNT_FORCE_INLINE TBool IsUnique() const
 	{
 		return (RefCounter != nullptr) ? RefCounter->GetSharedReferenceCount() == 1 : false;
 	}
-	
+
 	TRNT_NODISCARD TRNT_FORCE_INLINE explicit operator bool() const
 	{
 		return Ptr != nullptr;
 	}
-	
+
 	template<typename OtherT = T, typename TEnableIf<!TAreTheSameType<OtherT, void>::Value && !TIsArray<OtherT>::Value, int>::Type = 0>
 	TRNT_NODISCARD TRNT_FORCE_INLINE PointerType operator->() const
 	{
 		return Ptr;
 	}
-	
+
 	template<typename OtherT = T, typename TEnableIf<!TAreTheSameType<OtherT, void>::Value && !TIsArray<OtherT>::Value, int>::Type = 0>
 	TRNT_NODISCARD TRNT_FORCE_INLINE decltype(auto) operator*() const noexcept
 	{
-	return *Ptr;
+		return *Ptr;
 	}
-	
+
 	template<typename OtherT = T, typename TEnableIf<!TAreTheSameType<OtherT, void>::Value&& TIsArray<OtherT>::Value, int>::Type = 0>
 	TRNT_NODISCARD TRNT_FORCE_INLINE decltype(auto) operator[](TSize_T Index) const
 	{
-	return Ptr[Index];
+		return Ptr[Index];
 	}
 
 public:
@@ -430,6 +430,7 @@ template<typename T, typename... ArgsType>
 typename TEnableIf<TIsBoundedArray<T>::Value>::Type MakeShared(ArgsType&&...) = delete;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 template<typename Type, TBool EnableThreadSafety>
 TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator==(TNullPtr, const TSharedPtr<Type, EnableThreadSafety>& Rhs)
 {

@@ -23,6 +23,7 @@ namespace TNsStringConversion
 		public:
 			static TRNT_CONSTEXPR const TChar* DigitToChar = "9876543210123456789";
 			static TRNT_CONSTEXPR const TChar* FloatingPointFormatStr = "%lf";
+			static TRNT_CONSTEXPR const TChar  DotChar = '.';
 		};
 
 		template<>
@@ -31,6 +32,7 @@ namespace TNsStringConversion
 		public:
 			static TRNT_CONSTEXPR const TWChar* DigitToChar = L"9876543210123456789";
 			static TRNT_CONSTEXPR const TWChar* FloatingPointFormatStr = L"%lf";
+			static TRNT_CONSTEXPR const TWChar  DotChar = L'.';
 		};
 	}
 
@@ -119,161 +121,148 @@ namespace TNsStringConversion
 		}
 	}
 
-	template<typename CharType> void ToString(TInt8 Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TStringBase<CharType> ToString(TInt8 Value)
 	{
-		CharType Buffer[MaxBufferSize];
-
 		TInt64 Length;
+		CharType Buffer[MaxBufferSize];
 		const CharType* Ptr = IntegerToString<TInt8>(Value, Buffer + MaxBufferSize, Length);
 
-		OutString.Clear();
-		OutString.Append(Ptr, Length);
+		return TStringBase<CharType> { Length, Ptr };
 	}
 
-	template<typename CharType> void ToString(TInt16 Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TStringBase<CharType> ToString(TInt16 Value)
 	{
-		CharType Buffer[MaxBufferSize];
-
 		TInt64 Length;
+		CharType Buffer[MaxBufferSize];
 		const CharType* Ptr = IntegerToString<TInt16>(Value, Buffer + MaxBufferSize, Length);
 
-		OutString.Clear();
-		OutString.Append(Ptr, Length);
+		return TStringBase<CharType> { Length, Ptr };
 	}
 
-	template<typename CharType> void ToString(TInt32 Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TStringBase<CharType> ToString(TInt32 Value)
 	{
-		CharType Buffer[MaxBufferSize];
-
 		TInt64 Length;
+		CharType Buffer[MaxBufferSize];
 		const CharType* Ptr = IntegerToString<TInt32>(Value, Buffer + MaxBufferSize, Length);
 
-		OutString.Clear();
-		OutString.Append(Ptr, Length);
+		return TStringBase<CharType> { Length, Ptr };
 	}
 
-	template<typename CharType> void ToString(TInt64 Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TStringBase<CharType> ToString(TInt64 Value)
 	{
-		CharType Buffer[MaxBufferSize];
-
 		TInt64 Length;
+		CharType Buffer[MaxBufferSize];
 		const CharType* Ptr = IntegerToString<TInt64>(Value, Buffer + MaxBufferSize, Length);
 
-		OutString.Clear();
-		OutString.Append(Ptr, Length);
+		return TStringBase<CharType> { Length, Ptr };
 	}
 
-	template<typename CharType> void ToString(TUInt8 Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TStringBase<CharType> ToString(TUInt8 Value)
 	{
-		CharType Buffer[MaxBufferSize];
-
 		TInt64 Length;
+		CharType Buffer[MaxBufferSize];
 		const CharType* Ptr = IntegerToString<TUInt8>(Value, Buffer + MaxBufferSize, Length);
 
-		OutString.Clear();
-		OutString.Append(Ptr, Length);
+		return TStringBase<CharType> { Length, Ptr };
 	}
 
-	template<typename CharType> void ToString(TUInt16 Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TStringBase<CharType> ToString(TUInt16 Value)
 	{
-		CharType Buffer[MaxBufferSize];
-
 		TInt64 Length;
+		CharType Buffer[MaxBufferSize];
 		const CharType* Ptr = IntegerToString<TUInt16>(Value, Buffer + MaxBufferSize, Length);
 
-		OutString.Clear();
-		OutString.Append(Ptr, Length);
+		return TStringBase<CharType> { Length, Ptr };
 	}
 
-	template<typename CharType> void ToString(TUInt32 Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TStringBase<CharType> ToString(TUInt32 Value)
 	{
-		CharType Buffer[MaxBufferSize];
-
 		TInt64 Length;
+		CharType Buffer[MaxBufferSize];
 		const CharType* Ptr = IntegerToString<TUInt32>(Value, Buffer + MaxBufferSize, Length);
 
-		OutString.Clear();
-		OutString.Append(Ptr, Length);
+		return TStringBase<CharType> { Length, Ptr };
 	}
 
-	template<typename CharType> void ToString(TUInt64 Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TStringBase<CharType> ToString(TUInt64 Value)
 	{
-		CharType Buffer[MaxBufferSize];
-
 		TInt64 Length;
+		CharType Buffer[MaxBufferSize];
 		const CharType* Ptr = IntegerToString<TUInt64>(Value, Buffer + MaxBufferSize, Length);
 
-		OutString.Clear();
-		OutString.Append(Ptr, Length);
+		return TStringBase<CharType> { Length, Ptr };
 	}
 
-	template<typename CharType> TRNT_FORCE_INLINE void ToString(long double Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TRNT_FORCE_INLINE TStringBase<CharType> ToString(long double Value)
 	{
+		TStringBase<CharType> OutString;
 		FloatingPointToString<long double>(Value, OutString);
+		return OutString;
 	}
 
-	template<typename CharType> TRNT_FORCE_INLINE void ToString(TDouble Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TRNT_FORCE_INLINE TStringBase<CharType> ToString(TDouble Value)
 	{
+		TStringBase<CharType> OutString;
 		FloatingPointToString<TDouble>(Value, OutString);
+		return OutString;
 	}
 
-	template<typename CharType> TRNT_FORCE_INLINE void ToString(TFloat Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TRNT_FORCE_INLINE TStringBase<CharType> ToString(TFloat Value)
 	{
+		TStringBase<CharType> OutString;
 		FloatingPointToString<TFloat>(Value, OutString);
+		return OutString;
 	}
 
-	template<typename CharType> TRNT_FORCE_INLINE void ToString(TBool Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TRNT_FORCE_INLINE TStringBase<CharType> ToString(TBool Value)
 	{
-		OutString.Clear();
-		OutString.Append(Value ? "true" : "false");
+		if constexpr (TAreTheSameType<CharType, TChar>::Value)
+		{
+			return Value ? TString{ 4, "true" } : TString{ 5, "false" };
+		}
+		else if constexpr (TAreTheSameType<CharType, TWChar>::Value)
+		{
+			return Value ? TString{ 4, L"true" } : TString{ 5, L"false" };
+		}
 	}
 
-	template<typename CharType> TRNT_FORCE_INLINE void ToString(const CharType* Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TRNT_FORCE_INLINE TStringBase<CharType> ToString(const CharType* Value)
 	{
-		OutString.Clear();
-		OutString.Append(Value);
+		return TStringBase<CharType>{ Value };
 	}
 
-	template<typename CharType> TRNT_FORCE_INLINE void ToString(const TStringBase<CharType>& Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TRNT_FORCE_INLINE TStringBase<CharType> ToString(const TStringBase<CharType>& Value)
 	{
-		OutString.Clear();
-		OutString.Append(Value);
+		return TStringBase<CharType>{ Value };
 	}
 
-	template<typename CharType> void ToString(TVersion Value, TStringBase<CharType>& OutString)
+	template<typename CharType> TStringBase<CharType> ToString(TVersion Value)
 	{
 		static_assert(TAreTheSameType<TUInt8, decltype(Value.Major)>::Value);
 		static_assert(TAreTheSameType<TUInt8, decltype(Value.Minor)>::Value);
 		static_assert(TAreTheSameType<TUInt8, decltype(Value.Patch)>::Value);
 
-		static TRNT_CONSTEXPR TUInt32 MaxBufferSizeForUInt8 = 3;
+		static TRNT_CONSTEXPR TUInt32 MaxBufferSizeForUInt8 = 3; // [0..255]
+		// TVersion => "XXX.XXX.XXX"
+		static TRNT_CONSTEXPR TUInt32 MaxBufferSizeForTVersion = MaxBufferSizeForUInt8 * 3 + 2;
+		
+		TInt64 TempLength, CurrentLength = 0;
+		CharType TempBuffer[MaxBufferSizeForUInt8];
+		CharType Result[MaxBufferSizeForTVersion];
+		const CharType* Ptr;
 
-		OutString.Clear();
+#define TRNT_INTEGER_TO_STRING_INTERNAL(Component)\
+		Ptr = IntegerToString<TUInt8>(Component, TempBuffer + MaxBufferSizeForUInt8, TempLength);\
+		memcpy(Result + CurrentLength, Ptr, TempLength * sizeof(CharType));\
+		CurrentLength += TempLength;
 
-		CharType DotChr;
-
-		if constexpr (TAreTheSameType<CharType, TChar>::Value)
-		{
-			DotChr = '.';
-		}
-		else if constexpr (TAreTheSameType<CharType, TWChar>::Value)
-		{
-			DotChr = L'.';
-		}
-
-		CharType Buffer[MaxBufferSizeForUInt8];
-
-		TInt64 Length;
-		const CharType* Ptr = IntegerToString<TUInt8>(Value.Major, Buffer + MaxBufferSizeForUInt8, Length);
-		OutString.Append(Ptr, Length);
-		OutString += DotChr; 
-
-		Ptr = IntegerToString<TUInt8>(Value.Minor, Buffer + MaxBufferSizeForUInt8, Length);
-		OutString.Append(Ptr, Length);
-		OutString += DotChr; 
-
-		Ptr = IntegerToString<TUInt8>(Value.Patch, Buffer + MaxBufferSizeForUInt8, Length);
-		OutString.Append(Ptr, Length);
+		TRNT_INTEGER_TO_STRING_INTERNAL(Value.Major);
+		Result[CurrentLength++] = TNsPrivate::TStringConverterDetails<CharType>::DotChar;
+		TRNT_INTEGER_TO_STRING_INTERNAL(Value.Minor);
+		Result[CurrentLength++] = TNsPrivate::TStringConverterDetails<CharType>::DotChar;
+		TRNT_INTEGER_TO_STRING_INTERNAL(Value.Patch);
+#undef TRNT_INTEGER_TO_STRING_INTERNAL
+		return TStringBase<CharType>{ CurrentLength, Result };
 	}
 
 	template<typename CharType> TRNT_FORCE_INLINE void ConvertTo(TInt8& Output, const TStringBase<CharType>& String)

@@ -4,14 +4,14 @@
 
 #include "IncludeVulkanHeader.h"
 
-#include "VulkanDevice.h"
 #include "VulkanCommandPool.h"
+#include "VulkanDevice.h"
 
 class TVulkanBuffer;
 class TVulkanRenderPass;
 class TVulkanPipelineBase;
 
-class TRNT_API TVulkanCommandBuffer 
+class TRNT_API TVulkanCommandBuffer
 {
 public:
 	enum class TRenderPassState : unsigned char

@@ -33,39 +33,39 @@ public:
 
 	~TStaticArray() = default;
 
-	constexpr TRNT_FORCE_INLINE PointerType GetData() noexcept
+	TRNT_FORCE_INLINE PointerType GetData() noexcept
 	{
 		return Elements;
 	}
 
-	constexpr TRNT_FORCE_INLINE ConstPointerType GetData() const noexcept
+	TRNT_FORCE_INLINE ConstPointerType GetData() const noexcept
 	{
 		return Elements;
 	}
 
-	constexpr TRNT_FORCE_INLINE ReferenceType operator[](SizeType Index)
+	TRNT_FORCE_INLINE ReferenceType operator[](SizeType Index)
 	{
 		TRNT_ASSERT(Index < Count);
 		return Elements[Index];
 	}
 
-	constexpr TRNT_FORCE_INLINE ConstReferenceType operator[](SizeType Index) const
+	TRNT_FORCE_INLINE ConstReferenceType operator[](SizeType Index) const
 	{
 		TRNT_ASSERT(Index < Count);
 		return Elements[Index];
 	}
 
-	constexpr TRNT_FORCE_INLINE TBool IsEmpty() const noexcept { return Count == 0; }
+	TRNT_FORCE_INLINE TBool IsEmpty() const noexcept { return Count == 0; }
 
-	constexpr TRNT_FORCE_INLINE SizeType GetElementCount() const noexcept { return Count; }
+	TRNT_FORCE_INLINE SizeType GetElementCount() const noexcept { return Count; }
 
-	constexpr IteratorType begin() { return IteratorType(Elements); }
-	constexpr ConstIteratorType begin() const { return ConstIteratorType(Elements); }
-	constexpr ConstIteratorType cbegin() const { return ConstIteratorType(Elements); }
+	IteratorType begin() { return IteratorType(Elements); }
+	ConstIteratorType begin() const { return ConstIteratorType(Elements); }
+	ConstIteratorType cbegin() const { return ConstIteratorType(Elements); }
 
-	constexpr IteratorType end() { return IteratorType(Elements + Count); }
-	constexpr ConstIteratorType end() const { return ConstIteratorType(Elements + Count); }
-	constexpr ConstIteratorType cend() const { return ConstIteratorType(Elements + Count); }
+	IteratorType end() { return IteratorType(Elements + Count); }
+	ConstIteratorType end() const { return ConstIteratorType(Elements + Count); }
+	ConstIteratorType cend() const { return ConstIteratorType(Elements + Count); }
 
 	TBool operator==(const TStaticArray& B) const
 	{

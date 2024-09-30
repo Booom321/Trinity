@@ -18,8 +18,6 @@
 
 #include "Trinity/Core/Containers/DynamicArray.h"
 
-#include <fmt/format.h>
-
 enum class TStringSearchCase : TInt8
 {
 	EIgnoreCase,
@@ -577,15 +575,15 @@ public:
 		return FindLast(CStringHelper::Strlen(Substr), Substr, StartPos, SearchCase);
 	}
 
-	TRNT_NODISCARD SizeType FindChar(ElementType Chr) const
+	TRNT_NODISCARD SizeType FindChar(ElementType Chr, SizeType StartPos = Npos) const
 	{
-		ConstPointerType Found = CStringHelper::Strchr(Data, Chr);
+		ConstPointerType Found = CStringHelper::Strchr(Data + (StartPos == Npos ? 0 : StartPos), Chr);
 		return Found ? static_cast<SizeType>(Found - Data) : Npos;
 	}
 
-	TRNT_NODISCARD SizeType FindLastChar(ElementType Chr) const
+	TRNT_NODISCARD SizeType FindLastChar(ElementType Chr, SizeType StartPos = Npos) const
 	{
-		ConstPointerType Found = CStringHelper::Strrchr(Data, Chr);
+		ConstPointerType Found = CStringHelper::Strrchr(Data + (StartPos == Npos ? 0 : StartPos), Chr);
 		return Found ? static_cast<SizeType>(Found - Data) : Npos;
 	}
 
@@ -1185,19 +1183,6 @@ public:
 		TStringBase Result(Move(PathA));
 		Result.AppendPath(PathB, CStringHelper::Strlen(PathB));
 		return Result;
-	}
-
-public:
-	template<typename... FormatArgs>
-	static TRNT_NODISCARD TStringBase Format(ConstPointerType FormatString, FormatArgs&&... Args)
-	{
-		using FmtBufferedContext	= fmt::buffered_context<ElementType>;
-		using FmtFormatArgs			= fmt::basic_format_args<FmtBufferedContext>;
-		using FmtMemoryBuffer		= fmt::basic_memory_buffer<ElementType>;
-
-		FmtMemoryBuffer MemoryBuffer = FmtMemoryBuffer();
-		fmt::detail::vformat_to<ElementType>(MemoryBuffer, FormatString, fmt::make_format_args<FmtBufferedContext>(Args...));
-		return TStringBase(MemoryBuffer.size(), MemoryBuffer.data());
 	}
 
 private:

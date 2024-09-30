@@ -3,9 +3,9 @@
 #include <fmt/chrono.h>
 #include <fmt/xchar.h>
 
-#include "Trinity/Core/Threading/Mutex.h"
 #include "Trinity/Core/Containers/LinkedList.h"
 #include "Trinity/Core/String/String.h"
+#include "Trinity/Core/Threading/Mutex.h"
 #include "Trinity/Core/TypeTraits/TypeRelationships.h"
 
 #include "LogLevel.h"
@@ -14,9 +14,9 @@ template<const TChar* LogNameCharArray, const TWChar* LogNameWCharArray, TLogLev
 class TCompileTimeLogInfo
 {
 public:
-	static TRNT_CONSTEXPR const TChar*  LogNameAsCString	= LogNameCharArray;
-	static TRNT_CONSTEXPR const TWChar* LogNameAsWCString	= LogNameWCharArray;
-	static TRNT_CONSTEXPR TLogLevel     LogLevel			= Level;
+	static TRNT_CONSTEXPR const TChar* LogNameAsCString = LogNameCharArray;
+	static TRNT_CONSTEXPR const TWChar* LogNameAsWCString = LogNameWCharArray;
+	static TRNT_CONSTEXPR TLogLevel     LogLevel = Level;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -206,7 +206,7 @@ private:
 		}
 
 		if constexpr (LogLevel == TLogLevel::EFatal)
-		{	
+		{
 			CloseLogFile();
 			::abort();
 		}
@@ -218,7 +218,7 @@ public:
 	{
 		static_assert(!TIsClass<Function>::Value, "Lambda functions are not allowed!");
 		static_assert(TAreTheSameType<Function, TLogMessageHandlerCallback>::Value);
-		
+
 		LogMutex.Lock();
 		if (!MessageHandlers.Contains(Callback))
 		{
@@ -226,7 +226,7 @@ public:
 		}
 		LogMutex.Unlock();
 	}
-	
+
 	template<typename Function>
 	static void RemoveMessageHandlerCallback(Function Callback)
 	{
@@ -241,7 +241,7 @@ public:
 		}
 		LogMutex.Unlock();
 	}
-	
+
 	static FILE* OpenLogFile(const TChar* Filename, TBool EnableToAppend = false);
 
 	static void CloseLogFile();
@@ -256,7 +256,7 @@ public:
 	static void DefaultStdoutMessageHandler(TLogLevel LogLevel, TLogCharType CharType, void* FormattedMessage, TSize_T FormattedMsgLen);
 
 	static void DefaultFileMessageHandler(TLogLevel LogLevel, TLogCharType CharType, void* FormattedMessage, TSize_T FormattedMsgLen);
-	
+
 	static TRNT_FORCE_INLINE FILE* GetOutputLogFile()
 	{
 		return OutputLogFile;

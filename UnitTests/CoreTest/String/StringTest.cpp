@@ -373,12 +373,6 @@ TRNT_IMPL_TEST_CASE(Strings, TString)
 		TRNT_TEST_EXPECT_TRUE(Check(s1, "abcdef", 6));
 	}
 
-	// TString::Format
-	{
-		TString Formatted = TString::Format("{} {} {} {}", "aaaa", 1, 1.4f, true);
-		TRNT_TEST_EXPECT_TRUE(Check(Formatted, "aaaa 1 1.4 true", 15));
-	}
-
 	{
 		TString Path = "";
 		Path /= "dir1";

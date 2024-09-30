@@ -31,12 +31,9 @@ public:
 	{
 		static_assert(TIsStringable<T, TChar>::Value, "TStringConverter<TChar>::ToString does not support this type `T`");
 
-		TString ValueAsString{};
-		TNsStringConversion::ToString<TChar>(Value, &ValueAsString);
-
 		TString CmdLineArgument(OptionName);
 		CmdLineArgument += "=";
-		CmdLineArgument += ValueAsString;
+		CmdLineArgument += TNsStringConversion::ToString<TChar>(Value);
 
 		CommandLineArgs.EmplaceBack(CmdLineArgument);
 		++ArgCount;

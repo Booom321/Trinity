@@ -10,13 +10,13 @@
 #include "VulkanBuffer.h"
 #include "VulkanUtils.h"
 
-TVulkanCommandBuffer::TVulkanCommandBuffer(TVulkanDevice* VulkanDevice, TVulkanCommandPool* VulkanCmdPool, TBool Secondary)	
-	:	CommandBuffer(VK_NULL_HANDLE), 
-		VulkanDevice(VulkanDevice), 
-		VulkanCmdPool(VulkanCmdPool),
-		Secondary(Secondary),
-		RenderPassState(TRenderPassState::EIdle),
-		CommandBufferState(TState::EIdle)
+TVulkanCommandBuffer::TVulkanCommandBuffer(TVulkanDevice* VulkanDevice, TVulkanCommandPool* VulkanCmdPool, TBool Secondary)
+	: CommandBuffer(VK_NULL_HANDLE),
+	VulkanDevice(VulkanDevice),
+	VulkanCmdPool(VulkanCmdPool),
+	Secondary(Secondary),
+	RenderPassState(TRenderPassState::EIdle),
+	CommandBufferState(TState::EIdle)
 {
 }
 
@@ -129,7 +129,7 @@ void TVulkanCommandBuffer::BeginRenderPass(TVulkanRenderPass* VulkanRenderPass, 
 	TStaticArray<VkClearValue, 2> ClearValues{};
 	ClearValues[0].color = { 0.01f, 0.01f, 0.01f, 1.0f };
 	ClearValues[1].depthStencil = { 1.0f, 0 };
-	
+
 
 	VkRenderPassBeginInfo RenderPassBeginInfo;
 	TMemory::Memset(&RenderPassBeginInfo, 0, sizeof(RenderPassBeginInfo));
@@ -195,12 +195,12 @@ void TVulkanCommandBuffer::SubmitCommandBuffer(TVulkanQueue Queue, VkPipelineSta
 	SubmitInfo.waitSemaphoreCount = (WaitSemaphoreIsNull) ? 0 : 1;
 	SubmitInfo.pWaitSemaphores = (WaitSemaphoreIsNull) ? nullptr : &WaitSemaphore;
 	SubmitInfo.signalSemaphoreCount = (SignalSemaphoreIsNull) ? 0 : 1;
-	SubmitInfo.pSignalSemaphores = (SignalSemaphoreIsNull) ? nullptr:  & SignalSemaphore;
+	SubmitInfo.pSignalSemaphores = (SignalSemaphoreIsNull) ? nullptr : &SignalSemaphore;
 
 	SubmitInfo.pWaitDstStageMask = &PipelineStage;
 	SubmitInfo.commandBufferCount = 1;
 	SubmitInfo.pCommandBuffers = &CommandBuffer;
-	
+
 	if (Fence != VK_NULL_HANDLE)
 	{
 		TRNT_CHECK_VULKAN_RESULT(TVulkanRHI::VulkanPFNFunctions.WaitForFences(VulkanDevice->GetDevice(), 1, &Fence, VK_TRUE, UINT64_MAX));

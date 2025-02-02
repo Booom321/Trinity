@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Trinity/Core/Defines.h"
 #include "DataTypes.h"
+#include "Trinity/Core/Defines.h"
 
 class TTrueType
 {

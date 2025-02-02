@@ -19,7 +19,8 @@ public:
 };
 
 template<typename... Traits>
-class TConjunction : public TTrueType {};
+class TConjunction : public TTrueType
+{};
 
 template<typename First, typename... Rest>
 class TConjunction<First, Rest...> : public TPrivateConjunction<First::Value, First, Rest...>::Type

@@ -1,43 +1,66 @@
 #pragma once
 
-#include <ctype.h>
-#include <wctype.h>
-
-#include "Trinity/Core/Types/DataTypes.h"
 #include "Trinity/Core/Defines.h"
-
 #include "Trinity/Core/TypeTraits/IsCharTypeSupported.h"
-#include "Trinity/Core/TypeTraits/TypeRelationships.h"
 #include "Trinity/Core/TypeTraits/Logical.h"
 #include "Trinity/Core/TypeTraits/RemoveCV.h"
+#include "Trinity/Core/TypeTraits/TypeRelationships.h"
+#include "Trinity/Core/Types/DataTypes.h"
+
+#include <ctype.h>
+#include <wctype.h>
 
 template<typename T>
 class TCharUtils
 {
 public:
-	using CharType = typename TRemoveCVRef<T>::Type;
-
 	static_assert(TIsCharTypeSupported<T>::Value, "TCharUtils<T> is not implemented for this char type.");
+
+	using CharType = typename TRemoveCVRef<T>::Type;
 
 	static constexpr TBool IsCharType = TAreTheSameType<CharType, TChar>::Value;
 	static constexpr TBool IsWCharType = TAreTheSameType<CharType, TWChar>::Value;
 
-private:
-	template <TInt32 NumBytes>
-	class TUnsignedIntTypeChooser {};
+public:
+	template<TInt32 NumBytes>
+	class TUnsignedIntTypeChooser
+	{};
 
-	template <> class TUnsignedIntTypeChooser<1> { public: using Type = TUInt8; };
-	template <> class TUnsignedIntTypeChooser<2> { public: using Type = TUInt16; };
-	template <> class TUnsignedIntTypeChooser<4> { public: using Type = TUInt32; };
-	template <> class TUnsignedIntTypeChooser<8> { public: using Type = TUInt64; };
+	template<>
+	class TUnsignedIntTypeChooser<1>
+	{
+	public:
+		using Type = TUInt8;
+	};
 
-	static constexpr TRNT_FORCE_INLINE TUInt32 ToUnsigned(CharType Ch) noexcept
+	template<>
+	class TUnsignedIntTypeChooser<2>
+	{
+	public:
+		using Type = TUInt16;
+	};
+
+	template<>
+	class TUnsignedIntTypeChooser<4>
+	{
+	public:
+		using Type = TUInt32;
+	};
+
+	template<>
+	class TUnsignedIntTypeChooser<8>
+	{
+	public:
+		using Type = TUInt64;
+	};
+
+	static TRNT_CONSTEXPR TRNT_FORCE_INLINE TUInt32 ToUnsigned(CharType Ch) noexcept
 	{
 		return static_cast<typename TUnsignedIntTypeChooser<sizeof(CharType)>::Type>(Ch);
 	}
 
 public:
-	static TRNT_FORCE_INLINE CharType ToUpperCase(CharType Ch)
+	static TRNT_CONSTEXPR TRNT_FORCE_INLINE CharType ToUpperCase(CharType Ch)
 	{
 		if constexpr (IsCharType)
 		{
@@ -75,7 +98,7 @@ public:
 
 	static TRNT_FORCE_INLINE bool IsLower(CharType Ch)
 	{
-		if constexpr (IsCharType) 
+		if constexpr (IsCharType)
 		{
 			return ::islower(Ch) != 0;
 		}
@@ -87,7 +110,7 @@ public:
 
 	static TRNT_FORCE_INLINE bool IsAlpha(CharType Ch)
 	{
-		if constexpr (IsCharType) 
+		if constexpr (IsCharType)
 		{
 			return ::isalpha(Ch) != 0;
 		}
@@ -99,7 +122,7 @@ public:
 
 	static TRNT_FORCE_INLINE bool IsGraph(CharType Ch)
 	{
-		if constexpr (IsCharType) 
+		if constexpr (IsCharType)
 		{
 			return ::isgraph(Ch) != 0;
 		}
@@ -111,7 +134,7 @@ public:
 
 	static TRNT_FORCE_INLINE bool IsPrint(CharType Ch)
 	{
-		if constexpr (IsCharType) 
+		if constexpr (IsCharType)
 		{
 			return ::isprint(Ch) != 0;
 		}
@@ -123,7 +146,7 @@ public:
 
 	static TRNT_FORCE_INLINE bool IsPunct(CharType Ch)
 	{
-		if constexpr (IsCharType) 
+		if constexpr (IsCharType)
 		{
 			return ::ispunct(Ch) != 0;
 		}

@@ -1,17 +1,32 @@
 #pragma once
 
 #ifdef PI
-#	undef PI
+	#undef PI
 #endif
 
-#define TRNT_PI				3.1415926535897932f
-#define TRNT_TWO_PI			6.28318530717f
-#define TRNT_INV_PI			0.31830988618f
-#define TRNT_PI_SQUARED		9.86960440109f
+#include "Trinity/Core/Defines.h"
+#include "Trinity/Core/Types/DataTypes.h"
 
-#define TRNT_DOUBLE_PI				3.1415926535897932384626433832795028841971693993751
-#define TRNT_DOUBLE_TWO_PI			6.28318530717958647692
-#define TRNT_DOUBLE_INV_PI			0.31830988618379067154
-#define TRNT_DOUBLE_PI_SQUARED		9.86960440108935861883
+namespace TNsMath
+{
+	template<typename T>
+	static TRNT_CONSTEXPR T Pi = static_cast<T>(3.1415926535897932384626433832795028841971693993751);
 
-#define TRNT_GOLDEN_RATIO	1.6180339887498948482045868343656381177f
+	template<typename T>
+	static TRNT_CONSTEXPR T TwoPi = static_cast<T>(T(2) * Pi<T>);
+
+	template<typename T>
+	static TRNT_CONSTEXPR T InvPi = static_cast<T>(T(1) / Pi<T>);
+
+	template<typename T>
+	static TRNT_CONSTEXPR T PiSquared = static_cast<T>(Pi<T> * Pi<T>);
+
+	template<typename T>
+	static TRNT_CONSTEXPR T E = static_cast<T>(2.7182818284590452353602874713527);
+
+	template<typename T>
+	static TRNT_CONSTEXPR T SmallTolerance = static_cast<T>(1E-16f);
+
+	template<TInt64 Num, typename T = TFloat>
+	static TRNT_CONSTEXPR T Invert = static_cast<T>((T)1 / (T)Num);
+}; // namespace TNsMath

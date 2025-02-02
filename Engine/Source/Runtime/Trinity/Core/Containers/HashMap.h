@@ -5,8 +5,8 @@
 #include "Trinity/Core/Types/DataTypes.h"
 #include "Trinity/Core/Types/Pair.h"
 
-#pragma warning( push )
-#pragma warning( disable: 6011 ) 
+#pragma warning(push)
+#pragma warning(disable : 6011)
 
 template<typename KeyType>
 class TDefaultKeyHasher
@@ -96,10 +96,18 @@ private:
 	class TNeedToConvertPointerToConstPointer;
 
 	template<typename T>
-	class TNeedToConvertPointerToConstPointer<T, true> { public: using Type = const T*; };
+	class TNeedToConvertPointerToConstPointer<T, true>
+	{
+	public:
+		using Type = const T*;
+	};
 
 	template<typename T>
-	class TNeedToConvertPointerToConstPointer<T, false> { public: using Type = T*; };
+	class TNeedToConvertPointerToConstPointer<T, false>
+	{
+	public:
+		using Type = T*;
+	};
 
 private:
 	template<TBool IsConst>
@@ -107,7 +115,7 @@ private:
 	{
 	public:
 		template<typename HashMapIteratorType>
-		friend static void AdvanceIteratorToValidBucket(const HashMapIteratorType* Iterator);
+		static friend void AdvanceIteratorToValidBucket(const HashMapIteratorType* Iterator);
 
 		using HashMapPointerType = typename TNeedToConvertPointerToConstPointer<THashMap, IsConst>::Type;
 		using BucketPointerType = typename TNeedToConvertPointerToConstPointer<ElementListType, IsConst>::Type;
@@ -129,8 +137,15 @@ private:
 		}
 
 	public:
-		TRNT_FORCE_INLINE const ElementType& operator*() const { return CurrentBucketElement->Value; }
-		TRNT_FORCE_INLINE const ElementType* operator->() const { return &CurrentBucketElement->Value; }
+		TRNT_FORCE_INLINE const ElementType& operator*() const
+		{
+			return CurrentBucketElement->Value;
+		}
+
+		TRNT_FORCE_INLINE const ElementType* operator->() const
+		{
+			return &CurrentBucketElement->Value;
+		}
 
 	public:
 		TRNT_FORCE_INLINE TBool operator==(const THashMapIteratorBase& It) const
@@ -179,8 +194,8 @@ private:
 
 	public:
 		HashMapPointerType CurrentMap;
-		BucketPointerType  CurrentBucket;
-		BucketElementType  CurrentBucketElement;
+		BucketPointerType CurrentBucket;
+		BucketElementType CurrentBucketElement;
 	};
 
 public:
@@ -189,17 +204,27 @@ public:
 	public:
 		using Super = THashMapIteratorBase<false>;
 
-		TRNT_FORCE_INLINE TIterator(THashMap* MapPtr) : Super(MapPtr, MapPtr->Buckets, MapPtr->Buckets->GetHead())
+		TRNT_FORCE_INLINE TIterator(THashMap* MapPtr)
+			: Super(MapPtr, MapPtr->Buckets, MapPtr->Buckets->GetHead())
 		{}
 
-		TRNT_FORCE_INLINE TIterator(THashMap* MapPtr, ElementListType* BucketPtr, typename ElementListType::NodeType* BucketElementPtr) : Super(MapPtr, BucketPtr, BucketElementPtr)
+		TRNT_FORCE_INLINE TIterator(THashMap* MapPtr, ElementListType* BucketPtr, typename ElementListType::NodeType* BucketElementPtr)
+			: Super(MapPtr, BucketPtr, BucketElementPtr)
 		{}
 
-		TRNT_FORCE_INLINE TIterator(const TIterator& It) : Super(It.CurrentMap, It.CurrentBucket, It.CurrentBucketElement)
+		TRNT_FORCE_INLINE TIterator(const TIterator& It)
+			: Super(It.CurrentMap, It.CurrentBucket, It.CurrentBucketElement)
 		{}
 
-		TRNT_FORCE_INLINE ElementType& operator*() { return this->CurrentBucketElement->Value; }
-		TRNT_FORCE_INLINE ElementType* operator->() { return &this->CurrentBucketElement->Value; }
+		TRNT_FORCE_INLINE ElementType& operator*()
+		{
+			return this->CurrentBucketElement->Value;
+		}
+
+		TRNT_FORCE_INLINE ElementType* operator->()
+		{
+			return &this->CurrentBucketElement->Value;
+		}
 	};
 
 	class TConstIterator : public THashMapIteratorBase<true>
@@ -207,21 +232,24 @@ public:
 	public:
 		using Super = THashMapIteratorBase<true>;
 
-		TRNT_FORCE_INLINE TConstIterator(const THashMap* MapPtr) : Super(MapPtr, MapPtr->Buckets, MapPtr->Buckets->GetHead())
+		TRNT_FORCE_INLINE TConstIterator(const THashMap* MapPtr)
+			: Super(MapPtr, MapPtr->Buckets, MapPtr->Buckets->GetHead())
 		{}
 
-		TRNT_FORCE_INLINE TConstIterator(const THashMap* MapPtr, const ElementListType* BucketPtr, const typename ElementListType::NodeType* BucketElementPtr) : Super(MapPtr, BucketPtr, BucketElementPtr)
+		TRNT_FORCE_INLINE TConstIterator(const THashMap* MapPtr, const ElementListType* BucketPtr, const typename ElementListType::NodeType* BucketElementPtr)
+			: Super(MapPtr, BucketPtr, BucketElementPtr)
 		{}
 
-		TRNT_FORCE_INLINE TConstIterator(const TIterator& It) : Super(It.CurrentMap, It.CurrentBucket, It.CurrentBucketElement)
+		TRNT_FORCE_INLINE TConstIterator(const TIterator& It)
+			: Super(It.CurrentMap, It.CurrentBucket, It.CurrentBucketElement)
 		{}
 	};
 
 public:
 	THashMap()
 		: ElementCount(0),
-		BucketCount(InitialBucketCount),
-		Buckets(static_cast<ElementListType*>(malloc(InitialBucketCount * sizeof(ElementListType))))
+		  BucketCount(InitialBucketCount),
+		  Buckets(static_cast<ElementListType*>(malloc(InitialBucketCount * sizeof(ElementListType))))
 	{
 		for (SizeType Index = 0; Index < InitialBucketCount; ++Index)
 		{
@@ -231,8 +259,8 @@ public:
 
 	THashMap(const THashMap& Other)
 		: ElementCount(Other.ElementCount),
-		BucketCount(Other.BucketCount),
-		Buckets(static_cast<ElementListType*>(malloc(Other.BucketCount * sizeof(ElementListType))))
+		  BucketCount(Other.BucketCount),
+		  Buckets(static_cast<ElementListType*>(malloc(Other.BucketCount * sizeof(ElementListType))))
 	{
 		for (SizeType Index = 0; Index < BucketCount; ++Index)
 		{
@@ -242,8 +270,8 @@ public:
 
 	THashMap(THashMap&& Other) noexcept
 		: ElementCount(Other.ElementCount),
-		BucketCount(Other.BucketCount),
-		Buckets(Other.Buckets)
+		  BucketCount(Other.BucketCount),
+		  Buckets(Other.Buckets)
 	{
 		Other.ElementCount = 0;
 		Other.BucketCount = 0;
@@ -252,8 +280,8 @@ public:
 
 	explicit THashMap(const SizeType InputBucketCount)
 		: ElementCount(0),
-		BucketCount(InputBucketCount <= 0 ? InitialBucketCount : InputBucketCount),
-		Buckets(static_cast<ElementListType*>(malloc(BucketCount * sizeof(ElementListType))))
+		  BucketCount(InputBucketCount <= 0 ? InitialBucketCount : InputBucketCount),
+		  Buckets(static_cast<ElementListType*>(malloc(BucketCount * sizeof(ElementListType))))
 	{
 		for (SizeType Index = 0; Index < BucketCount; ++Index)
 		{
@@ -263,8 +291,8 @@ public:
 
 	THashMap(std::initializer_list<PairType> Pairs)
 		: ElementCount(0),
-		BucketCount(InitialBucketCount),
-		Buckets(static_cast<ElementListType*>(malloc(InitialBucketCount * sizeof(ElementListType))))
+		  BucketCount(InitialBucketCount),
+		  Buckets(static_cast<ElementListType*>(malloc(InitialBucketCount * sizeof(ElementListType))))
 	{
 		for (SizeType Index = 0; Index < BucketCount; ++Index)
 		{
@@ -623,7 +651,7 @@ public:
 		return true;
 	}
 
-	TRNT_FORCE_INLINE TBool operator!=(const THashMap& Other) const 
+	TRNT_FORCE_INLINE TBool operator!=(const THashMap& Other) const
 	{
 		return !operator==(Other);
 	}
@@ -649,7 +677,7 @@ public:
 			new (Temp + BucketIndex) ElementListType();
 		}
 
-		typename ElementListType::NodeType* Node; 
+		typename ElementListType::NodeType* Node;
 		for (SizeType BucketIndex = 0; BucketIndex < OldBucketCount; ++BucketIndex)
 		{
 			Node = Buckets[BucketIndex].GetHead();
@@ -657,8 +685,9 @@ public:
 			while (Node != nullptr)
 			{
 				Temp[Node->Value.HashCode % BucketCount].InsertAtTail(new typename ElementListType::NodeType(
-					Node->Value.HashCode, Move(Node->Value.Key), Move(Node->Value.Value)
-				));
+					Node->Value.HashCode,
+					Move(Node->Value.Key),
+					Move(Node->Value.Value)));
 			}
 
 			Buckets[BucketIndex].~ElementListType();
@@ -689,8 +718,9 @@ private:
 			while (Node != nullptr)
 			{
 				Temp[Node->Value.HashCode % BucketCount].InsertAtTail(new typename ElementListType::NodeType(
-					Node->Value.HashCode, Move(Node->Value.Key), Move(Node->Value.Value)
-				));
+					Node->Value.HashCode,
+					Move(Node->Value.Key),
+					Move(Node->Value.Value)));
 
 				Node = Node->Next;
 			}
@@ -722,7 +752,7 @@ private:
 			}
 
 			FoundNode->Value.Value = Move(Value);
-		} 
+		}
 		else if constexpr (TAreTheSameType<KeyType&&, K>::Value)
 		{
 			if (FoundNode == nullptr) // Key not found
@@ -738,7 +768,7 @@ private:
 	}
 
 public:
-	template<typename ... ArgsType>
+	template<typename... ArgsType>
 	typename ElementListType::NodeType* Emplace(ArgsType&&... Args)
 	{
 		if ((static_cast<TFloat>(ElementCount + 1) / static_cast<TFloat>(BucketCount)) > MaxLoadFactor)
@@ -760,7 +790,7 @@ public:
 		return nullptr;
 	}
 
-	template<typename ... ArgsType>
+	template<typename... ArgsType>
 	typename ElementListType::NodeType* EmplaceByHash(HashCodeType HashCode, ArgsType&&... Args)
 	{
 		if ((static_cast<TFloat>(ElementCount + 1) / static_cast<TFloat>(BucketCount)) > MaxLoadFactor)
@@ -780,22 +810,65 @@ public:
 	}
 
 public:
-	TRNT_FORCE_INLINE typename ElementListType::NodeType* Insert(const KeyType& Key, const ValueType& Value) { return EmplaceByHash(KeyHasherType::GetHashCode(Key), Key, Value); }
-	TRNT_FORCE_INLINE typename ElementListType::NodeType* Insert(KeyType&& Key, const ValueType& Value) { return EmplaceByHash(KeyHasherType::GetHashCode(Key), Move(Key), Value); }
-	TRNT_FORCE_INLINE typename ElementListType::NodeType* Insert(const KeyType& Key, ValueType&& Value) { return EmplaceByHash(KeyHasherType::GetHashCode(Key), Key, Move(Value)); }
-	TRNT_FORCE_INLINE typename ElementListType::NodeType* Insert(KeyType&& Key, ValueType&& Value) { return EmplaceByHash(KeyHasherType::GetHashCode(Key), Move(Key), Move(Value)); }
+	TRNT_FORCE_INLINE typename ElementListType::NodeType* Insert(const KeyType& Key, const ValueType& Value)
+	{
+		return EmplaceByHash(KeyHasherType::GetHashCode(Key), Key, Value);
+	}
 
-	TRNT_FORCE_INLINE typename ElementListType::NodeType* InsertByHash(HashCodeType HashCode, const KeyType& Key, const ValueType& Value) { return EmplaceByHash(HashCode, Key, Value); }
-	TRNT_FORCE_INLINE typename ElementListType::NodeType* InsertByHash(HashCodeType HashCode, KeyType&& Key, const ValueType& Value) { return EmplaceByHash(HashCode, Move(Key), Value); }
-	TRNT_FORCE_INLINE typename ElementListType::NodeType* InsertByHash(HashCodeType HashCode, const KeyType& Key, ValueType&& Value) { return EmplaceByHash(HashCode, Key, Move(Value)); }
-	TRNT_FORCE_INLINE typename ElementListType::NodeType* InsertByHash(HashCodeType HashCode, KeyType&& Key, ValueType&& Value) { return EmplaceByHash(HashCode, Move(Key), Move(Value)); }
+	TRNT_FORCE_INLINE typename ElementListType::NodeType* Insert(KeyType&& Key, const ValueType& Value)
+	{
+		return EmplaceByHash(KeyHasherType::GetHashCode(Key), Move(Key), Value);
+	}
 
-	TRNT_FORCE_INLINE typename ElementListType::NodeType* Insert(const PairType& Pair) { return EmplaceByHash(KeyHasherType::GetHashCode(Pair.First), Pair.First, Pair.Second); }
-	TRNT_FORCE_INLINE typename ElementListType::NodeType* Insert(PairType&& Pair) { return EmplaceByHash(KeyHasherType::GetHashCode(Pair.First), Move(Pair.First), Move(Pair.Second)); }
+	TRNT_FORCE_INLINE typename ElementListType::NodeType* Insert(const KeyType& Key, ValueType&& Value)
+	{
+		return EmplaceByHash(KeyHasherType::GetHashCode(Key), Key, Move(Value));
+	}
 
+	TRNT_FORCE_INLINE typename ElementListType::NodeType* Insert(KeyType&& Key, ValueType&& Value)
+	{
+		return EmplaceByHash(KeyHasherType::GetHashCode(Key), Move(Key), Move(Value));
+	}
 
-	TRNT_FORCE_INLINE typename ElementListType::NodeType* InsertOrAssign(const KeyType& Key, ValueType&& Value) { return InsertOrAssignImpl<const KeyType&>(Key, Move(Value)); }
-	TRNT_FORCE_INLINE typename ElementListType::NodeType* InsertOrAssign(KeyType&& Key, ValueType&& Value) { return InsertOrAssignImpl<KeyType&&>(Move(Key), Move(Value)); }
+	TRNT_FORCE_INLINE typename ElementListType::NodeType* InsertByHash(HashCodeType HashCode, const KeyType& Key, const ValueType& Value)
+	{
+		return EmplaceByHash(HashCode, Key, Value);
+	}
+
+	TRNT_FORCE_INLINE typename ElementListType::NodeType* InsertByHash(HashCodeType HashCode, KeyType&& Key, const ValueType& Value)
+	{
+		return EmplaceByHash(HashCode, Move(Key), Value);
+	}
+
+	TRNT_FORCE_INLINE typename ElementListType::NodeType* InsertByHash(HashCodeType HashCode, const KeyType& Key, ValueType&& Value)
+	{
+		return EmplaceByHash(HashCode, Key, Move(Value));
+	}
+
+	TRNT_FORCE_INLINE typename ElementListType::NodeType* InsertByHash(HashCodeType HashCode, KeyType&& Key, ValueType&& Value)
+	{
+		return EmplaceByHash(HashCode, Move(Key), Move(Value));
+	}
+
+	TRNT_FORCE_INLINE typename ElementListType::NodeType* Insert(const PairType& Pair)
+	{
+		return EmplaceByHash(KeyHasherType::GetHashCode(Pair.First), Pair.First, Pair.Second);
+	}
+
+	TRNT_FORCE_INLINE typename ElementListType::NodeType* Insert(PairType&& Pair)
+	{
+		return EmplaceByHash(KeyHasherType::GetHashCode(Pair.First), Move(Pair.First), Move(Pair.Second));
+	}
+
+	TRNT_FORCE_INLINE typename ElementListType::NodeType* InsertOrAssign(const KeyType& Key, ValueType&& Value)
+	{
+		return InsertOrAssignImpl<const KeyType&>(Key, Move(Value));
+	}
+
+	TRNT_FORCE_INLINE typename ElementListType::NodeType* InsertOrAssign(KeyType&& Key, ValueType&& Value)
+	{
+		return InsertOrAssignImpl<KeyType&&>(Move(Key), Move(Value));
+	}
 
 	TRNT_FORCE_INLINE void Insert(std::initializer_list<PairType> Pairs, TBool AssignIfExist = false)
 	{
@@ -835,7 +908,7 @@ public:
 		HashCodeType HashCode = KeyHasherType::GetHashCode(Key);
 
 		typename ElementListType::NodeType* FoundNode = FindByHash(HashCode);
-		
+
 		if (FoundNode == nullptr)
 		{
 			return false;
@@ -985,4 +1058,4 @@ private:
 	ElementListType* Buckets;
 };
 
-#pragma warning( pop )
+#pragma warning(pop)

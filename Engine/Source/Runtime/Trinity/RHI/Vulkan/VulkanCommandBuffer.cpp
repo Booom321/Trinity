@@ -2,21 +2,20 @@
 
 #if defined(TRNT_SUPPORT_VULKAN_RHI)
 
-#include "Trinity/Core/Containers/StaticArray.h"
-
-#include "VulkanCommandBuffer.h"
-#include "VulkanRenderPass.h"
-#include "VulkanPipeline.h"
-#include "VulkanBuffer.h"
-#include "VulkanUtils.h"
+	#include "Trinity/Core/Containers/StaticArray.h"
+	#include "VulkanBuffer.h"
+	#include "VulkanCommandBuffer.h"
+	#include "VulkanPipeline.h"
+	#include "VulkanRenderPass.h"
+	#include "VulkanUtils.h"
 
 TVulkanCommandBuffer::TVulkanCommandBuffer(TVulkanDevice* VulkanDevice, TVulkanCommandPool* VulkanCmdPool, TBool Secondary)
 	: CommandBuffer(VK_NULL_HANDLE),
-	VulkanDevice(VulkanDevice),
-	VulkanCmdPool(VulkanCmdPool),
-	Secondary(Secondary),
-	RenderPassState(TRenderPassState::EIdle),
-	CommandBufferState(TState::EIdle)
+	  VulkanDevice(VulkanDevice),
+	  VulkanCmdPool(VulkanCmdPool),
+	  Secondary(Secondary),
+	  RenderPassState(TRenderPassState::EIdle),
+	  CommandBufferState(TState::EIdle)
 {
 }
 
@@ -61,7 +60,7 @@ void TVulkanCommandBuffer::Free()
 
 void TVulkanCommandBuffer::Begin()
 {
-	TRNT_ASSERT_MESSAGE(!Secondary, "Only primary command buffer can be called by BeginSecondary().");
+	TRNT_ASSERT_MESSAGE("Only primary command buffer can be called by BeginSecondary().", !Secondary);
 
 	if (CommandBufferState == TState::ERequestReset)
 	{
@@ -69,7 +68,7 @@ void TVulkanCommandBuffer::Begin()
 	}
 	else
 	{
-		TRNT_ASSERT_MESSAGE(CommandBufferState != TState::EBegan, "Can not call Begin() while already in progress.");
+		TRNT_ASSERT_MESSAGE("Can not call Begin() while already in progress.", CommandBufferState != TState::EBegan);
 	}
 
 	VkCommandBufferBeginInfo CommandBufferBeginInfo;
@@ -83,7 +82,7 @@ void TVulkanCommandBuffer::Begin()
 
 void TVulkanCommandBuffer::BeginSecondary(TVulkanRenderPass* VulkanRenderPass, VkFramebuffer* Framebuffer)
 {
-	TRNT_ASSERT_MESSAGE(Secondary, "Only secondary command buffer can be called by BeginSecondary().");
+	TRNT_ASSERT_MESSAGE("Only secondary command buffer can be called by BeginSecondary().", Secondary);
 
 	if (CommandBufferState == TState::ERequestReset)
 	{
@@ -91,7 +90,7 @@ void TVulkanCommandBuffer::BeginSecondary(TVulkanRenderPass* VulkanRenderPass, V
 	}
 	else
 	{
-		TRNT_ASSERT_MESSAGE(CommandBufferState != TState::EBegan, "Can not call Begin() while command buffer already in progress.");
+		TRNT_ASSERT_MESSAGE("Can not call Begin() while command buffer already in progress.", CommandBufferState != TState::EBegan);
 	}
 
 	VkCommandBufferInheritanceInfo CmdBufferInheritanceInfo;
@@ -116,7 +115,7 @@ void TVulkanCommandBuffer::BeginSecondary(TVulkanRenderPass* VulkanRenderPass, V
 
 void TVulkanCommandBuffer::End()
 {
-	TRNT_ASSERT_MESSAGE(CommandBufferState != TState::EEnded, "Can not call End() while command buffer is already ended.");
+	TRNT_ASSERT_MESSAGE("Can not call End() while command buffer is already ended.", CommandBufferState != TState::EEnded);
 	TRNT_CHECK_VULKAN_RESULT(TVulkanRHI::VulkanPFNFunctions.EndCommandBuffer(CommandBuffer));
 
 	CommandBufferState = TState::EEnded;
@@ -124,19 +123,18 @@ void TVulkanCommandBuffer::End()
 
 void TVulkanCommandBuffer::BeginRenderPass(TVulkanRenderPass* VulkanRenderPass, VkFramebuffer* Framebuffer, TUInt32 Width, TUInt32 Height)
 {
-	TRNT_ASSERT_MESSAGE(CommandBufferState != TState::EEnded, "Can not call BeginRenderPass() while command buffer is already ended.");
+	TRNT_ASSERT_MESSAGE("Can not call BeginRenderPass() while command buffer is already ended.", CommandBufferState != TState::EEnded);
 
 	TStaticArray<VkClearValue, 2> ClearValues{};
 	ClearValues[0].color = { 0.01f, 0.01f, 0.01f, 1.0f };
 	ClearValues[1].depthStencil = { 1.0f, 0 };
-
 
 	VkRenderPassBeginInfo RenderPassBeginInfo;
 	TMemory::Memset(&RenderPassBeginInfo, 0, sizeof(RenderPassBeginInfo));
 	RenderPassBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	RenderPassBeginInfo.renderPass = VulkanRenderPass->GetVulkanRenderPass();
 	RenderPassBeginInfo.framebuffer = *Framebuffer;
-	RenderPassBeginInfo.renderArea.offset = { 0,0 };
+	RenderPassBeginInfo.renderArea.offset = { 0, 0 };
 	RenderPassBeginInfo.renderArea.extent = { Width, Height };
 	RenderPassBeginInfo.clearValueCount = static_cast<TUInt32>(ClearValues.GetElementCount());
 	RenderPassBeginInfo.pClearValues = ClearValues.GetData();
@@ -159,7 +157,7 @@ void TVulkanCommandBuffer::BeginRenderPass(TVulkanRenderPass* VulkanRenderPass, 
 
 void TVulkanCommandBuffer::EndRenderPass()
 {
-	TRNT_ASSERT_MESSAGE(CommandBufferState != TState::EEnded, "Can not call EndRenderPass() while command buffer is already ended.");
+	TRNT_ASSERT_MESSAGE("Can not call EndRenderPass() while command buffer is already ended.", CommandBufferState != TState::EEnded);
 
 	if (VulkanDevice->VulkanRHIPointer->VulkanRHIFeatures.SupportsCreateRenderPass2KHR)
 	{
@@ -184,8 +182,8 @@ void TVulkanCommandBuffer::Reset()
 
 void TVulkanCommandBuffer::SubmitCommandBuffer(TVulkanQueue Queue, VkPipelineStageFlags PipelineStage, VkSemaphore WaitSemaphore, VkSemaphore SignalSemaphore, VkFence Fence)
 {
-	TRNT_ASSERT_MESSAGE(CommandBufferState == TState::EEnded, "Can not call SubmitCommandBuffer() while command buffer is already ended.");
-	TRNT_ASSERT_MESSAGE(!Secondary, "function SubmitCommandBuffer() can only be called for primary command buffer!");
+	TRNT_ASSERT_MESSAGE("Can not call SubmitCommandBuffer() while command buffer is already ended.", CommandBufferState == TState::EEnded);
+	TRNT_ASSERT_MESSAGE("Function SubmitCommandBuffer() can only be called for primary command buffer!", !Secondary);
 
 	const bool WaitSemaphoreIsNull = WaitSemaphore == VK_NULL_HANDLE;
 	const bool SignalSemaphoreIsNull = SignalSemaphore == VK_NULL_HANDLE;
@@ -236,28 +234,31 @@ void TVulkanCommandBuffer::SetViewport(TUInt32 Width, TUInt32 Height, TFloat Min
 
 void TVulkanCommandBuffer::BindPipeline(VkPipelineBindPoint PipelineBindPoint, TVulkanPipelineBase* Pipeline)
 {
-	TRNT_ASSERT_MESSAGE(CommandBufferState != TState::EEnded, "Can not call BindPipeline() while command buffer is already ended.");
+	TRNT_ASSERT_MESSAGE("Can not call BindPipeline() while command buffer is already ended.", CommandBufferState != TState::EEnded);
 	TVulkanRHI::VulkanPFNFunctions.CmdBindPipeline(CommandBuffer, PipelineBindPoint, Pipeline->GetVulkanPipeline());
 }
 
 void TVulkanCommandBuffer::Draw(TUInt32 VertexCount, TUInt32 InstanceCount, TUInt32 FirstVertex, TUInt32 FirstInstance)
 {
-	TRNT_ASSERT_MESSAGE(RenderPassState != TRenderPassState::EEnded, "Function Draw() must only be called inside of a render pass instance.");
+	TRNT_ASSERT_MESSAGE("Function Draw() must only be called inside of a render pass instance.", RenderPassState != TRenderPassState::EEnded);
 	TVulkanRHI::VulkanPFNFunctions.CmdDraw(CommandBuffer, VertexCount, InstanceCount, FirstVertex, FirstInstance);
 }
 
 void TVulkanCommandBuffer::BindVertexBuffer(TUInt32 FirstBinding, TVulkanBuffer* VertexBuffer, const VkDeviceSize* Offsets)
 {
-	TRNT_ASSERT_MESSAGE(RenderPassState != TRenderPassState::EEnded, "Function BindVertexBuffer() must only be called inside of a render pass instance.");
+	TRNT_ASSERT_MESSAGE("Function BindVertexBuffer() must only be called inside of a render pass instance.", RenderPassState != TRenderPassState::EEnded);
 
 	VkBuffer VertexBufferHandle = VertexBuffer->GetBuffer();
 	TVulkanRHI::VulkanPFNFunctions.CmdBindVertexBuffers(CommandBuffer, FirstBinding, 1, &VertexBufferHandle, Offsets);
 }
 
 void TVulkanCommandBuffer::BindVertexBuffers(
-	TUInt32 FirstBinding, TUInt32 BindingCount, const TDynamicArray<TVulkanBuffer>& VertexBuffers, const VkDeviceSize* Offsets)
+	TUInt32 FirstBinding,
+	TUInt32 BindingCount,
+	const TDynamicArray<TVulkanBuffer>& VertexBuffers,
+	const VkDeviceSize* Offsets)
 {
-	TRNT_ASSERT_MESSAGE(RenderPassState != TRenderPassState::EEnded, "Function BindVertexBuffers() must only be called inside of a render pass instance.");
+	TRNT_ASSERT_MESSAGE("Function BindVertexBuffers() must only be called inside of a render pass instance.", RenderPassState != TRenderPassState::EEnded);
 
 	const TInt64 VertexBufferCount = VertexBuffers.GetElementCount();
 
@@ -274,13 +275,13 @@ void TVulkanCommandBuffer::BindVertexBuffers(
 
 void TVulkanCommandBuffer::BindIndexBuffers(TVulkanBuffer* IndexBuffer, VkDeviceSize Offset, VkIndexType IndexType)
 {
-	TRNT_ASSERT_MESSAGE(RenderPassState != TRenderPassState::EEnded, "Function BindIndexBuffers() must only be called inside of a render pass instance.");
+	TRNT_ASSERT_MESSAGE("Function BindIndexBuffers() must only be called inside of a render pass instance.", RenderPassState != TRenderPassState::EEnded);
 	TVulkanRHI::VulkanPFNFunctions.CmdBindIndexBuffer(CommandBuffer, IndexBuffer->GetBuffer(), Offset, IndexType);
 }
 
 void TVulkanCommandBuffer::DrawIndexed(TUInt32 IndexCount, TUInt32 InstanceCount, TUInt32 FirstIndex, TInt32 VertexOffset, TUInt32 FirstInstance)
 {
-	TRNT_ASSERT_MESSAGE(RenderPassState != TRenderPassState::EEnded, "Function BindIndexBuffers() must only be called inside of a render pass instance.");
+	TRNT_ASSERT_MESSAGE("Function BindIndexBuffers() must only be called inside of a render pass instance.", RenderPassState != TRenderPassState::EEnded);
 	TVulkanRHI::VulkanPFNFunctions.CmdDrawIndexed(CommandBuffer, IndexCount, InstanceCount, FirstIndex, VertexOffset, FirstInstance);
 }
 

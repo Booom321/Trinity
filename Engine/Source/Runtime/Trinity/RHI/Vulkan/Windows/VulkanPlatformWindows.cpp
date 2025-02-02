@@ -1,19 +1,19 @@
 #include "TrinityPCH.h"
 
 #if defined(TRNT_SUPPORT_VULKAN_RHI)
+	#define TRNT_VULKAN_LIB_FILE_NAME "vulkan-1.dll"
 
-#ifdef TRNT_USE_WINDOWS_WINDOW
+	#include "Trinity/Core/Logging/Log.h"
+	#include "Trinity/RHI/Vulkan/VulkanPlatform.h"
+	#include "Trinity/RHI/Vulkan/VulkanRHI.h"
+#endif
 
-#include "Trinity/Core/Logging/Log.h"
-#include "Trinity/RHI/Vulkan/VulkanRHI.h"
-#include "Trinity/RHI/Vulkan/VulkanPlatform.h"
+#if defined(TRNT_SUPPORT_VULKAN_RHI) && defined(TRNT_USE_WINDOWS_WINDOW)
 
 static HMODULE VulkanLibrary = nullptr;
 PFN_vkGetInstanceProcAddr TVulkanPlatform::VulkanGetInstanceProcAddr = nullptr;
 
 TRNT_DECLARE_LOG_INFO(VulkanPlatformWindows, TLogLevel::EDebug);
-
-#define TRNT_VULKAN_LIB_FILE_NAME "vulkan-1.dll"
 
 static TBool IsLoaded = false;
 
@@ -31,7 +31,12 @@ TBool TVulkanPlatform::LoadVulkanLibrary()
 		const DWORD ErrorId = ::GetLastError();
 		LPSTR MessageBuffer = nullptr;
 		TSize_T Size = ::FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-			NULL, ErrorId, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPSTR)&MessageBuffer, 0, NULL);
+			NULL,
+			ErrorId,
+			MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+			(LPSTR)&MessageBuffer,
+			0,
+			NULL);
 
 		TLog::Error<TRNT_GET_LOG_INFO(VulkanPlatformWindows)>("Failed to load library: {} | Error id: {} | Error message: \"{}\".", TRNT_VULKAN_LIB_FILE_NAME, ErrorId, MessageBuffer);
 		::LocalFree(MessageBuffer);
@@ -87,7 +92,5 @@ VkResult TVulkanPlatform::CreateVulkanSurface(TWindow* Window, VkInstance Instan
 	Win32SurfaceCreateInfo.hwnd = (HWND)Window->GetNativeHandle();
 	return TVulkanRHI::PFNFunctions.CreateWin32SurfaceKHR(Instance, &Win32SurfaceCreateInfo, nullptr, Surface);
 }
-
-#endif 
 
 #endif

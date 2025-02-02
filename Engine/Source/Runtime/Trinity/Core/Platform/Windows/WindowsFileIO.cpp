@@ -1,10 +1,11 @@
 #include "TrinityPCH.h"
-#include "Trinity/Platform/FileIO.h"
 
-#if defined (TRNT_PLATFORM_WIN64)
+#include "Trinity/Core/Platform/FileIO.h"
 
 #pragma warning(push)
-#pragma warning(disable: 6387)
+#pragma warning(disable : 6387)
+
+#if defined(TRNT_PLATFORM_WIN64)
 
 TFileReader::TFileReader()
 	: FileHandle(nullptr)
@@ -91,6 +92,7 @@ TInt64 TFileReader::GetFileSize() const
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 TFileWriter::TFileWriter()
 	: FileHandle(nullptr)
 {}
@@ -161,6 +163,6 @@ TInt64 TFileWriter::GetFileSize() const
 	return FileSize.QuadPart;
 }
 
-#pragma warning(pop)
-
 #endif
+
+#pragma warning(pop)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Trinity/Core/Defines.h"
+
 #include <mutex>
 
 template<typename MutexT>
@@ -9,7 +10,7 @@ class TScopeLock
 public:
 	using MutexType = MutexT;
 
-	TRNT_FORCE_INLINE explicit TScopeLock(MutexType& Mutex)
+	explicit TRNT_FORCE_INLINE TScopeLock(MutexType& Mutex)
 		: Mutex(Mutex)
 	{
 		Mutex.Lock();
@@ -32,7 +33,7 @@ class TScopeLock<std::mutex>
 public:
 	using MutexType = std::mutex;
 
-	TRNT_FORCE_INLINE explicit TScopeLock(std::mutex& Mutex)
+	explicit TRNT_FORCE_INLINE TScopeLock(std::mutex& Mutex)
 		: Mutex(Mutex)
 	{
 		Mutex.lock();

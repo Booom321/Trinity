@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Trinity/Core/Defines.h"
 #include "Trinity/Core/Assert/AssertionMacros.h"
-#include "Trinity/Core/Types/DataTypes.h"
-#include "Trinity/Core/Types/Iterators.h"
+#include "Trinity/Core/Defines.h"
 #include "Trinity/Core/TypeTraits/Logical.h"
 #include "Trinity/Core/TypeTraits/PrimaryTypes.h"
+#include "Trinity/Core/Types/DataTypes.h"
+#include "Trinity/Core/Types/Iterators.h"
 
 template<typename Type, TSize_T Count>
 class TStaticArray
@@ -55,17 +55,45 @@ public:
 		return Elements[Index];
 	}
 
-	TRNT_FORCE_INLINE TBool IsEmpty() const noexcept { return Count == 0; }
+	TRNT_FORCE_INLINE TBool IsEmpty() const noexcept
+	{
+		return Count == 0;
+	}
 
-	TRNT_FORCE_INLINE SizeType GetElementCount() const noexcept { return Count; }
+	TRNT_FORCE_INLINE SizeType GetElementCount() const noexcept
+	{
+		return Count;
+	}
 
-	IteratorType begin() { return IteratorType(Elements); }
-	ConstIteratorType begin() const { return ConstIteratorType(Elements); }
-	ConstIteratorType cbegin() const { return ConstIteratorType(Elements); }
+	IteratorType begin()
+	{
+		return IteratorType(Elements);
+	}
 
-	IteratorType end() { return IteratorType(Elements + Count); }
-	ConstIteratorType end() const { return ConstIteratorType(Elements + Count); }
-	ConstIteratorType cend() const { return ConstIteratorType(Elements + Count); }
+	ConstIteratorType begin() const
+	{
+		return ConstIteratorType(Elements);
+	}
+
+	ConstIteratorType cbegin() const
+	{
+		return ConstIteratorType(Elements);
+	}
+
+	IteratorType end()
+	{
+		return IteratorType(Elements + Count);
+	}
+
+	ConstIteratorType end() const
+	{
+		return ConstIteratorType(Elements + Count);
+	}
+
+	ConstIteratorType cend() const
+	{
+		return ConstIteratorType(Elements + Count);
+	}
 
 	TBool operator==(const TStaticArray& B) const
 	{

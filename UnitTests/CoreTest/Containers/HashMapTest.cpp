@@ -1,7 +1,7 @@
 #include "HashMapTest.h"
 
-#include <Trinity/Core/Containers/LinkedList.h>
 #include <Trinity/Core/Containers/HashMap.h>
+#include <Trinity/Core/Containers/LinkedList.h>
 #include <Trinity/Core/String/String.h>
 
 template<typename HashMapType>
@@ -14,7 +14,7 @@ static TBool Check(const HashMapType& HashMap, std::initializer_list<typename Ha
 
 	TRNT_ASSERT(HashMap.GetLoadFactor() <= HashMapType::MaxLoadFactor);
 
-	const typename HashMapType::PairType* Begin = ExpectedPairs.begin(), * End = ExpectedPairs.end();
+	const typename HashMapType::PairType *Begin = ExpectedPairs.begin(), *End = ExpectedPairs.end();
 
 	while (Begin != End)
 	{
@@ -32,7 +32,7 @@ static TBool Check(const HashMapType& HashMap, std::initializer_list<typename Ha
 
 		++Begin;
 	}
-	
+
 	return true;
 }
 
@@ -47,10 +47,25 @@ TRNT_IMPL_TEST_CASE(Containers, THashMap)
 		TStringIDMap m1;
 		TRNT_TEST_CHECK_MAP(TStringIDMap, m1, 0);
 
-		TStringIDMap m2{ {1, "abc"}, {2, "def"}, {123, "aaa"}, {99, "hello"}, {1234, "aaabbb"}, {100, "world"} };
+		TStringIDMap m2{
+			{ 1, "abc" },
+			{ 2, "def" },
+			{ 123, "aaa" },
+			{ 99, "hello" },
+			{ 1234, "aaabbb" },
+			{ 100, "world" }
+		};
 		TRNT_TEST_CHECK_MAP(TStringIDMap, m2, 6, { 99, "hello" }, { 1, "abc" }, { 123, "aaa" }, { 2, "def" }, { 100, "world" }, { 1234, "aaabbb" });
 
-		TStringIDMap m3{ {1, "abc"}, {2, "def"}, {123, "aaa"}, {99, "hello"}, {1234, "aaabbb"}, {100, "world"}, {100, "lol"} }; 
+		TStringIDMap m3{
+			{ 1, "abc" },
+			{ 2, "def" },
+			{ 123, "aaa" },
+			{ 99, "hello" },
+			{ 1234, "aaabbb" },
+			{ 100, "world" },
+			{ 100, "lol" }
+		};
 		TRNT_TEST_CHECK_MAP(TStringIDMap, m3, 6, { 99, "hello" }, { 1, "abc" }, { 123, "aaa" }, { 2, "def" }, { 100, "world" }, { 1234, "aaabbb" });
 
 		///////////////////////////// copy constructor /////////////////////////////
@@ -62,7 +77,7 @@ TRNT_IMPL_TEST_CASE(Containers, THashMap)
 
 		///////////////////////////// move constructor //////////////////////////////
 		TRNT_TEST_EXPECT_TRUE(m2.GetElementCount() >= 0 && m2.GetBucketData() != nullptr && m2.GetBucketCount() >= 0);
-		
+
 		TStringIDMap m6(Move(m2));
 		TRNT_TEST_CHECK_MAP(TStringIDMap, m6, 6, { 99, "hello" }, { 1, "abc" }, { 123, "aaa" }, { 2, "def" }, { 100, "world" }, { 1234, "aaabbb" });
 
@@ -84,7 +99,14 @@ TRNT_IMPL_TEST_CASE(Containers, THashMap)
 
 	// Element access
 	{
-		TStringIDMap m1{ {1, "abc"}, {2, "def"}, {123, "aaa"}, {99, "hello"}, {1234, "aaabbb"}, {100, "world"} };
+		TStringIDMap m1{
+			{ 1, "abc" },
+			{ 2, "def" },
+			{ 123, "aaa" },
+			{ 99, "hello" },
+			{ 1234, "aaabbb" },
+			{ 100, "world" }
+		};
 
 		TRNT_TEST_EXPECT_TRUE(m1.Contains(1));
 		TRNT_TEST_EXPECT_TRUE(m1.Contains(-9999999) == false);
@@ -97,7 +119,7 @@ TRNT_IMPL_TEST_CASE(Containers, THashMap)
 
 		TRNT_TEST_EXPECT_TRUE(m1.GetElementCount() == 6);
 		TRNT_TEST_EXPECT_TRUE(m1.GetBucketCount() == 8);
-		
+
 		static_assert(TStringIDMap::GetMaxLoadFactor() == 0.75f);
 
 		TRNT_TEST_EXPECT_TRUE(!m1.IsEmpty());
@@ -107,7 +129,7 @@ TRNT_IMPL_TEST_CASE(Containers, THashMap)
 
 		m1[1] = "hello";
 		TRNT_TEST_CHECK_MAP(TStringIDMap, m1, 6, { 1, "hello" }, { 2, "def" }, { 123, "aaa" }, { 99, "hello" }, { 1234, "aaabbb" }, { 100, "world" });
-		
+
 		m1[998877] = "world";
 		TRNT_TEST_CHECK_MAP(TStringIDMap, m1, 7, { 1, "hello" }, { 2, "def" }, { 123, "aaa" }, { 99, "hello" }, { 1234, "aaabbb" }, { 100, "world" }, { 998877, "world" });
 
@@ -124,7 +146,14 @@ TRNT_IMPL_TEST_CASE(Containers, THashMap)
 	}
 
 	{
-		TStringIDMap m1{ {1, "abc"}, {2, "def"}, {123, "aaa"}, {99, "hello"}, {1234, "aaabbb"}, {100, "world"} };
+		TStringIDMap m1{
+			{ 1, "abc" },
+			{ 2, "def" },
+			{ 123, "aaa" },
+			{ 99, "hello" },
+			{ 1234, "aaabbb" },
+			{ 100, "world" }
+		};
 
 		TDynamicArray<typename TStringIDMap::KeyType> outKeys;
 		TInt64 keyCount = m1.GetKeys(outKeys);
@@ -149,7 +178,7 @@ TRNT_IMPL_TEST_CASE(Containers, THashMap)
 
 		TDynamicArray<typename TStringIDMap::ElementType> outElems;
 		TInt64 elemCount = m1.GetElements(outElems);
-		TRNT_TEST_EXPECT_TRUE(elemCount== m1.GetElementCount());
+		TRNT_TEST_EXPECT_TRUE(elemCount == m1.GetElementCount());
 
 		const auto ContainsElement = [&outElems](TInt32 Id, const typename TStringIDMap::ValueType Value) -> TBool
 		{
@@ -172,17 +201,32 @@ TRNT_IMPL_TEST_CASE(Containers, THashMap)
 	}
 
 	{
-		TStringIDMap m1{ {1, "abc"}, {2, "def"}, {123, "aaa"}, {99, "hello"}, {1234, "aaabbb"}, {100, "world"} };
+		TStringIDMap m1{
+			{ 1, "abc" },
+			{ 2, "def" },
+			{ 123, "aaa" },
+			{ 99, "hello" },
+			{ 1234, "aaabbb" },
+			{ 100, "world" }
+		};
 
 		TDynamicArray<typename TStringIDMap::KeyType> outKeys;
-		m1.FilterKeys([](typename TStringIDMap::KeyType Key) { return Key <= 100; }, outKeys);
+		m1.FilterKeys([](typename TStringIDMap::KeyType Key)
+			{
+				return Key <= 100;
+			},
+			outKeys);
 		TRNT_TEST_EXPECT_TRUE(outKeys.Contains(1));
 		TRNT_TEST_EXPECT_TRUE(outKeys.Contains(2));
 		TRNT_TEST_EXPECT_TRUE(outKeys.Contains(99));
 		TRNT_TEST_EXPECT_TRUE(outKeys.Contains(100));
 
 		TDynamicArray<typename TStringIDMap::ValueType> outVals;
-		m1.FilterValues([](typename TStringIDMap::ValueType Val) { return Val.GetElementCount() == 3; }, outVals);
+		m1.FilterValues([](typename TStringIDMap::ValueType Val)
+			{
+				return Val.GetElementCount() == 3;
+			},
+			outVals);
 		TRNT_TEST_EXPECT_TRUE(outVals.Contains("abc"));
 		TRNT_TEST_EXPECT_TRUE(outVals.Contains("def"));
 		TRNT_TEST_EXPECT_TRUE(outVals.Contains("aaa"));

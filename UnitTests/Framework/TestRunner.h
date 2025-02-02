@@ -1,16 +1,16 @@
 #pragma once
 
+#include "TestSuite.h"
+
+#include <Trinity/Core/Containers/DynamicArray.h>
 #include <Trinity/Core/Defines.h>
 #include <Trinity/Core/String/String.h>
 #include <Trinity/Core/Types/DataTypes.h>
 #include <Trinity/Core/Utilities/NonCopyable.h>
-#include <Trinity/Core/Containers/DynamicArray.h>
-
-#include "TestSuite.h"
 
 #pragma warning(push)
-#pragma warning(disable: 26813)
-#pragma warning(disable: 26495)
+#pragma warning(disable : 26813)
+#pragma warning(disable : 26495)
 
 class TTestCaseResult
 {

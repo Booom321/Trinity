@@ -1,6 +1,5 @@
-#include "TrinityPCH.h"
-
 #include "StringConversion.h"
+#include "TrinityPCH.h"
 
 namespace TNsStringConversion
 {
@@ -73,4 +72,4 @@ namespace TNsStringConversion
 
 		return true;
 	}
-}
+} // namespace TNsStringConversion

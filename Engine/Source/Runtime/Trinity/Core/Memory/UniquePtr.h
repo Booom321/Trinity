@@ -2,9 +2,7 @@
 
 #include "Trinity/Core/TypeTraits/EnableIf.h"
 #include "Trinity/Core/TypeTraits/IsBitwiseConstructible.h"
-#include "Trinity/Core/TypeTraits/IsZeroConstructType.h"
 #include "Trinity/Core/TypeTraits/RemoveExtent.h"
-
 #include "Trinity/Core/Types/CompressedPair.h"
 
 template<typename T>
@@ -70,8 +68,7 @@ public:
 
 	template<
 		typename OtherType,
-		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, DeleterType>::PointerType, PointerType>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, DeleterType>::PointerType, PointerType>::Value, int>::Type = 0>
 	explicit TRNT_FORCE_INLINE TUniquePtr(OtherType* Ptr)
 		: Pair(DeleterType(), Ptr)
 	{}
@@ -79,8 +76,7 @@ public:
 	template<
 		typename OtherType,
 		typename OtherDeleterType,
-		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::PointerType, PointerType>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::PointerType, PointerType>::Value, int>::Type = 0>
 	explicit TRNT_FORCE_INLINE TUniquePtr(OtherType* Ptr, const OtherDeleterType& OtherDeleter)
 		: Pair(OtherDeleter, Ptr)
 	{}
@@ -88,8 +84,7 @@ public:
 	template<
 		typename OtherType,
 		typename OtherDeleterType,
-		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::PointerType, PointerType>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::PointerType, PointerType>::Value, int>::Type = 0>
 	explicit TRNT_FORCE_INLINE TUniquePtr(OtherType* Ptr, OtherDeleterType&& OtherDeleter) noexcept
 		: Pair(Move(OtherDeleter), Ptr)
 	{}
@@ -97,8 +92,7 @@ public:
 	template<
 		typename OtherType,
 		typename OtherDeleterType,
-		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::PointerType, PointerType>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::PointerType, PointerType>::Value, int>::Type = 0>
 	TRNT_FORCE_INLINE TUniquePtr(TUniquePtr<OtherType, OtherDeleterType>&& Other) noexcept
 		: Pair(Move(Other.GetDeleter()), Other.Pair.SecondValue)
 	{
@@ -131,8 +125,7 @@ public:
 	template<
 		typename OtherType,
 		typename OtherDeleterType,
-		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::PointerType, PointerType>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::PointerType, PointerType>::Value, int>::Type = 0>
 	TRNT_FORCE_INLINE TUniquePtr& operator=(TUniquePtr<OtherType, OtherDeleterType>&& Other) noexcept
 	{
 		DeleterType& SelfDeleter = Pair.GetFirstValue();
@@ -185,8 +178,7 @@ public:
 
 	template<
 		typename OtherType,
-		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, DeleterType>::PointerType, PointerType>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, DeleterType>::PointerType, PointerType>::Value, int>::Type = 0>
 	TRNT_FORCE_INLINE void Reset(OtherType* NewPtr = nullptr) noexcept
 	{
 		Pair.GetFirstValue()(NewPtr);
@@ -238,8 +230,7 @@ public:
 
 	template<
 		typename OtherType,
-		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, DeleterType>::ElementType(*)[], ElementType(*)[]>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, DeleterType>::ElementType (*)[], ElementType (*)[]>::Value, int>::Type = 0>
 	explicit TRNT_FORCE_INLINE TUniquePtr(OtherType* Ptr)
 		: Pair(DeleterType(), Ptr)
 	{}
@@ -247,8 +238,7 @@ public:
 	template<
 		typename OtherType,
 		typename OtherDeleterType,
-		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::ElementType(*)[], ElementType(*)[]>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::ElementType (*)[], ElementType (*)[]>::Value, int>::Type = 0>
 	explicit TRNT_FORCE_INLINE TUniquePtr(OtherType* Ptr, const OtherDeleterType& OtherDeleter)
 		: Pair(OtherDeleter, Ptr)
 	{}
@@ -256,8 +246,7 @@ public:
 	template<
 		typename OtherType,
 		typename OtherDeleterType,
-		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::ElementType(*)[], ElementType(*)[]>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::ElementType (*)[], ElementType (*)[]>::Value, int>::Type = 0>
 	explicit TRNT_FORCE_INLINE TUniquePtr(OtherType* Ptr, OtherDeleterType&& OtherDeleter) noexcept
 		: Pair(Move(OtherDeleter), Ptr)
 	{}
@@ -265,8 +254,7 @@ public:
 	template<
 		typename OtherType,
 		typename OtherDeleterType,
-		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::ElementType(*)[], ElementType(*)[]>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::ElementType (*)[], ElementType (*)[]>::Value, int>::Type = 0>
 	TRNT_FORCE_INLINE TUniquePtr(TUniquePtr<OtherType, OtherDeleterType>&& Other) noexcept
 		: Pair(Move(Other.GetDeleter()), Other.Pair.SecondValue)
 	{
@@ -299,8 +287,7 @@ public:
 	template<
 		typename OtherType,
 		typename OtherDeleterType,
-		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::ElementType(*)[], ElementType(*)[]>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, OtherDeleterType>::ElementType (*)[], ElementType (*)[]>::Value, int>::Type = 0>
 	TRNT_FORCE_INLINE TUniquePtr& operator=(TUniquePtr<OtherType, OtherDeleterType>&& Other) noexcept
 	{
 		DeleterType& SelfDeleter = Pair.GetFirstValue();
@@ -353,8 +340,7 @@ public:
 
 	template<
 		typename OtherType,
-		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, DeleterType>::ElementType(*)[], ElementType(*)[]>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TIsConvertible<typename TUniquePtr<OtherType, DeleterType>::ElementType (*)[], ElementType (*)[]>::Value, int>::Type = 0>
 	TRNT_FORCE_INLINE void Reset(OtherType* NewPtr = nullptr) noexcept
 	{
 		Pair.GetFirstValue()(Pair.SecondValue);
@@ -374,16 +360,6 @@ public:
 
 private:
 	TCompressedPair<DeleterType, PointerType> Pair;
-};
-
-template<typename T>
-class TIsZeroConstructType<TUniquePtr<T>> : public TTrueType
-{
-};
-
-template<typename T>
-class TIsBitwiseConstructible<TUniquePtr<T>, T*> : public TTrueType
-{
 };
 
 template<typename T, typename... ArgsType>
@@ -408,7 +384,7 @@ namespace TNsHash
 	{
 		return GetHashCode<typename TUniquePtr<T, Deleter>::PointerType>(UniquePtr.Get());
 	}
-}
+} // namespace TNsHash
 
 // first: nullptr, second: TUnique
 template<typename Type, typename DeleterType>

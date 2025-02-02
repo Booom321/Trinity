@@ -2,9 +2,26 @@
 
 #include <type_traits>
 
-template<typename T> class TRemoveReference			{ public: using Type = T; };
-template<typename T> class TRemoveReference<T&>		{ public: using Type = T; };
-template<typename T> class TRemoveReference<T&&>	{ public: using Type = T; };
+template<typename T>
+class TRemoveReference
+{
+public:
+	using Type = T;
+};
+
+template<typename T>
+class TRemoveReference<T&>
+{
+public:
+	using Type = T;
+};
+
+template<typename T>
+class TRemoveReference<T&&>
+{
+public:
+	using Type = T;
+};
 
 template<typename T>
 constexpr typename TRemoveReference<T>::Type&& Move(T&& Obj) noexcept

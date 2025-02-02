@@ -2,14 +2,17 @@
 
 #include "Trinity/Core/Defines.h"
 #include "Trinity/Core/PlatformDetection.h"
+#include "Trinity/Core/Threading/Thread.h"
 
 #if defined(TRNT_PLATFORM_WIN64)
+	#include "Trinity/Core/Assert/AssertionMacros.h"
 
-#include "Trinity/Core/Threading/Thread.h"
-#include "Trinity/Core/Assert/AssertionMacros.h"
+	#include <Windows.h>
 
-#include <functional>
-#include <Windows.h>
+	#include <functional>
+#endif
+
+#if defined(TRNT_PLATFORM_WIN64)
 
 static DWORD WINAPI RunThread(LPVOID Parameter)
 {
@@ -30,7 +33,8 @@ TThread::TThread(Function&& Func, Arguments&&... Args)
 	TRNT_ASSERT_IS_NOT_NULL(ThreadData.ThreadHandle);
 }
 
-TThread::TThread(TThread&& Thread) noexcept : ThreadData(Move(Thread.ThreadData))
+TThread::TThread(TThread&& Thread) noexcept
+	: ThreadData(Move(Thread.ThreadData))
 {
 	Thread.ThreadData = {};
 }
@@ -65,16 +69,44 @@ TThreadHandle TThread::GetThreadHandle() const
 	return ThreadData.ThreadHandle;
 }
 
-void TThread::Join()
+TBool TThread::Join()
 {
-	WaitForSingleObject(ThreadData.ThreadHandle, INFINITE);
+	TRNT_ASSERT_MESSAGE(this->ThreadData.ThreadID != GetCurrentThreadId(), "Resource deadlock would occur!");
+
+	if (WaitForSingleObjectEx(ThreadData.ThreadHandle, INFINITE, FALSE) == WAIT_FAILED)
+	{
+		return false;
+	}
+
+	TBool Success = CloseHandle(ThreadData.ThreadHandle) != 0;
 	ThreadData = {};
+
+	return Success;
 }
 
-void TThread::Detach()
+TBool TThread::Detach()
 {
-	CloseHandle(ThreadData.ThreadHandle);
+	TBool Success = CloseHandle(ThreadData.ThreadHandle) != 0;
 	ThreadData = {};
+
+	return Success;
+}
+
+TInt32 TThread::GetNumberOfThreads()
+{
+	SYSTEM_INFO SystemInfo;
+	GetSystemInfo(&SystemInfo);
+	return SystemInfo.dwNumberOfProcessors;
+}
+
+TThreadID TThread::GetCurrentThreadID()
+{
+	return GetCurrentThreadId();
+}
+
+void TThread::YieldThisThread()
+{
+	SwitchToThread();
 }
 
 #endif

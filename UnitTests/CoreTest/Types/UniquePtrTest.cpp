@@ -1,12 +1,16 @@
 #include "UniquePtrTest.h"
 
-#include <Trinity/Core/Types/UniquePtr.h>
+#include <Trinity/Core/Memory/UniquePtr.h>
 
 class Foo
 {
 public:
 	TRNT_FORCE_INLINE Foo() = default;
-	TRNT_FORCE_INLINE Foo(TInt32 I32, TFloat F32) : I32(I32), F32(F32) {}
+
+	TRNT_FORCE_INLINE Foo(TInt32 I32, TFloat F32)
+		: I32(I32), F32(F32)
+	{}
+
 	Foo(const Foo&) = default;
 	Foo(Foo&&) noexcept = default;
 	~Foo() = default;
@@ -28,10 +32,10 @@ TRNT_IMPL_TEST_CASE(Types, TUniquePtr_Object)
 	{
 		UniquePtr p1{};
 		TRNT_TEST_EXPECT_EQ(p1, nullptr);
-	
+
 		UniquePtr p2{ nullptr };
 		TRNT_TEST_EXPECT_EQ(p2, nullptr);
-	
+
 		UniquePtr p3{ new Foo() };
 		TRNT_TEST_EXPECT_NEQ(p3, nullptr);
 		TRNT_TEST_EXPECT_EQ(p3->I32, 0);
@@ -122,7 +126,7 @@ TRNT_IMPL_TEST_CASE(Types, TUniquePtr_Object)
 		TRNT_TEST_EXPECT_TRUE(nullptr == p2);
 		TRNT_TEST_EXPECT_TRUE(p2 == nullptr);
 	}
-	
+
 	{
 		UniquePtr p = MakeUnique<Foo>(100, 90.0f);
 		TRNT_TEST_EXPECT_NEQ(p, nullptr);
@@ -183,7 +187,7 @@ TRNT_IMPL_TEST_CASE(Types, TUniquePtr_Array)
 
 	// operator=
 	{
-		UniquePtr p1{ new Foo[3] {Foo(1, 1.0f), Foo(2, 2.0f), Foo(3, 3.0f) } };
+		UniquePtr p1{ new Foo[3]{ Foo(1, 1.0f), Foo(2, 2.0f), Foo(3, 3.0f) } };
 		TRNT_TEST_EXPECT_NEQ(p1, nullptr);
 		TRNT_TEST_EXPECT_EQ(p1[0].I32, 1);
 		TRNT_TEST_EXPECT_EQ(p1[0].F32, 1.0f);
@@ -242,7 +246,6 @@ TRNT_IMPL_TEST_CASE(Types, TUniquePtr_Array)
 			uptr[Index].I32 = TInt32(Index + 1);
 			uptr[Index].F32 = TFloat(Index + 1);
 		}
-
 
 		Foo* p = uptr.Release();
 

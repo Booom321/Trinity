@@ -1,7 +1,7 @@
 #include "StaticArrayTest.h"
 
-#include <Trinity/Core/String/String.h>
 #include <Trinity/Core/Containers/StaticArray.h>
+#include <Trinity/Core/String/String.h>
 
 template<TSize_T Count>
 using StringArray = TStaticArray<TString, Count>;

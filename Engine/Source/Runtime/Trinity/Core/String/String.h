@@ -1,22 +1,16 @@
 #pragma once
 
-#include <type_traits>
-
-#include "Trinity/Core/Assert/AssertionMacros.h"
-#include "Trinity/Core/Memory/Memory.h"
-
-#include "CharUtils.h"
 #include "CString.h"
-
-#include "Trinity/Core/Types/DataTypes.h"
-#include "Trinity/Core/Types/Iterators.h"
-
-#include "Trinity/Core/TypeTraits/PrimaryTypes.h"
-#include "Trinity/Core/TypeTraits/Trivial.h"
+#include "CharUtils.h"
+#include "Trinity/Core/Containers/DynamicArray.h"
+#include "Trinity/Core/Memory/Memory.h"
 #include "Trinity/Core/TypeTraits/IsStandardLayout.h"
 #include "Trinity/Core/TypeTraits/Logical.h"
+#include "Trinity/Core/TypeTraits/PrimaryTypes.h"
+#include "Trinity/Core/TypeTraits/Trivial.h"
+#include "Trinity/Core/Types/Iterators.h"
 
-#include "Trinity/Core/Containers/DynamicArray.h"
+#include <type_traits>
 
 enum class TStringSearchCase : TInt8
 {
@@ -25,19 +19,22 @@ enum class TStringSearchCase : TInt8
 };
 
 #pragma warning(push)
-#pragma warning(disable: 6011)
-#pragma warning(disable: 6387)
+#pragma warning(disable : 6011)
+#pragma warning(disable : 6387)
 
-template<typename CharType>
+template<typename T>
 class TStringBase
 {
 public:
+	static_assert(!TIsArray<T>::Value && TIsTrivial<T>::Value && TIsStandardLayout<T>::Value);
+	static_assert(TIsCharTypeSupported<T>::Value, "TStringBase<T> is not implemented for this char type.");
+
 	using SizeType = TInt64;
-	using ElementType = CharType;
-	using ConstReferenceType = const CharType&;
-	using ReferenceType = CharType&;
-	using ConstPointerType = const CharType*;
-	using PointerType = CharType*;
+	using ElementType = T;
+	using ConstReferenceType = const T&;
+	using ReferenceType = T&;
+	using ConstPointerType = const T*;
+	using PointerType = T*;
 
 	using IteratorType = TContiguousIterator<ElementType, SizeType>;
 	using ConstIteratorType = TContiguousIterator<const ElementType, SizeType>;
@@ -45,12 +42,10 @@ public:
 	using CStringHelper = TCString<ElementType>;
 	using CharUtils = TCharUtils<ElementType>;
 
-	static constexpr SizeType Npos = -1;
-	static constexpr TFloat GrowSize = 1.5f;
+	static TRNT_CONSTEXPR SizeType Npos = -1;
+	static TRNT_CONSTEXPR TFloat GrowSize = 1.5f;
 
-	static constexpr ElementType NullChar = static_cast<ElementType>(0);
-
-	static_assert(!TIsArray<ElementType>::Value && TIsTrivial<ElementType>::Value && TIsStandardLayout<ElementType>::Value);
+	static TRNT_CONSTEXPR ElementType NullChar = static_cast<ElementType>(0);
 
 private:
 	TRNT_FORCE_INLINE void ConstructData(SizeType StrLen, ConstPointerType Str)
@@ -71,7 +66,7 @@ private:
 
 		if (Count > 0)
 		{
-			memset(Data, Chr, Count * sizeof(ElementType));
+			CStringHelper::Memset(Data, Chr, Count);
 		}
 
 		Data[Count] = NullChar;
@@ -237,8 +232,8 @@ public:
 	{
 		return Cap - Len;
 	}
-	
-	TRNT_FORCE_INLINE ReferenceType CharAt(SizeType Index) 
+
+	TRNT_FORCE_INLINE ReferenceType CharAt(SizeType Index)
 	{
 		TRNT_ASSERT(Index >= 0 && Index < Len);
 		return Data[Index];
@@ -286,7 +281,7 @@ public:
 		return Data[Len - 1];
 	}
 
-	TRNT_FORCE_INLINE TBool IsEmpty() const 
+	TRNT_FORCE_INLINE TBool IsEmpty() const
 	{
 		return Len == 0;
 	}
@@ -295,7 +290,7 @@ public:
 	TRNT_NODISCARD TRNT_FORCE_INLINE TBool IsEquals(ConstPointerType Other, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive) const
 	{
 		if (SearchCase == TStringSearchCase::ECaseSensitive)
-		{	
+		{
 			return CStringHelper::Strcmp(Data, Other) == 0;
 		}
 		return CStringHelper::Stricmp(Data, Other) == 0;
@@ -333,7 +328,12 @@ public:
 	}
 
 	TRNT_NODISCARD TInt32 Compare(
-		SizeType StartPos1, SizeType StrLen1, const TStringBase& Other, SizeType StartPos2, SizeType StrLen2, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive) const
+		SizeType StartPos1,
+		SizeType StrLen1,
+		const TStringBase& Other,
+		SizeType StartPos2,
+		SizeType StrLen2,
+		TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive) const
 	{
 		TRNT_ASSERT((StartPos1 >= 0 && StartPos1 + StrLen1 <= Len) && (StartPos2 >= 0 && StartPos2 + StrLen2 <= Other.Len));
 		PointerType AFirst = Data + StartPos1;
@@ -346,7 +346,7 @@ public:
 	}
 
 public:
-	TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator==(const TStringBase& Rhs) const 
+	TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator==(const TStringBase& Rhs) const
 	{
 		return CStringHelper::Strcmp(Data, Rhs.Data) == 0;
 	}
@@ -361,7 +361,7 @@ public:
 		return CStringHelper::Strcmp(Lhs, Rhs.Data) == 0;
 	}
 
-	TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator!=(const TStringBase& Rhs) const 
+	TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator!=(const TStringBase& Rhs) const
 	{
 		return CStringHelper::Strcmp(Data, Rhs.Data) != 0;
 	}
@@ -376,7 +376,7 @@ public:
 		return CStringHelper::Strcmp(Lhs, Rhs.Data) != 0;
 	}
 
-	TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator>(const TStringBase& Rhs) const 
+	TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator>(const TStringBase& Rhs) const
 	{
 		return CStringHelper::Strcmp(Data, Rhs.Data) > 0;
 	}
@@ -391,7 +391,7 @@ public:
 		return CStringHelper::Strcmp(Lhs, Rhs.Data) > 0;
 	}
 
-	TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator>=(const TStringBase& Rhs) const 
+	TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator>=(const TStringBase& Rhs) const
 	{
 		return CStringHelper::Strcmp(Data, Rhs.Data) >= 0;
 	}
@@ -406,9 +406,9 @@ public:
 		return CStringHelper::Strcmp(Lhs, Rhs.Data) >= 0;
 	}
 
-	TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator<(const TStringBase& Rhs) const 
+	TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator<(const TStringBase& Rhs) const
 	{
-		return CStringHelper::Strcmp(Data, Rhs) < 0;
+		return CStringHelper::Strcmp(Data, Rhs.Data) < 0;
 	}
 
 	TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator<(ConstPointerType Rhs) const
@@ -421,9 +421,9 @@ public:
 		return CStringHelper::Strcmp(Lhs, Rhs.Data) < 0;
 	}
 
-	TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator<=(const TStringBase& Rhs) const 
+	TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator<=(const TStringBase& Rhs) const
 	{
-		return CStringHelper::Strcmp(Data, Rhs) <= 0;
+		return CStringHelper::Strcmp(Data, Rhs.Data) <= 0;
 	}
 
 	TRNT_NODISCARD TRNT_FORCE_INLINE TBool operator<=(ConstPointerType Rhs) const
@@ -480,7 +480,7 @@ public:
 			return Npos;
 		}
 
-		if (*Substr == NullChar || SubstrLen == 0) 
+		if (*Substr == NullChar || SubstrLen == 0)
 		{
 			return StartPos;
 		}
@@ -529,27 +529,37 @@ public:
 			return StartPos;
 		}
 
-		ConstPointerType StartStr = Data;
-		
 		if (SearchCase == TStringSearchCase::ECaseSensitive)
 		{
-			for (SizeType i = StartPos - SubstrLen; i >= 0; --i)
-            {
-				if (CStringHelper::Strncmp(StartStr + i, Substr, SubstrLen) == 0)
+			for (ConstPointerType Tmp = Data + (TRNT_MIN(StartPos, Len - SubstrLen));; --Tmp)
+			{
+				if (*Tmp == *Substr && CStringHelper::Strncmp(Tmp, Substr, SubstrLen) == 0)
 				{
-					return i;
+					return static_cast<SizeType>(Tmp - Data);
 				}
-            }
+
+				if (Tmp == Data)
+				{
+					break;
+				}
+			}
 		}
 		else
 		{
-			for (SizeType i = StartPos - SubstrLen; i >= 0; --i)
-            {
-				if (CStringHelper::Strnicmp(StartStr + i, Substr, SubstrLen) == 0)
+			const ElementType FirstUpperSubstrChar = CharUtils::ToUpperCase(*Substr);
+
+			for (ConstPointerType Tmp = Data + (TRNT_MIN(StartPos, Len - SubstrLen));; --Tmp)
+			{
+				if (CharUtils::ToUpperCase(*Tmp) == FirstUpperSubstrChar && CStringHelper::Strnicmp(Tmp, Substr, SubstrLen) == 0)
 				{
-					return i;
+					return static_cast<SizeType>(Tmp - Data);
 				}
-            }
+
+				if (Tmp == Data)
+				{
+					break;
+				}
+			}
 		}
 
 		return Npos;
@@ -562,7 +572,7 @@ public:
 
 	TRNT_NODISCARD TRNT_FORCE_INLINE SizeType Find(ConstPointerType Substr, SizeType StartPos = 0, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive) const
 	{
-		return Find(CStringHelper::Strlen(Substr), Substr,  StartPos, SearchCase);
+		return Find(CStringHelper::Strlen(Substr), Substr, StartPos, SearchCase);
 	}
 
 	TRNT_NODISCARD TRNT_FORCE_INLINE SizeType FindLast(const TStringBase& Substr, SizeType StartPos = Npos, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive) const
@@ -575,16 +585,73 @@ public:
 		return FindLast(CStringHelper::Strlen(Substr), Substr, StartPos, SearchCase);
 	}
 
-	TRNT_NODISCARD SizeType FindChar(ElementType Chr, SizeType StartPos = Npos) const
+	TRNT_NODISCARD TRNT_FORCE_INLINE SizeType FindChar(ElementType Chr, SizeType StartPos = 0, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive) const
 	{
-		ConstPointerType Found = CStringHelper::Strchr(Data + (StartPos == Npos ? 0 : StartPos), Chr);
-		return Found ? static_cast<SizeType>(Found - Data) : Npos;
+		if (StartPos < 0)
+		{
+			StartPos = 0;
+		}
+
+		if (SearchCase == TStringSearchCase::ECaseSensitive)
+		{
+			ConstPointerType Found = CStringHelper::Strchr(Data + StartPos, Chr);
+			return Found ? static_cast<SizeType>(Found - Data) : Npos;
+		}
+		else
+		{
+			ConstPointerType Start = Data + StartPos;
+			ElementType UpperChr = CharUtils::ToUpperCase(Chr);
+
+			while (*Start)
+			{
+				if (CharUtils::ToUpperCase(*Start) == UpperChr)
+				{
+					return static_cast<SizeType>(Start - Data);
+				}
+				++Start;
+			}
+		}
+
+		return Npos;
 	}
 
-	TRNT_NODISCARD SizeType FindLastChar(ElementType Chr, SizeType StartPos = Npos) const
+	TRNT_NODISCARD SizeType FindLastChar(ElementType Chr, SizeType StartPos = Npos, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive) const
 	{
-		ConstPointerType Found = CStringHelper::Strrchr(Data + (StartPos == Npos ? 0 : StartPos), Chr);
-		return Found ? static_cast<SizeType>(Found - Data) : Npos;
+		ConstPointerType End = Data + ((StartPos < 0) ? Len : StartPos);
+
+		if (SearchCase == TStringSearchCase::ECaseSensitive)
+		{
+			for (;; --End)
+			{
+				if (*End == Chr)
+				{
+					return static_cast<SizeType>(End - Data);
+				}
+
+				if (End == Data)
+				{
+					break;
+				}
+			}
+		}
+		else
+		{
+			ElementType UpperChr = CharUtils::ToUpperCase(Chr);
+			for (;; --End)
+			{
+				if (CharUtils::ToUpperCase(*End) == UpperChr)
+				{
+					return static_cast<SizeType>(End - Data);
+				}
+
+				if (End == Data)
+				{
+					break;
+				}
+			}
+		}
+
+		return Npos;
 	}
 
 	TRNT_NODISCARD TBool Contains(ConstPointerType Substr, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive) const
@@ -596,7 +663,7 @@ public:
 		return CStringHelper::Stristr(Data, Substr) != nullptr;
 	}
 
-	TRNT_NODISCARD TBool Contains(const TStringBase& Substr, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive) const
+	TRNT_NODISCARD TRNT_FORCE_INLINE TBool Contains(const TStringBase& Substr, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive) const
 	{
 		return Find(Substr.Len, Substr.Data, 0, SearchCase) != Npos;
 	}
@@ -619,7 +686,7 @@ public:
 		for (SizeType i = 0; i < Len; ++i)
 		{
 			Data[i] = CharUtils::ToUpperCase(Data[i]);
-		}		
+		}
 	}
 
 	TRNT_NODISCARD TRNT_FORCE_INLINE TStringBase ToUpper() const
@@ -634,7 +701,7 @@ public:
 		for (SizeType i = 0; i < Len; ++i)
 		{
 			Data[i] = CharUtils::ToLowerCase(Data[i]);
-		}		
+		}
 	}
 
 	TRNT_NODISCARD TRNT_FORCE_INLINE TStringBase ToLower() const
@@ -698,12 +765,12 @@ private:
 	}
 
 public:
-	TRNT_NODISCARD TRNT_FORCE_INLINE friend TStringBase operator+(const TStringBase& Lhs, const TStringBase& Rhs) 
+	TRNT_NODISCARD TRNT_FORCE_INLINE friend TStringBase operator+(const TStringBase& Lhs, const TStringBase& Rhs)
 	{
 		return Concat(Lhs.Data, Lhs.Len, Rhs.Data, Rhs.Len);
 	}
 
-	TRNT_NODISCARD TRNT_FORCE_INLINE friend TStringBase operator+(const TStringBase& Lhs, ConstPointerType Rhs) 
+	TRNT_NODISCARD TRNT_FORCE_INLINE friend TStringBase operator+(const TStringBase& Lhs, ConstPointerType Rhs)
 	{
 		return Concat(Lhs.Data, Lhs.Len, Rhs, CStringHelper::Strlen(Rhs));
 	}
@@ -713,7 +780,7 @@ public:
 		return Concat(Lhs.Data, Lhs.Len, Move(Rhs));
 	}
 
-	TRNT_NODISCARD TRNT_FORCE_INLINE friend TStringBase operator+(ConstPointerType Lhs, const TStringBase& Rhs) 
+	TRNT_NODISCARD TRNT_FORCE_INLINE friend TStringBase operator+(ConstPointerType Lhs, const TStringBase& Rhs)
 	{
 		return Concat(Lhs, CStringHelper::Strlen(Lhs), Rhs.Data, Rhs.Len);
 	}
@@ -732,7 +799,7 @@ public:
 	{
 		return Concat(Move(Lhs), Move(Rhs));
 	}
-	
+
 	TRNT_NODISCARD TRNT_FORCE_INLINE friend TStringBase operator+(TStringBase&& Lhs, ConstPointerType Rhs)
 	{
 		return Concat(Move(Lhs), Rhs, CStringHelper::Strlen(Rhs));
@@ -750,7 +817,9 @@ public:
 		TRNT_ASSERT(NewLength >= 0);
 
 		if (NewLength == Len)
+		{
 			return;
+		}
 
 		if (NewLength > Cap)
 		{
@@ -760,7 +829,7 @@ public:
 			Data = NewData;
 			Cap = NewLength;
 		}
-	
+
 		if (NewLength > Len)
 		{
 			CStringHelper::Memset(Data + Len, Chr, NewLength - Len);
@@ -770,7 +839,7 @@ public:
 		Len = NewLength;
 	}
 
-	void Reserve(SizeType NewCapacity) 
+	void Reserve(SizeType NewCapacity)
 	{
 		if (NewCapacity > Cap)
 		{
@@ -786,7 +855,7 @@ public:
 public:
 	TRNT_NODISCARD TBool StartsWith(ConstPointerType PrefixStr, SizeType PrefixLen, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive) const
 	{
-		if (SearchCase == TStringSearchCase::ECaseSensitive) 
+		if (SearchCase == TStringSearchCase::ECaseSensitive)
 		{
 			return PrefixLen >= 0 && CStringHelper::Strncmp(Data, PrefixStr, PrefixLen) == 0;
 		}
@@ -802,6 +871,7 @@ public:
 	{
 		return StartsWith(PrefixStr.Data, PrefixStr.Len, SearchCase);
 	}
+
 	//////////////////////////////////////////////////////////////////////////////////////
 	TRNT_NODISCARD TBool EndsWith(ConstPointerType SuffixStr, SizeType SuffixLen, TStringSearchCase SearchCase = TStringSearchCase::ECaseSensitive) const
 	{
@@ -823,21 +893,21 @@ public:
 	}
 
 public:
-	void ReverseInternal() 
+	void ReverseInternal()
 	{
 		if (Len > 1)
 		{
 			PointerType Start = Data;
 			PointerType End = Data + (Len - 1);
 			ElementType TmpChar;
-			do 
+			do
 			{
 				TmpChar = *Start;
 				*Start = *End;
 				*End = TmpChar;
 
 				Start++, --End;
-			} while( Start < End );
+			} while (Start < End);
 		}
 	}
 
@@ -881,7 +951,7 @@ public:
 			Cap = static_cast<SizeType>(Cap * GrowSize + Count);
 			PointerType NewData = static_cast<PointerType>(malloc((Cap + 1) * sizeof(ElementType)));
 			memcpy(NewData, Data, Len * sizeof(ElementType));
-		    CStringHelper::Memset(NewData + Len, static_cast<int>(Chr), Count);
+			CStringHelper::Memset(NewData + Len, static_cast<int>(Chr), Count);
 			free(Data);
 			Data = NewData;
 		}
@@ -947,7 +1017,7 @@ public:
 	void Insert(SizeType Index, ConstPointerType Str, SizeType StrLen)
 	{
 		TRNT_ASSERT(Index >= 0 && Index <= Len && StrLen >= 0 && Str != nullptr);
-		
+
 		if (Len + StrLen > Cap)
 		{
 			Cap = static_cast<SizeType>(Cap * GrowSize + StrLen);
@@ -973,7 +1043,7 @@ public:
 	void Insert(SizeType Index, SizeType Count, ElementType Chr = NullChar)
 	{
 		TRNT_ASSERT(Index >= 0 && Index <= Len && Count >= 0);
-		
+
 		if (Len + Count > Cap)
 		{
 			Cap = static_cast<SizeType>(Cap * GrowSize + Count);
@@ -1013,47 +1083,55 @@ public:
 	}
 
 public:
-	TBool SplitByString(TDynamicArray<TStringBase>& Result, ConstPointerType Substring = " ")
+	TBool SplitByString(TDynamicArray<TStringBase>& Result, ConstPointerType Substring)
 	{
-		SizeType Start = 0;
+		SizeType LastOffset = 0, Offset;
 		PointerType Found = CStringHelper::Strstr(Data, Substring);
-		SizeType Offset;
 
 		while (Found != nullptr)
 		{
 			Offset = static_cast<SizeType>(Found - Data);
-			Result.EmplaceBack(*this, Start, Offset - Start);
-			Start = Offset + 1;
-			Found = CStringHelper::Strstr(Data + Start, Substring);
+			SizeType Count = Offset - LastOffset;
+			if (Count > 0)
+			{
+				Result.EmplaceBack(*this, LastOffset, Count);
+			}
+			LastOffset = Offset + 1;
+			Found = CStringHelper::Strstr(Data + LastOffset, Substring);
 		}
-		
-		Offset = Len - Start;
+
+		Offset = Len - LastOffset;
+
 		if (Offset > 0)
 		{
-			Result.EmplaceBack(*this, Start, Offset);
+			Result.EmplaceBack(*this, LastOffset, Offset);
 		}
 
 		return true;
 	}
 
-	TBool SplitBySeparators(TDynamicArray<TStringBase>& Result, ConstPointerType Separators = " ")
+	TBool SplitBySeparators(TDynamicArray<TStringBase>& Result, ConstPointerType Separators)
 	{
-		SizeType Start = 0;
+		SizeType LastOffset = 0, Offset;
 		PointerType Found = CStringHelper::Strpbrk(Data, Separators);
-		SizeType Offset;
 
 		while (Found != nullptr)
 		{
 			Offset = static_cast<SizeType>(Found - Data);
-			Result.EmplaceBack(*this, Start, Offset - Start);
-			Start = Offset + 1;
-			Found = CStringHelper::Strpbrk(Data + Start, Separators);
+			SizeType Count = Offset - LastOffset;
+			if (Count > 0)
+			{
+				Result.EmplaceBack(*this, LastOffset, Count);
+			}
+			LastOffset = Offset + 1;
+			Found = CStringHelper::Strpbrk(Data + LastOffset, Separators);
 		}
 
-		Offset = Len - Start;
+		Offset = Len - LastOffset;
+
 		if (Offset > 0)
 		{
-			Result.EmplaceBack(*this, Start, Offset);
+			Result.EmplaceBack(*this, LastOffset, Offset);
 		}
 
 		return true;
@@ -1121,16 +1199,17 @@ public:
 	{
 		if (!PathString || PathLen < 0)
 		{
-			return; 
+			return;
 		}
-		
-		if (Len > 0 && Data[Len - 1] != '/' && Data[Len - 1] != '\\' && (PathLen == 0 || (*PathString != '/' && *PathString != '\\')))
+		// 47 => '/'
+		// 92 => '\\'
+		if (Len > 0 && Data[Len - 1] != 47 && Data[Len - 1] != 92 && (PathLen == 0 || (*PathString != 47 && *PathString != 92)))
 		{
-			Append(1, '/');
+			Append(1, 47);
 		}
 		else
 		{
-			if ((Len > 0 && (Data[Len - 1] == '/' || Data[Len - 1] == '\\')) && (PathLen > 0 && (*PathString == '/' || *PathString == '\\')))
+			if ((Len > 0 && (Data[Len - 1] == 47 || Data[Len - 1] == 92)) && (PathLen > 0 && (*PathString == 47 || *PathString == 92)))
 			{
 				++PathString;
 				--PathLen;
@@ -1186,7 +1265,7 @@ public:
 	}
 
 private:
-	friend struct std::hash<TStringBase<CharType>>;
+	friend struct std::hash<TStringBase<T>>;
 
 	PointerType Data;
 	SizeType Len;

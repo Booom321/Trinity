@@ -53,7 +53,7 @@ TBool TVulkanPFNFunctions::LoadVulkanPFNFunctions(VkInstance Instance)
 
 #ifdef TRNT_PLATFORM_WIN64
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkCreateWin32SurfaceKHR, CreateWin32SurfaceKHR);
-#endif 
+#endif
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkDestroyInstance, DestroyInstance);
 
 	TRNT_LOAD_VULKAN_PFN_FUNCTION(vkGetPhysicalDeviceProperties, GetPhysicalDeviceProperties);
@@ -542,17 +542,17 @@ void TVulkanRHI::SetupInstanceLayersAndExtensions()
 		};
 
 	#if defined(TRNT_DEBUG)
-	#if defined(TRNT_USE_VULKAN_DEBUG_UTILS) 
+	#if defined(TRNT_USE_VULKAN_DEBUG_UTILS)
 	if (VulkanRHIFeatures.EnableValidationLayer && ContainsExtension(VK_EXT_DEBUG_UTILS_EXTENSION_NAME))
 	{
 		AddInstanceExtensionNameIfNotExists(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, InstanceExtensions);
 		VulkanRHIFeatures.SupportsDebugUtils = true;
 	}
 	#else
-	if (EnableValidationLayer && ContainsExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME))
+	if (VulkanRHIFeatures.EnableValidationLayer && ContainsExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME))
 	{
 		AddInstanceExtensionNameIfNotExists(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, InstanceExtensions);
-		SupportsDebugReport = true;
+		VulkanRHIFeatures.SupportsDebugReport = true;
 	}
 	#endif
 	#endif
@@ -843,8 +843,8 @@ void TVulkanRHI::SetupDebugLayerCallback()
 		return;
 	}
 
-	#if defined(TRNT_DEBUG)
-	#if defined(TRNT_USE_VULKAN_DEBUG_UTILS)
+#if defined(TRNT_DEBUG)
+#if defined(TRNT_USE_VULKAN_DEBUG_UTILS)
 	if (VulkanRHIFeatures.SupportsDebugUtils)
 	{
 		VkDebugUtilsMessengerCreateInfoEXT DebugUtilsMessengerCreateInfo;
@@ -859,8 +859,8 @@ void TVulkanRHI::SetupDebugLayerCallback()
 
 		TRNT_CHECK_VULKAN_RESULT(VKCreateDebugUtilsMessengerEXT(Instance, &DebugUtilsMessengerCreateInfo, nullptr, &DebugUtilsMessenger));
 	}
-	#elif TRNT_USE_VULKAN_DEBUG_REPORT
-	if (SupportsDebugReport)
+#elif TRNT_USE_VULKAN_DEBUG_REPORT
+	if (VulkanRHIFeatures.SupportsDebugReport)
 	{
 		VkDebugReportCallbackCreateInfoEXT DebugReportCallbackCreateInfo;
 		TMemory::Memset(&DebugReportCallbackCreateInfo, 0, sizeof(DebugReportCallbackCreateInfo));
@@ -878,8 +878,8 @@ void TVulkanRHI::SetupDebugLayerCallback()
 			TLog::Warning<TRNT_GET_LOG_INFO(VulkanRHI)>("Failed to create debug report callback, error: {}", TVulkanUtils::ConvertVkResultToCString(Result));
 		}
 	}
-	#endif
-	#endif
+#endif
+#endif
 }
 
 VkPhysicalDevice TVulkanRHI::ChoosePhysicalDevice()
@@ -1013,7 +1013,7 @@ TBool TVulkanRHI::CreateVulkanDevice(const TVulkanPhysicalDevice& SelectedPhysic
 	}
 	else
 	{
-		TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>("Vulkan device has been initialized successful!");
+		TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>("Vulkan device has been initialized successfully!");
 	}
 	return true;
 }

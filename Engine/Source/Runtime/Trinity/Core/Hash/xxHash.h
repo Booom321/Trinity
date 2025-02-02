@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Trinity/Core/Types/DataTypes.h"
 #include "Trinity/Core/Defines.h"
+#include "Trinity/Core/Types/DataTypes.h"
 
 #define XXH_INLINE_ALL
-#include <xxhash.h> 
+#include <xxhash.h>
 
 class TXxHash32
 {

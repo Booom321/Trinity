@@ -1,25 +1,24 @@
 #pragma once
 
-#include <utility>
-
-#include "Trinity/Core/Types/DataTypes.h"
-#include "Trinity/Core/Types/SharedPtr.h"
-
-#include "Trinity/Core/Types/Pair.h"
-
+#include "Trinity/Core/Memory/SharedPtr.h"
 #include "Trinity/Core/TypeTraits/Decay.h"
 #include "Trinity/Core/TypeTraits/EnableIf.h"
 #include "Trinity/Core/TypeTraits/PrimaryTypes.h"
 #include "Trinity/Core/TypeTraits/TypeRelationships.h"
+#include "Trinity/Core/Types/DataTypes.h"
+#include "Trinity/Core/Types/Pair.h"
 
-template<typename Type> class TDelegate;
+#include <utility>
+
+template<typename Type>
+class TDelegate;
 
 template<typename ReturnType, typename... Arguments>
 class TDelegate<ReturnType(Arguments...)>
 {
-	using StubPointerType = ReturnType(*)(void*, Arguments&&...);
+	using StubPointerType = ReturnType (*)(void*, Arguments&&...);
 
-	TRNT_FORCE_INLINE TDelegate(void* const ObjectPointer, StubPointerType const StubPointer) noexcept
+	TRNT_FORCE_INLINE TDelegate(void* const ObjectPointer, const StubPointerType StubPointer) noexcept
 		: ObjectPointer(ObjectPointer), StubPointer(StubPointer)
 	{
 	}
@@ -27,46 +26,47 @@ class TDelegate<ReturnType(Arguments...)>
 public:
 	TRNT_FORCE_INLINE TDelegate() = default;
 
-	TRNT_FORCE_INLINE TDelegate(TDelegate const&) = default;
+	TRNT_FORCE_INLINE TDelegate(const TDelegate&) = default;
 
 	TRNT_FORCE_INLINE TDelegate(TDelegate&&) = default;
 
-	TRNT_FORCE_INLINE TDelegate(TNullPtr const) noexcept : TDelegate()
+	TRNT_FORCE_INLINE TDelegate(const TNullPtr) noexcept
+		: TDelegate()
 	{
 	}
 
 	template<typename Class, typename = typename TEnableIf<TIsClass<Class>::Value>::Type>
-	TRNT_FORCE_INLINE explicit TDelegate(Class const* const Object) noexcept
+	TRNT_FORCE_INLINE explicit TDelegate(const Class* const Object) noexcept
 		: ObjectPointer(const_cast<Class*>(Object))
 	{
 	}
 
 	template<typename Class, typename = typename TEnableIf<TIsClass<Class>::Value>::Type>
-	TRNT_FORCE_INLINE explicit TDelegate(Class const& Object) noexcept
+	TRNT_FORCE_INLINE explicit TDelegate(const Class& Object) noexcept
 		: ObjectPointer(const_cast<Class*>(&Object))
 	{
 	}
 
 	template<typename Class>
-	TRNT_FORCE_INLINE TDelegate(Class* const ObjectPointer, ReturnType(Class::* const MethodPointer)(Arguments...))
+	TRNT_FORCE_INLINE TDelegate(Class* const ObjectPointer, ReturnType (Class::* const MethodPointer)(Arguments...))
 	{
 		*this = From(ObjectPointer, MethodPointer);
 	}
 
 	template<typename Class>
-	TRNT_FORCE_INLINE TDelegate(Class* const ObjectPointer, ReturnType(Class::* const MethodPointer)(Arguments...) const)
+	TRNT_FORCE_INLINE TDelegate(Class* const ObjectPointer, ReturnType (Class::* const MethodPointer)(Arguments...) const)
 	{
 		*this = From(ObjectPointer, MethodPointer);
 	}
 
 	template<typename Class>
-	TRNT_FORCE_INLINE TDelegate(Class& Object, ReturnType(Class::* const MethodPointer)(Arguments...))
+	TRNT_FORCE_INLINE TDelegate(Class& Object, ReturnType (Class::* const MethodPointer)(Arguments...))
 	{
 		*this = From(Object, MethodPointer);
 	}
 
 	template<typename Class>
-	TRNT_FORCE_INLINE  TDelegate(Class const& Object, ReturnType(Class::* const MethodPointer)(Arguments...) const)
+	TRNT_FORCE_INLINE TDelegate(const Class& Object, ReturnType (Class::* const MethodPointer)(Arguments...) const)
 	{
 		*this = From(Object, MethodPointer);
 	}
@@ -84,20 +84,20 @@ public:
 		Deleter = DeleterStub<FunctorType>;
 	}
 
-	TDelegate& operator=(TDelegate const&) = default;
+	TDelegate& operator=(const TDelegate&) = default;
 
 	TDelegate& operator=(TDelegate&&) = default;
 
 	template<typename Class>
-	TRNT_FORCE_INLINE TDelegate& operator=(ReturnType(Class::* const Rhs)(Arguments...))
+	TRNT_FORCE_INLINE TDelegate& operator=(ReturnType (Class::* const Rhs)(Arguments...))
 	{
 		return *this = From(static_cast<Class*>(ObjectPointer), Rhs);
 	}
 
 	template<typename Class>
-	TRNT_FORCE_INLINE TDelegate& operator=(ReturnType(Class::* const Rhs)(Arguments...) const)
+	TRNT_FORCE_INLINE TDelegate& operator=(ReturnType (Class::* const Rhs)(Arguments...) const)
 	{
-		return *this = From(static_cast<Class const*>(ObjectPointer), Rhs);
+		return *this = From(static_cast<const Class*>(ObjectPointer), Rhs);
 	}
 
 	template<typename T, typename = typename TEnableIf<!TAreTheSameType<TDelegate, typename TDecay<T>::Type>::Value>::Type>
@@ -128,34 +128,34 @@ public:
 	}
 
 public:
-	template<ReturnType(* const FunctionPointer)(Arguments...)>
+	template<ReturnType (*const FunctionPointer)(Arguments...)>
 	static TRNT_FORCE_INLINE TDelegate From() noexcept
 	{
-		return{ nullptr, FunctionStub<FunctionPointer> };
+		return { nullptr, FunctionStub<FunctionPointer> };
 	}
 
-	template<typename Class, ReturnType(Class::* const MethodPointer)(Arguments...)>
+	template<typename Class, ReturnType (Class::* const MethodPointer)(Arguments...)>
 	static TRNT_FORCE_INLINE TDelegate From(Class* const ObjectPointer) noexcept
 	{
-		return{ ObjectPointer, MethodStub<Class, MethodPointer> };
+		return { ObjectPointer, MethodStub<Class, MethodPointer> };
 	}
 
-	template<typename Class, ReturnType(Class::* const MethodPointer)(Arguments...) const>
-	static TRNT_FORCE_INLINE TDelegate From(Class const* const ObjectPointer) noexcept
+	template<typename Class, ReturnType (Class::* const MethodPointer)(Arguments...) const>
+	static TRNT_FORCE_INLINE TDelegate From(const Class* const ObjectPointer) noexcept
 	{
-		return{ const_cast<Class*>(ObjectPointer), ConstMethodStub<Class, MethodPointer> };
+		return { const_cast<Class*>(ObjectPointer), ConstMethodStub<Class, MethodPointer> };
 	}
 
-	template<typename Class, ReturnType(Class::* const MethodPointer)(Arguments...)>
+	template<typename Class, ReturnType (Class::* const MethodPointer)(Arguments...)>
 	static TRNT_FORCE_INLINE TDelegate From(Class& Object) noexcept
 	{
-		return{ &Object, MethodStub<Class, MethodPointer> };
+		return { &Object, MethodStub<Class, MethodPointer> };
 	}
 
-	template<typename Class, ReturnType(Class::* const MethodPointer)(Arguments...) const>
-	static TRNT_FORCE_INLINE TDelegate From(Class const& Object) noexcept
+	template<typename Class, ReturnType (Class::* const MethodPointer)(Arguments...) const>
+	static TRNT_FORCE_INLINE TDelegate From(const Class& Object) noexcept
 	{
-		return{ const_cast<Class*>(&Object), ConstMethodStub<Class, MethodPointer> };
+		return { const_cast<Class*>(&Object), ConstMethodStub<Class, MethodPointer> };
 	}
 
 	template<typename T>
@@ -164,49 +164,59 @@ public:
 		return Forward<T>(Func);
 	}
 
-	static TRNT_FORCE_INLINE TDelegate From(ReturnType(* const FunctionPointer)(Arguments...))
+	static TRNT_FORCE_INLINE TDelegate From(ReturnType (*const FunctionPointer)(Arguments...))
 	{
 		return FunctionPointer;
 	}
 
 	template<typename Class>
-	using MemberPair = TPair<Class* const, ReturnType(Class::* const)(Arguments...)>;
+	using MemberPair = TPair<Class* const, ReturnType (Class::* const)(Arguments...)>;
 
 	template<typename Class>
-	using ConstMemberPair = TPair<Class const* const, ReturnType(Class::* const)(Arguments...) const>;
+	using ConstMemberPair = TPair<const Class* const, ReturnType (Class::* const)(Arguments...) const>;
 
 	template<typename Class>
-	static TRNT_FORCE_INLINE TDelegate From(Class* const ObjectPointer, ReturnType(Class::* const MethodPointer)(Arguments...))
+	static TRNT_FORCE_INLINE TDelegate From(Class* const ObjectPointer, ReturnType (Class::* const MethodPointer)(Arguments...))
 	{
 		return MemberPair<Class>(ObjectPointer, MethodPointer);
 	}
 
 	template<typename Class>
-	static TRNT_FORCE_INLINE TDelegate From(Class const* const ObjectPointer, ReturnType(Class::* const MethodPointer)(Arguments...) const)
+	static TRNT_FORCE_INLINE TDelegate From(const Class* const ObjectPointer, ReturnType (Class::* const MethodPointer)(Arguments...) const)
 	{
 		return ConstMemberPair<Class>(ObjectPointer, MethodPointer);
 	}
 
 	template<typename Class>
-	static TRNT_FORCE_INLINE TDelegate From(Class& Object, ReturnType(Class::* const MethodPointer)(Arguments...))
+	static TRNT_FORCE_INLINE TDelegate From(Class& Object, ReturnType (Class::* const MethodPointer)(Arguments...))
 	{
 		return MemberPair<Class>(&Object, MethodPointer);
 	}
 
 	template<typename Class>
-	static TRNT_FORCE_INLINE TDelegate From(Class const& Object, ReturnType(Class::* const MethodPointer)(Arguments...) const)
+	static TRNT_FORCE_INLINE TDelegate From(const Class& Object, ReturnType (Class::* const MethodPointer)(Arguments...) const)
 	{
 		return ConstMemberPair<Class>(&Object, MethodPointer);
 	}
 
 public:
-	TRNT_FORCE_INLINE void Reset() { StubPointer = nullptr; Store.Reset(); }
+	TRNT_FORCE_INLINE void Reset()
+	{
+		StubPointer = nullptr;
+		Store.Reset();
+	}
 
-	TRNT_FORCE_INLINE void ResetStub() noexcept { StubPointer = nullptr; }
+	TRNT_FORCE_INLINE void ResetStub() noexcept
+	{
+		StubPointer = nullptr;
+	}
 
-	TRNT_FORCE_INLINE void Swap(TDelegate& Other) noexcept { std::swap(*this, Other); }
+	TRNT_FORCE_INLINE void Swap(TDelegate& Other) noexcept
+	{
+		std::swap(*this, Other);
+	}
 
-	bool operator==(TDelegate const& Rhs) const noexcept
+	bool operator==(const TDelegate& Rhs) const noexcept
 	{
 		if (StoreSize && Rhs.StoreSize && StoreSize == Rhs.StoreSize)
 		{
@@ -215,27 +225,30 @@ public:
 		return (ObjectPointer == Rhs.ObjectPointer) && (StubPointer == Rhs.StubPointer);
 	}
 
-	TRNT_FORCE_INLINE bool operator!=(TDelegate const& Rhs) const noexcept
+	TRNT_FORCE_INLINE bool operator!=(const TDelegate& Rhs) const noexcept
 	{
 		return !operator==(Rhs);
 	}
 
-	TRNT_FORCE_INLINE bool operator<(TDelegate const& Rhs) const noexcept
+	TRNT_FORCE_INLINE bool operator<(const TDelegate& Rhs) const noexcept
 	{
 		return (ObjectPointer < Rhs.ObjectPointer) || ((ObjectPointer == Rhs.ObjectPointer) && (StubPointer < Rhs.StubPointer));
 	}
 
-	TRNT_FORCE_INLINE bool operator==(TNullPtr const) const noexcept
+	TRNT_FORCE_INLINE bool operator==(const TNullPtr) const noexcept
 	{
 		return !StubPointer;
 	}
 
-	TRNT_FORCE_INLINE bool operator!=(TNullPtr const) const noexcept
+	TRNT_FORCE_INLINE bool operator!=(const TNullPtr) const noexcept
 	{
 		return StubPointer;
 	}
 
-	TRNT_FORCE_INLINE explicit operator bool() const noexcept { return StubPointer; }
+	TRNT_FORCE_INLINE explicit operator bool() const noexcept
+	{
+		return StubPointer;
+	}
 
 	ReturnType operator()(Arguments... Args) const
 	{
@@ -245,7 +258,7 @@ public:
 private:
 	friend struct std::hash<TDelegate>;
 
-	using DeleterType = void(*)(void*);
+	using DeleterType = void (*)(void*);
 
 	void* ObjectPointer;
 	StubPointerType StubPointer{};
@@ -269,22 +282,22 @@ private:
 		static_cast<T*>(Pointer)->~T();
 	}
 
-	template<ReturnType(*FunctionPointer)(Arguments...)>
+	template<ReturnType (*FunctionPointer)(Arguments...)>
 	static ReturnType FunctionStub(void* const, Arguments&&... Args)
 	{
 		return FunctionPointer(Forward<Arguments>(Args)...);
 	}
 
-	template<typename Class, ReturnType(Class::* MethodPointer)(Arguments...)>
+	template<typename Class, ReturnType (Class::*MethodPointer)(Arguments...)>
 	static ReturnType MethodStub(void* const ObjectPointer, Arguments&&... Args)
 	{
 		return (static_cast<Class*>(ObjectPointer)->*MethodPointer)(Forward<Arguments>(Args)...);
 	}
 
-	template<typename Class, ReturnType(Class::* MethodPointer)(Arguments...) const>
+	template<typename Class, ReturnType (Class::*MethodPointer)(Arguments...) const>
 	static ReturnType ConstMethodStub(void* const ObjectPointer, Arguments&&... Args)
 	{
-		return (static_cast<Class const*>(ObjectPointer)->*MethodPointer)(Forward<Arguments>(Args)...);
+		return (static_cast<const Class*>(ObjectPointer)->*MethodPointer)(Forward<Arguments>(Args)...);
 	}
 
 	template<typename>
@@ -293,7 +306,7 @@ private:
 	};
 
 	template<typename Class>
-	class TIsMemberPair<TPair<Class* const, ReturnType(Class::* const)(Arguments...)>> : public TTrueType
+	class TIsMemberPair<TPair<Class* const, ReturnType (Class::* const)(Arguments...)>> : public TTrueType
 	{
 	};
 
@@ -303,7 +316,7 @@ private:
 	};
 
 	template<typename Class>
-	class TIsConstMemberPair<TPair<Class const* const, ReturnType(Class::* const)(Arguments...) const>> : public TTrueType
+	class TIsConstMemberPair<TPair<const Class* const, ReturnType (Class::* const)(Arguments...) const>> : public TTrueType
 	{
 	};
 

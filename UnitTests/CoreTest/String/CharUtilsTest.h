@@ -2,6 +2,11 @@
 
 #include "Framework/TestMacros.h"
 
-TRNT_DECL_TEST_CASE(Strings, TCharUtilsForChar);
+#define TRNT_TEST_CHAR
+#include "Framework/StringTestMacros.h"
 
-TRNT_DECL_TEST_CASE(Strings, TCharUtilsForWChar);
+#if defined(TRNT_TEST_CHAR_TYPE)
+TRNT_DECL_TEST_CASE(Strings, TCharUtils_Char);
+#elif defined(TRNT_TEST_WCHAR_TYPE)
+TRNT_DECL_TEST_CASE(Strings, TCharUtils_WChar);
+#endif

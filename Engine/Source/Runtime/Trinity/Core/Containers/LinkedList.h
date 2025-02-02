@@ -1,11 +1,11 @@
 #pragma once
 
-#include <initializer_list>
-
 #include "Trinity/Core/Assert/AssertionMacros.h"
 #include "Trinity/Core/Defines.h"
-#include "Trinity/Core/Types/DataTypes.h"
 #include "Trinity/Core/TypeTraits/RemoveReference.h"
+#include "Trinity/Core/Types/DataTypes.h"
+
+#include <initializer_list>
 
 template<typename LinkedListType>
 class TLinkedListHelper
@@ -132,18 +132,46 @@ public:
 	{}
 
 public:
-	TRNT_FORCE_INLINE ElementType& operator*() { return CurrentNode->Value; }
-	TRNT_FORCE_INLINE const ElementType& operator*() const { return CurrentNode->Value; }
+	TRNT_FORCE_INLINE ElementType& operator*()
+	{
+		return CurrentNode->Value;
+	}
 
-	TRNT_FORCE_INLINE ElementType* operator->() { return &CurrentNode->Value; }
-	TRNT_FORCE_INLINE const ElementType* operator->() const { return &CurrentNode->Value; }
+	TRNT_FORCE_INLINE const ElementType& operator*() const
+	{
+		return CurrentNode->Value;
+	}
 
-	TRNT_FORCE_INLINE NodeType* GetNode() { return CurrentNode; }
-	TRNT_FORCE_INLINE const NodeType* GetNode() const { return CurrentNode; }
+	TRNT_FORCE_INLINE ElementType* operator->()
+	{
+		return &CurrentNode->Value;
+	}
+
+	TRNT_FORCE_INLINE const ElementType* operator->() const
+	{
+		return &CurrentNode->Value;
+	}
+
+	TRNT_FORCE_INLINE NodeType* GetNode()
+	{
+		return CurrentNode;
+	}
+
+	TRNT_FORCE_INLINE const NodeType* GetNode() const
+	{
+		return CurrentNode;
+	}
 
 public:
-	TRNT_FORCE_INLINE TBool operator==(const LinkedListIteratorType<NodeType, ElementType>& Rhs) const { return CurrentNode == Rhs.CurrentNode; }
-	TRNT_FORCE_INLINE TBool operator!=(const LinkedListIteratorType<NodeType, ElementType>& Rhs) const { return CurrentNode != Rhs.CurrentNode; }
+	TRNT_FORCE_INLINE TBool operator==(const LinkedListIteratorType<NodeType, ElementType>& Rhs) const
+	{
+		return CurrentNode == Rhs.CurrentNode;
+	}
+
+	TRNT_FORCE_INLINE TBool operator!=(const LinkedListIteratorType<NodeType, ElementType>& Rhs) const
+	{
+		return CurrentNode != Rhs.CurrentNode;
+	}
 
 protected:
 	NodeType* CurrentNode;
@@ -463,13 +491,35 @@ public:
 		return CurrentNode;
 	}
 
-	TRNT_FORCE_INLINE IteratorType begin() noexcept { return IteratorType(Head); }
-	TRNT_FORCE_INLINE ConstIteratorType begin() const noexcept { return ConstIteratorType(Head); }
-	TRNT_FORCE_INLINE ConstIteratorType cbegin() const noexcept { return ConstIteratorType(Head); }
+	TRNT_FORCE_INLINE IteratorType begin() noexcept
+	{
+		return IteratorType(Head);
+	}
 
-	TRNT_FORCE_INLINE IteratorType end() noexcept { return IteratorType(nullptr); }
-	TRNT_FORCE_INLINE ConstIteratorType end() const noexcept { return ConstIteratorType(nullptr); }
-	TRNT_FORCE_INLINE ConstIteratorType cend() const noexcept { return ConstIteratorType(nullptr); }
+	TRNT_FORCE_INLINE ConstIteratorType begin() const noexcept
+	{
+		return ConstIteratorType(Head);
+	}
+
+	TRNT_FORCE_INLINE ConstIteratorType cbegin() const noexcept
+	{
+		return ConstIteratorType(Head);
+	}
+
+	TRNT_FORCE_INLINE IteratorType end() noexcept
+	{
+		return IteratorType(nullptr);
+	}
+
+	TRNT_FORCE_INLINE ConstIteratorType end() const noexcept
+	{
+		return ConstIteratorType(nullptr);
+	}
+
+	TRNT_FORCE_INLINE ConstIteratorType cend() const noexcept
+	{
+		return ConstIteratorType(nullptr);
+	}
 
 public:
 	TRNT_FORCE_INLINE NodeType* Find(ConstReferenceType Element) const
@@ -933,7 +983,6 @@ public:
 		return *this;
 	}
 
-
 public:
 	TRNT_FORCE_INLINE SizeType GetElementCount() const
 	{
@@ -989,13 +1038,35 @@ public:
 		return Tail;
 	}
 
-	TRNT_FORCE_INLINE IteratorType begin() noexcept { return IteratorType(Head); }
-	TRNT_FORCE_INLINE ConstIteratorType begin() const noexcept { return ConstIteratorType(Head); }
-	TRNT_FORCE_INLINE ConstIteratorType cbegin() const noexcept { return ConstIteratorType(Head); }
+	TRNT_FORCE_INLINE IteratorType begin() noexcept
+	{
+		return IteratorType(Head);
+	}
 
-	TRNT_FORCE_INLINE IteratorType end() noexcept { return IteratorType(nullptr); }
-	TRNT_FORCE_INLINE ConstIteratorType end() const noexcept { return ConstIteratorType(nullptr); }
-	TRNT_FORCE_INLINE ConstIteratorType cend() const noexcept { return ConstIteratorType(nullptr); }
+	TRNT_FORCE_INLINE ConstIteratorType begin() const noexcept
+	{
+		return ConstIteratorType(Head);
+	}
+
+	TRNT_FORCE_INLINE ConstIteratorType cbegin() const noexcept
+	{
+		return ConstIteratorType(Head);
+	}
+
+	TRNT_FORCE_INLINE IteratorType end() noexcept
+	{
+		return IteratorType(nullptr);
+	}
+
+	TRNT_FORCE_INLINE ConstIteratorType end() const noexcept
+	{
+		return ConstIteratorType(nullptr);
+	}
+
+	TRNT_FORCE_INLINE ConstIteratorType cend() const noexcept
+	{
+		return ConstIteratorType(nullptr);
+	}
 
 public:
 	TRNT_FORCE_INLINE NodeType* Find(ConstReferenceType Element) const

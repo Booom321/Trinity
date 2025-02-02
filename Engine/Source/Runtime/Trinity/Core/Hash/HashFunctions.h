@@ -1,30 +1,24 @@
- #pragma once
-
+#pragma once
 
 #include "Hashable.h"
-#include "xxHash.h"
-
-#include "Trinity/Core/PlatformDetection.h"
-
 #include "Trinity/Core/Assert/AssertionMacros.h"
-
+#include "Trinity/Core/PlatformDetection.h"
 #include "Trinity/Core/String/String.h"
-
-#include "Trinity/Core/Types/Delegate.h"
-
 #include "Trinity/Core/TypeTraits/EnableIf.h"
+#include "Trinity/Core/TypeTraits/Logical.h"
 #include "Trinity/Core/TypeTraits/PrimaryTypes.h"
 #include "Trinity/Core/TypeTraits/RemoveCV.h"
-#include "Trinity/Core/TypeTraits/Logical.h"
+#include "Trinity/Core/Types/Delegate.h"
+#include "xxHash.h"
 
 #include <functional>
 
 #if defined(TRNT_PLATFORM_WIN64)
-inline constexpr TSize_T FNV_OffsetBasis = 14695981039346656037ULL;
-inline constexpr TSize_T FNV_Prime = 1099511628211ULL;
+TRNT_CONSTEXPR inline TSize_T FNV_OffsetBasis = 14695981039346656037ULL;
+TRNT_CONSTEXPR inline TSize_T FNV_Prime = 1099511628211ULL;
 #else
-inline constexpr TSize_T FNV_OffsetBasis = 2166136261U;
-inline constexpr TSize_T FNV_Prime = 16777619U;
+TRNT_CONSTEXPR inline TSize_T FNV_OffsetBasis = 2166136261U;
+TRNT_CONSTEXPR inline TSize_T FNV_Prime = 16777619U;
 #endif
 
 template<typename CharType>
@@ -53,12 +47,12 @@ struct std::hash<TStringBase<CharType>>
 	}
 };
 
-template<typename ReturnType, typename ... Arguments>
+template<typename ReturnType, typename... Arguments>
 struct std::hash<TDelegate<ReturnType(Arguments...)>>
 {
 	TRNT_FORCE_INLINE TSize_T operator()(const TDelegate<ReturnType(Arguments...)>& Delegate) const noexcept
 	{
-		auto const Seed(hash<void*>()(Delegate.ObjectPointer));
+		const auto Seed(hash<void*>()(Delegate.ObjectPointer));
 
 		return hash<decltype(Delegate.StubPointer)>()(Delegate.StubPointer) + 0x9e3779b9 + (Seed << 6) + (Seed >> 2);
 	}
@@ -138,7 +132,7 @@ namespace TNsHash
 		return static_cast<TSize_T>(XXH64(&Value, sizeof(TChar8), 0));
 	}
 
-#endif 
+#endif
 	inline TSize_T GetHashCode(TChar16 Value)
 	{
 		return static_cast<TSize_T>(XXH64(&Value, sizeof(TChar16), 0));
@@ -184,7 +178,7 @@ namespace TNsHash
 		return static_cast<TSize_T>(Hash.HashLow64);
 	}
 
-	template <typename ReturnType, typename ... Arguments>
+	template<typename ReturnType, typename... Arguments>
 	inline TSize_T GetHashCode(const TDelegate<ReturnType(Arguments...)>& Delegate)
 	{
 		return std::hash<TDelegate<ReturnType(Arguments...)>>{}(Delegate);
@@ -192,12 +186,10 @@ namespace TNsHash
 
 	template<typename T>
 	inline typename TEnableIf<
-		!TOr<
-			TAreTheSameType<TChar*, 
-			typename TRemoveCV<T>::Type>, 
-			TAreTheSameType<TWChar*, typename TRemoveCV<T>::Type>>::Value && TOr<TIsEnum<T>, TIsPointer<T>, TIsBaseOf<THashable, T>>::Value, 
-		TSize_T
-	>::Type GetHashCode(const T& Value)
+		!TOr<TAreTheSameType<TChar*, typename TRemoveCV<T>::Type>, TAreTheSameType<TWChar*, typename TRemoveCV<T>::Type>>::Value &&
+			TOr<TIsEnum<T>, TIsPointer<T>, TIsBaseOf<THashable, T>>::Value,
+		TSize_T>::Type
+	GetHashCode(const T& Value)
 	{
 		if constexpr (TIsEnum<T>::Value)
 		{
@@ -213,4 +205,4 @@ namespace TNsHash
 			return Value.CalculateHash();
 		}
 	}
-}
+} // namespace TNsHash

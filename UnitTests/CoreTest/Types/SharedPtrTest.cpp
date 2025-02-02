@@ -1,6 +1,6 @@
 #include "SharedPtrTest.h"
 
-#include <Trinity/Core/Types/SharedPtr.h>
+#include <Trinity/Core/Memory/SharedPtr.h>
 
 class Foo
 {

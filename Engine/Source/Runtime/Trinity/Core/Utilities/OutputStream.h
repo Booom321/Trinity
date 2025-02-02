@@ -1,13 +1,13 @@
 #pragma once
 
-#include <fmt/core.h>
-#include <fmt/chrono.h>
-#include <fmt/xchar.h>
-
 #include "Trinity/Core/Defines.h"
 #include "Trinity/Core/TypeTraits/RemoveReference.h"
 
-template<typename ... Arguments>
+#include <fmt/chrono.h>
+#include <fmt/core.h>
+#include <fmt/xchar.h>
+
+template<typename... Arguments>
 TRNT_INLINE void Printf(std::FILE* OutputFile, fmt::string_view FmtString, Arguments&&... Args)
 {
 	const auto& FormatArgs = fmt::make_format_args(Args...);
@@ -29,7 +29,7 @@ TRNT_INLINE void Printf(std::FILE* OutputFile, fmt::string_view FmtString, Argum
 	}
 }
 
-template<typename ... Arguments>
+template<typename... Arguments>
 TRNT_INLINE void Printf(fmt::string_view FmtString, Arguments&&... Args)
 {
 	const auto& FormatArgs = fmt::make_format_args(Args...);
@@ -51,7 +51,7 @@ TRNT_INLINE void Printf(fmt::string_view FmtString, Arguments&&... Args)
 	}
 }
 
-template<typename ... Arguments>
+template<typename... Arguments>
 TRNT_INLINE void Printf(std::FILE* OutputFile, fmt::wstring_view FmtString, Arguments&&... Args)
 {
 	auto MemoryBuffer = fmt::wmemory_buffer();
@@ -63,7 +63,7 @@ TRNT_INLINE void Printf(std::FILE* OutputFile, fmt::wstring_view FmtString, Argu
 	std::fputws(MemoryBuffer.data(), OutputFile);
 }
 
-template<typename ... Arguments>
+template<typename... Arguments>
 TRNT_INLINE void Printf(fmt::wstring_view FmtString, Arguments&&... Args)
 {
 	auto MemoryBuffer = fmt::wmemory_buffer();

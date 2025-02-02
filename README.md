@@ -4,4 +4,4 @@
     <img src="Logo.png" width="800" alt="Engine logo">
 </p>
 
-Trinity game engine
+Trinity graphics engine

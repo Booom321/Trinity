@@ -1,8 +1,8 @@
 #pragma once
 
-#include <type_traits>
-
 #include "Trinity/Core/Types/Base.h"
+
+#include <type_traits>
 
 template<typename T>
 class TIsTriviallyDefaultConstructible : public TBoolConstant<std::is_trivially_default_constructible<T>::value>
@@ -30,4 +30,8 @@ class TIsTriviallyMoveAssignable : public TBoolConstant<std::is_trivially_move_a
 
 template<typename T>
 class TIsTrivial : public TBoolConstant<std::is_trivial<T>::value>
+{};
+
+template<typename T>
+class TIsTriviallyCopyable : public TBoolConstant<std::is_trivially_copyable<T>::value>
 {};

@@ -1,18 +1,17 @@
 #pragma once
 
-#pragma once
+#include "Trinity/Core/Defines.h"
+#include "Trinity/Core/TypeTraits/IsBitwiseConstructible.h"
+#include "Trinity/Core/TypeTraits/Logical.h"
+#include "Trinity/Core/TypeTraits/MemoryTraits.h"
+#include "Trinity/Core/TypeTraits/PrimaryTypes.h"
+#include "Trinity/Core/TypeTraits/RemoveReference.h"
+#include "Trinity/Core/TypeTraits/Trivial.h"
+#include "Trinity/Core/Types/DataTypes.h"
 
 #include <stdlib.h>
-#include <cstring>
 
-#include "Trinity/Core/Defines.h"
-#include "Trinity/Core/Types/DataTypes.h"
-#include "Trinity/Core/TypeTraits/Trivial.h"
-#include "Trinity/Core/TypeTraits/Logical.h"
-#include "Trinity/Core/TypeTraits/PrimaryTypes.h"
-#include "Trinity/Core/TypeTraits/IsZeroConstructType.h"
-#include "Trinity/Core/TypeTraits/IsBitwiseConstructible.h"
-#include "Trinity/Core/TypeTraits/RemoveReference.h"
+#include <cstring>
 
 class TMemory
 {
@@ -51,7 +50,7 @@ public:
 	template<typename Type>
 	static TRNT_FORCE_INLINE void DefaultConstructItem(Type* Dest)
 	{
-		if constexpr (TIsZeroConstructType<Type>::Value)
+		if constexpr (TIsMemsetCompatible<Type>::Value)
 		{
 			memset(Dest, 0, sizeof(Type));
 		}
@@ -64,7 +63,7 @@ public:
 	template<typename Type, typename SizeType = TSize_T>
 	static TRNT_FORCE_INLINE void DefaultConstructItems(Type* Dest, SizeType Count)
 	{
-		if constexpr (TIsZeroConstructType<Type>::Value)
+		if constexpr (TIsMemsetCompatible<Type>::Value)
 		{
 			memset(Dest, 0, Count * sizeof(Type));
 		}
@@ -141,7 +140,7 @@ public:
 	template<typename Type, typename SizeType = TSize_T>
 	static TRNT_FORCE_INLINE void CopyAssignItems(Type* Dest, const Type* Source, SizeType Count)
 	{
-		if constexpr (TIsTriviallyCopyAssignable<Type>::Value)
+		if constexpr (TIsMemcpyCompatible<Type>::Value)
 		{
 			memcpy(Dest, Source, Count * sizeof(Type));
 		}
@@ -160,7 +159,7 @@ public:
 	template<typename Type, typename SizeType = TSize_T>
 	static TRNT_FORCE_INLINE void CopyAssignBackwardItems(Type* Dest, const Type* Source, SizeType Count)
 	{
-		if constexpr (TIsTriviallyCopyAssignable<Type>::Value)
+		if constexpr (TIsMemmoveCompatible<Type>::Value)
 		{
 			memmove(Dest - Count, Source - Count, Count * sizeof(Type));
 		}
@@ -177,7 +176,7 @@ public:
 	template<typename Type, typename SizeType = TSize_T>
 	static TRNT_FORCE_INLINE void MoveConstructItems(Type* Dest, Type* Source, SizeType Count)
 	{
-		if constexpr (TIsTriviallyMoveConstructible<Type>::Value)
+		if constexpr (TIsMemcpyCompatible<Type>::Value)
 		{
 			memcpy(Dest, Source, Count * sizeof(Type));
 		}
@@ -196,7 +195,7 @@ public:
 	template<typename Type, typename SizeType = TSize_T>
 	static TRNT_FORCE_INLINE void MoveConstructBackwardItems(Type* Dest, Type* Source, SizeType Count)
 	{
-		if constexpr (TIsTriviallyMoveConstructible<Type>::Value)
+		if constexpr (TIsMemmoveCompatible<Type>::Value)
 		{
 			memmove(Dest - Count, Source - Count, Count * sizeof(Type));
 		}
@@ -213,7 +212,7 @@ public:
 	template<typename Type, typename SizeType = TSize_T>
 	static TRNT_FORCE_INLINE void MoveAssignItems(Type* Dest, Type* Source, SizeType Count)
 	{
-		if constexpr (TIsTriviallyMoveAssignable<Type>::Value)
+		if constexpr (TIsMemcpyCompatible<Type>::Value)
 		{
 			memcpy(Dest, Source, Count * sizeof(Type));
 		}
@@ -232,7 +231,7 @@ public:
 	template<typename Type, typename SizeType = TSize_T>
 	static TRNT_FORCE_INLINE void MoveAssignBackwardItems(Type* Dest, Type* Source, SizeType Count)
 	{
-		if constexpr (TIsTriviallyMoveAssignable<Type>::Value)
+		if constexpr (TIsMemmoveCompatible<Type>::Value)
 		{
 			memmove(Dest - Count, Source - Count, Count * sizeof(Type));
 		}
@@ -249,9 +248,9 @@ public:
 	template<typename Type, typename SizeType = TSize_T>
 	static TRNT_FORCE_INLINE void FillConstructItems(Type* Dest, const Type& Value, SizeType Count)
 	{
-		if constexpr (TIsZeroConstructType<Type>::Value)
+		if constexpr (TOr<TIsEnum<Type>, TIsArithmetic<Type>>::Value)
 		{
-			memset(Dest, &Value, Count * sizeof(Type));
+			memset(Dest, Value, Count * sizeof(Type));
 		}
 		else
 		{
@@ -267,9 +266,9 @@ public:
 	template<typename Type, typename SizeType = TSize_T>
 	static TRNT_FORCE_INLINE void FillAssignItems(Type* Dest, const Type& Value, SizeType Count)
 	{
-		if constexpr (TIsZeroConstructType<Type>::Value)
+		if constexpr (TOr<TIsEnum<Type>, TIsArithmetic<Type>>::Value)
 		{
-			memset(Dest, &Value, Count * sizeof(Type));
+			memset(Dest, Value, Count * sizeof(Type));
 		}
 		else
 		{
@@ -285,7 +284,7 @@ public:
 	template<typename Type, typename SizeType = TSize_T>
 	static TRNT_FORCE_INLINE void CompareItems(const Type* A, const Type* B, SizeType Count)
 	{
-		if constexpr (TOr<TIsEnum<Type>, TIsArithmetic<Type>, TIsPointer<Type>>::Value)
+		if constexpr (TIsMemcmpCompatible<Type>::Value)
 		{
 			return !Count || memcmp(A, B, Count * sizeof(Type));
 		}

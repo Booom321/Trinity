@@ -1,11 +1,10 @@
 #pragma once
 
 #include "Application.h"
-
+#include "Trinity/Core/Platform/Timer.h"
 #include "Trinity/Engine/Engine.h"
-#include "Trinity/Platform/Timer.h"
 
-template<typename ApplicationClass, typename ... ArgsType>
+template<typename ApplicationClass, typename... ArgsType>
 static TInt32 ApplicationEntryPoint(int Argc, char** Argv, const TChar* AppName, ArgsType&&... Args)
 {
 	if (!TEngine::Initialize(Argc, Argv))
@@ -30,43 +29,43 @@ static TInt32 ApplicationEntryPoint(int Argc, char** Argv, const TChar* AppName,
 	App = nullptr;
 
 	TEngine::Destroy();
-	
+
 	return 0;
 }
 
 #ifdef _MSC_VER
 
-#define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
-#include <crtdbg.h>
+	#define _CRTDBG_MAP_ALLOC
+	#include <crtdbg.h>
+	#include <stdlib.h>
 
-#if defined(TRNT_DEBUG)
-#	define TRNT_REPORT_MEMORY_LEAKS _CrtDumpMemoryLeaks()
+	#if defined(TRNT_DEBUG)
+		#define TRNT_REPORT_MEMORY_LEAKS _CrtDumpMemoryLeaks()
+	#else
+		#define TRNT_REPORT_MEMORY_LEAKS
+	#endif
+
+	#if !defined(TRNT_ENTRY_POINT)
+		#define TRNT_ENTRY_POINT(ApplicationClass, AppName, ...)                                            \
+			int main(int Argc, char** Argv)                                                                 \
+			{                                                                                               \
+				TInt32 ReturnCode;                                                                          \
+				{                                                                                           \
+					ReturnCode = ApplicationEntryPoint<ApplicationClass>(Argc, Argv, AppName, __VA_ARGS__); \
+				}                                                                                           \
+				TRNT_REPORT_MEMORY_LEAKS;                                                                   \
+				return ReturnCode;                                                                          \
+			}
+	#endif
+
 #else
-#	define TRNT_REPORT_MEMORY_LEAKS
-#endif
 
-#if !defined(TRNT_ENTRY_POINT)
-#	define TRNT_ENTRY_POINT(ApplicationClass, AppName, ...) \
-	int main(int Argc, char** Argv)\
-	{\
-		TInt32 ReturnCode;\
-		{\
-			ReturnCode = ApplicationEntryPoint<ApplicationClass>(Argc, Argv, AppName, __VA_ARGS__);\
-		}\
-		TRNT_REPORT_MEMORY_LEAKS;\
-		return ReturnCode;\
-	}
-#endif
-
-#else
-
-#if !defined(TRNT_ENTRY_POINT)
-#	define TRNT_ENTRY_POINT(ApplicationClass, AppName, ...) \
-	int main(int Argc, char** Argv)\
-	{\
-		return ApplicationEntryPoint<ApplicationClass>(Argc, Argv, AppName, __VA_ARGS__);\
-	}
-#endif
+	#if !defined(TRNT_ENTRY_POINT)
+		#define TRNT_ENTRY_POINT(ApplicationClass, AppName, ...)                                  \
+			int main(int Argc, char** Argv)                                                       \
+			{                                                                                     \
+				return ApplicationEntryPoint<ApplicationClass>(Argc, Argv, AppName, __VA_ARGS__); \
+			}
+	#endif
 
 #endif

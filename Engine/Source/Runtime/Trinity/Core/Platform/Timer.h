@@ -1,10 +1,9 @@
 #pragma once
 
+#include "PlatformDeclarations.h"
 #include "Trinity/Core/Defines.h"
 #include "Trinity/Core/PlatformDetection.h"
 #include "Trinity/Core/Types/DataTypes.h"
-
-#include "PlatformDeclarations.h"
 
 class TRNT_API TTimer
 {

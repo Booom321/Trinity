@@ -6,8 +6,7 @@
 template<
 	typename LhsType,
 	typename RhsType,
-	bool = TIsEmpty<LhsType>::Value && !TIsFinal<LhsType>::Value
->
+	bool = TIsEmpty<LhsType>::Value && !TIsFinal<LhsType>::Value>
 class TCompressedPair final : private LhsType
 {
 public:
@@ -27,16 +26,28 @@ public:
 		: LhsType(Move(Value1)), SecondValue(Move(Value2))
 	{}
 
-	TRNT_FORCE_INLINE LhsType& GetFirstValue() noexcept { return *this; }
+	TRNT_FORCE_INLINE LhsType& GetFirstValue() noexcept
+	{
+		return *this;
+	}
 
-	TRNT_FORCE_INLINE RhsType& GetSecondValue() noexcept { return SecondValue; }
+	TRNT_FORCE_INLINE RhsType& GetSecondValue() noexcept
+	{
+		return SecondValue;
+	}
 
-	TRNT_FORCE_INLINE const LhsType& GetFirstValue() const noexcept { return *this; }
+	TRNT_FORCE_INLINE const LhsType& GetFirstValue() const noexcept
+	{
+		return *this;
+	}
 
-	TRNT_FORCE_INLINE const RhsType& GetSecondValue() const noexcept { return SecondValue; }
+	TRNT_FORCE_INLINE const RhsType& GetSecondValue() const noexcept
+	{
+		return SecondValue;
+	}
 };
 
-template <typename LhsType, typename RhsType>
+template<typename LhsType, typename RhsType>
 class TCompressedPair<LhsType, RhsType, false> final
 {
 public:
@@ -57,12 +68,23 @@ public:
 		: FirstValue(Move(Value1)), SecondValue(Move(Value2))
 	{}
 
-	TRNT_FORCE_INLINE LhsType& GetFirstValue() noexcept { return FirstValue; }
+	TRNT_FORCE_INLINE LhsType& GetFirstValue() noexcept
+	{
+		return FirstValue;
+	}
 
-	TRNT_FORCE_INLINE RhsType& GetSecondValue() noexcept { return SecondValue; }
+	TRNT_FORCE_INLINE RhsType& GetSecondValue() noexcept
+	{
+		return SecondValue;
+	}
 
-	TRNT_FORCE_INLINE const LhsType& GetFirstValue() const noexcept { return FirstValue; }
+	TRNT_FORCE_INLINE const LhsType& GetFirstValue() const noexcept
+	{
+		return FirstValue;
+	}
 
-	TRNT_FORCE_INLINE const RhsType& GetSecondValue() const noexcept { return SecondValue; }
+	TRNT_FORCE_INLINE const RhsType& GetSecondValue() const noexcept
+	{
+		return SecondValue;
+	}
 };
-

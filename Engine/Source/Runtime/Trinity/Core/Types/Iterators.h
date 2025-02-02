@@ -1,8 +1,8 @@
 #pragma once
 
-#include <type_traits>
-
 #include "Trinity/Core/Defines.h"
+
+#include <type_traits>
 
 template<typename Type, typename SizeType>
 class TContiguousIterator
@@ -19,12 +19,35 @@ public:
 		: Ptr(Iter.Ptr)
 	{}
 
-	TRNT_FORCE_INLINE bool operator==(const TContiguousIterator& Rhs) const { return Ptr == Rhs.Ptr; };
-	TRNT_FORCE_INLINE bool operator!=(const TContiguousIterator& Rhs) const { return Ptr != Rhs.Ptr; };
-	TRNT_FORCE_INLINE bool operator<(const TContiguousIterator& Rhs) const { return Ptr < Rhs.Ptr; };
-	TRNT_FORCE_INLINE bool operator<=(const TContiguousIterator& Rhs) const { return Ptr <= Rhs.Ptr; };
-	TRNT_FORCE_INLINE bool operator>(const TContiguousIterator& Rhs) const { return Ptr > Rhs.Ptr; };
-	TRNT_FORCE_INLINE bool operator>=(const TContiguousIterator& Rhs) const { return Ptr >= Rhs.Ptr; };
+	TRNT_FORCE_INLINE bool operator==(const TContiguousIterator& Rhs) const
+	{
+		return Ptr == Rhs.Ptr;
+	}
+
+	TRNT_FORCE_INLINE bool operator!=(const TContiguousIterator& Rhs) const
+	{
+		return Ptr != Rhs.Ptr;
+	}
+
+	TRNT_FORCE_INLINE bool operator<(const TContiguousIterator& Rhs) const
+	{
+		return Ptr < Rhs.Ptr;
+	}
+
+	TRNT_FORCE_INLINE bool operator<=(const TContiguousIterator& Rhs) const
+	{
+		return Ptr <= Rhs.Ptr;
+	}
+
+	TRNT_FORCE_INLINE bool operator>(const TContiguousIterator& Rhs) const
+	{
+		return Ptr > Rhs.Ptr;
+	}
+
+	TRNT_FORCE_INLINE bool operator>=(const TContiguousIterator& Rhs) const
+	{
+		return Ptr >= Rhs.Ptr;
+	}
 
 	TRNT_FORCE_INLINE ElementType& operator*() const
 	{

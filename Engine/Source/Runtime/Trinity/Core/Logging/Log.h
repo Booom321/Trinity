@@ -1,14 +1,13 @@
 #pragma once
 
-#include <fmt/chrono.h>
-#include <fmt/xchar.h>
-
+#include "LogLevel.h"
 #include "Trinity/Core/Containers/LinkedList.h"
 #include "Trinity/Core/String/String.h"
 #include "Trinity/Core/Threading/Mutex.h"
 #include "Trinity/Core/TypeTraits/TypeRelationships.h"
 
-#include "LogLevel.h"
+#include <fmt/chrono.h>
+#include <fmt/xchar.h>
 
 template<const TChar* LogNameCharArray, const TWChar* LogNameWCharArray, TLogLevel Level>
 class TCompileTimeLogInfo
@@ -16,17 +15,17 @@ class TCompileTimeLogInfo
 public:
 	static TRNT_CONSTEXPR const TChar* LogNameAsCString = LogNameCharArray;
 	static TRNT_CONSTEXPR const TWChar* LogNameAsWCString = LogNameWCharArray;
-	static TRNT_CONSTEXPR TLogLevel     LogLevel = Level;
+	static TRNT_CONSTEXPR TLogLevel LogLevel = Level;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define TRNT_MAKE_LOG_INFO_NAME(LogName) T##LogName##LogInfo
 
-#define TRNT_DECLARE_LOG_INFO(LogName, LogLevel) \
-	static TRNT_CONSTEXPR const TChar LogName##CharArray[] = TRNT_STRINGIFY(LogName);\
-	static TRNT_CONSTEXPR const TWChar LogName##WCharArray[] = L#LogName;\
-	class TRNT_MAKE_LOG_INFO_NAME(LogName) : public TCompileTimeLogInfo<LogName##CharArray, LogName##WCharArray, LogLevel>\
+#define TRNT_DECLARE_LOG_INFO(LogName, LogLevel)                                                                           \
+	static TRNT_CONSTEXPR const TChar LogName##CharArray[] = TRNT_STRINGIFY(LogName);                                      \
+	static TRNT_CONSTEXPR const TWChar LogName##WCharArray[] = L#LogName;                                                  \
+	class TRNT_MAKE_LOG_INFO_NAME(LogName) : public TCompileTimeLogInfo<LogName##CharArray, LogName##WCharArray, LogLevel> \
 	{}
 
 #define TRNT_GET_LOG_INFO(LogName) TRNT_MAKE_LOG_INFO_NAME(LogName)
@@ -41,7 +40,7 @@ enum class TLogCharType : unsigned char
 	EWChar,
 };
 
-using TLogMessageHandlerCallback = void(*) (TLogLevel LogLevel, TLogCharType CharType, void* FormattedMessage, TSize_T FormattedMsgLen);
+using TLogMessageHandlerCallback = void (*)(TLogLevel LogLevel, TLogCharType CharType, void* FormattedMessage, TSize_T FormattedMsgLen);
 
 class TRNT_API TLog
 {
@@ -151,7 +150,7 @@ private:
 	{
 		TRNT_ASSERT_AT_COMPILE_TIME(LogLevel >= TLogLevel::EDebug && LogLevel < TLogLevel::EMax);
 		TRNT_ASSERT_AT_COMPILE_TIME(CTLogInfoType::LogLevel >= TLogLevel::EDebug && CTLogInfoType::LogLevel < TLogLevel::EMax);
-		TRNT_ASSERT_AT_COMPILE_TIME((TAreTheSameType<CharType, TChar>::Value || TAreTheSameType<CharType, TWChar>::Value));
+		TRNT_ASSERT_AT_COMPILE_TIME(TAreTheSameType<CharType, TChar>::Value || TAreTheSameType<CharType, TWChar>::Value);
 
 		if constexpr (LogLevel >= CTLogInfoType::LogLevel || LogLevel == TLogLevel::EFatal)
 		{

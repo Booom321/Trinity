@@ -1,9 +1,9 @@
 #include "DelegateTest.h"
 
+#include <Trinity/Core/Types/Delegate.h>
+
 #include <memory>
 #include <string>
-
-#include <Trinity/Core/Types/Delegate.h>
 
 using EventType = int;
 
@@ -19,13 +19,11 @@ public:
 
 	virtual EventType getType(void) const = 0;
 	virtual std::string getName(void) const = 0;
-
 }; // IEvent class
 
 using EventSPtr = std::shared_ptr<IEvent>;
 
-class TestEvent
-	: public IEvent
+class TestEvent : public IEvent
 {
 public:
 	static const EventType Type = 0x4a6ee2cf;
@@ -41,6 +39,7 @@ public:
 	{
 		return TestEvent::Type;
 	}
+
 	virtual std::string getName(void) const final
 	{
 		return "TestEvent";
@@ -53,7 +52,6 @@ public:
 
 }; // TestEvent class
 
-
 extern void rawFreeFuncNoParamA(void);
 extern void rawFreeFuncNoParamB(void);
 extern void rawFreeFuncWithParamA(EventSPtr);
@@ -61,12 +59,10 @@ extern void rawFreeFuncWithParamB(EventSPtr);
 
 inline void rawInlineFreeFuncNoParamA(void)
 {
-
 }
 
 inline void rawInlineFreeFuncNoParamB(void)
 {
-
 }
 
 inline void rawInlineFreeFuncWithParamA(EventSPtr evt)
@@ -89,18 +85,15 @@ public:
 	void rawMemFuncNoParamB(void);
 	void rawMemFuncWithParamA(EventSPtr);
 	void rawMemFuncWithParamB(EventSPtr);
-
 };
 
-class SingleInheritClass
-	: public SingleInheritBaseClass
+class SingleInheritClass : public SingleInheritBaseClass
 {
 public:
 	virtual void rawMemFuncNoParamA(void);
 	virtual void rawMemFuncNoParamB(void);
 	virtual void rawMemFuncWithParamA(EventSPtr);
 	virtual void rawMemFuncWithParamB(EventSPtr);
-
 };
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -120,52 +113,42 @@ void rawFreeFuncNoParamB(void)
 
 void SingleInheritBaseClass::rawStaticMemFuncNoParamA(void)
 {
-
 }
 
 void SingleInheritBaseClass::rawStaticMemFuncNoParamB(void)
 {
-
 }
 
 void SingleInheritBaseClass::rawMemFuncNoParamA(void)
 {
-
 }
 
 void SingleInheritBaseClass::rawMemFuncNoParamB(void)
 {
-
 }
 
 void SingleInheritBaseClass::rawMemFuncWithParamA(EventSPtr)
 {
-
 }
 
 void SingleInheritBaseClass::rawMemFuncWithParamB(EventSPtr)
 {
-
 }
 
 void SingleInheritClass::rawMemFuncNoParamA(void)
 {
-
 }
 
 void SingleInheritClass::rawMemFuncNoParamB(void)
 {
-
 }
 
 void SingleInheritClass::rawMemFuncWithParamA(EventSPtr)
 {
-
 }
 
 void SingleInheritClass::rawMemFuncWithParamB(EventSPtr)
 {
-
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -250,13 +233,28 @@ TRNT_IMPL_TEST_CASE(Types, TDelegate)
 	}
 
 	{
-		TDelegate<void(void)> lambda_1([]() { int i = 1 + 1; return; });
+		TDelegate<void(void)> lambda_1([]()
+		{
+			int i = 1 + 1;
+			return;
+		});
 		lambda_1();
-		TDelegate<void(void)> lambda_2([]() { int i = 1 + 1; return; });
+		TDelegate<void(void)> lambda_2([]()
+		{
+			int i = 1 + 1;
+			return;
+		});
 		lambda_2();
-		auto lambda_3 = TDelegate<void(void)>::From([]() { return; });
+		auto lambda_3 = TDelegate<void(void)>::From([]()
+		{
+			return;
+		});
 		lambda_3();
-		TDelegate<void(void)> lambda_4 = []() { int i = 1 + 1; return; };
+		TDelegate<void(void)> lambda_4 = []()
+		{
+			int i = 1 + 1;
+			return;
+		};
 		lambda_4();
 		TRNT_TEST_EXPECT_TRUE(lambda_1 != lambda_2);
 		TRNT_TEST_EXPECT_TRUE(lambda_1 != lambda_3);

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Trinity/Core/Types/DataTypes.h>
 #include <Trinity/Core/Defines.h>
+#include <Trinity/Core/Types/DataTypes.h>
 
 enum class TTestResult : TInt8
 {
@@ -11,12 +11,12 @@ enum class TTestResult : TInt8
 };
 
 #pragma warning(push)
-#pragma warning(disable: 26495)
+#pragma warning(disable : 26495)
 
 class TTestCase
 {
 public:
-	using TestFunctionPointer = void(*)();
+	using TestFunctionPointer = void (*)();
 
 	TestFunctionPointer TestFunction;
 	const TChar* TestCaseName;

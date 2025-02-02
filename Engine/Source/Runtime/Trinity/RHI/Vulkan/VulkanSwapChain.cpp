@@ -109,8 +109,8 @@ TBool TVulkanSwapChain::Initialize(TRecreateDesc* RecreateDesc)
 	else
 	{
 		SwapChainExtent2D = { Width, Height };
-		SwapChainExtent2D.width = TMath::Max(TMath::Min(SwapChainExtent2D.width, SurfaceCapabilities.maxImageExtent.width), SurfaceCapabilities.minImageExtent.width);
-		SwapChainExtent2D.height = TMath::Max(TMath::Min(SwapChainExtent2D.height, SurfaceCapabilities.maxImageExtent.height), SurfaceCapabilities.minImageExtent.height);
+		SwapChainExtent2D.width = TNsMath::Max(TNsMath::Min(SwapChainExtent2D.width, SurfaceCapabilities.maxImageExtent.width), SurfaceCapabilities.minImageExtent.width);
+		SwapChainExtent2D.height = TNsMath::Max(TNsMath::Min(SwapChainExtent2D.height, SurfaceCapabilities.maxImageExtent.height), SurfaceCapabilities.minImageExtent.height);
 	}
 
 	VkColorSpaceKHR DesiredColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;

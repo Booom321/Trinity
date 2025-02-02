@@ -1,8 +1,9 @@
 #pragma once
 
+#include "Trinity/Core/Assert/AssertionMacros.h"
 #include "Trinity/Core/Defines.h"
 #include "Trinity/Core/TypeTraits/RemoveReference.h"
-#include "Trinity/Core/Assert/AssertionMacros.h"
+
 
 template<typename Type>
 class TSingleton

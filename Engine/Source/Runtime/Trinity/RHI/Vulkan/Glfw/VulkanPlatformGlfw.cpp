@@ -1,13 +1,12 @@
 #include "TrinityPCH.h"
 
 #if defined(TRNT_SUPPORT_VULKAN_RHI)
+	#include "Trinity/Core/Logging/Log.h"
+	#include "Trinity/RHI/Vulkan/VulkanPlatform.h"
+	#include "Trinity/RHI/Vulkan/VulkanRHI.h"
+#endif
 
-#include "Trinity/RHI/Vulkan/VulkanPlatform.h"
-
-#ifdef TRNT_USE_GLFW
-
-#include "Trinity/Core/Logging/Log.h"
-#include "Trinity/RHI/Vulkan/VulkanRHI.h"
+#if defined(TRNT_SUPPORT_VULKAN_RHI) && defined(TRNT_USE_GLFW)
 
 PFN_vkGetInstanceProcAddr TVulkanPlatform::VulkanGetInstanceProcAddr = nullptr;
 
@@ -45,7 +44,5 @@ VkResult TVulkanPlatform::CreateVulkanSurface(TWindow* Window, VkInstance Instan
 {
 	return glfwCreateWindowSurface(Instance, static_cast<GLFWwindow*>(Window->GetNativeHandle()), nullptr, Surface);
 }
-
-#endif
 
 #endif

@@ -5,10 +5,14 @@
 #include "Trinity/Core/Types/Delegate.h"
 
 #if defined(TRNT_PLATFORM_WIN64)
-#include "Windows/WindowsDeclarations.h"
+	#include "Windows/WindowsDeclarations.h"
 using TThreadHandle = TWindowsThreadHandle;
-using TThreadID		= TWindowsThreadID;
-using TThreadData	= TWindowsThreadData;
+using TThreadID = TWindowsThreadID;
+using TThreadData = TWindowsThreadData;
+#else
+	#error "TThreadHandle isn't declared on current platform!"
+	#error "TThreadID isn't declared on current platform!"
+	#error "TThreadData isn't declared on current platform!"
 #endif
 
 class TRNT_API TThread
@@ -24,7 +28,6 @@ public:
 	explicit TThread(Function&& Func, Arguments&&... Args);
 
 	TThread(TThread&& Thread) noexcept;
-
 	TThread& operator=(TThread&& Thread) noexcept;
 
 	~TThread();
@@ -36,16 +39,21 @@ public:
 
 	TThreadHandle GetThreadHandle() const;
 
-	void Join();
+	TBool Join();
 
-	void Detach();
+	TBool Detach();
+
+public:
+	static TInt32 GetNumberOfThreads();
+	static TThreadID GetCurrentThreadID();
+	static void YieldThisThread();
 
 private:
 	TThreadData ThreadData;
 };
 
 #if defined(TRNT_PLATFORM_WIN64)
-#include "Windows/WindowsThreadImpl.h"
+	#include "Windows/WindowsThreadImpl.h"
 #else
-#	error "TThread isn't implemented on current platform!"
+	#error "TThread isn't implemented on current platform!"
 #endif

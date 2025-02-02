@@ -1,6 +1,5 @@
-#include "TestSuite.h"
-
 #include "TestRunner.h"
+#include "TestSuite.h"
 
 #include <Trinity/Core/Utilities/OutputStream.h>
 

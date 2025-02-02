@@ -1,225 +1,343 @@
 #pragma once
 
-#include "Trinity/Core/Types/Base.h"
-#include "Trinity/Core/Types/DataTypes.h"
-
 #include "Logical.h"
 #include "RemoveCVRef.h"
+#include "Trinity/Core/Types/Base.h"
+#include "Trinity/Core/Types/DataTypes.h"
 #include "TypeRelationships.h"
 
 #include <type_traits>
 
-template <typename T>
+template<typename T>
 class TIsFloatingPoint : public TFalseType
 {};
 
-template <> class TIsFloatingPoint<float> : public TTrueType
+template<>
+class TIsFloatingPoint<float> : public TTrueType
 {};
 
-template <> class TIsFloatingPoint<double> : public TTrueType
+template<>
+class TIsFloatingPoint<double> : public TTrueType
 {};
 
-template <> class TIsFloatingPoint<long double> : public TTrueType
+template<>
+class TIsFloatingPoint<long double> : public TTrueType
 {};
 
-template <typename T> class TIsFloatingPoint<const T> : public TBoolConstant<TIsFloatingPoint<T>::Value>
+template<typename T>
+class TIsFloatingPoint<const T> : public TBoolConstant<TIsFloatingPoint<T>::Value>
 {};
 
-template <typename T> class TIsFloatingPoint<volatile T> : public TBoolConstant<TIsFloatingPoint<T>::Value>
+template<typename T>
+class TIsFloatingPoint<volatile T> : public TBoolConstant<TIsFloatingPoint<T>::Value>
 {};
 
-template <typename T> class TIsFloatingPoint<const volatile T> : public TBoolConstant<TIsFloatingPoint<T>::Value>
+template<typename T>
+class TIsFloatingPoint<const volatile T> : public TBoolConstant<TIsFloatingPoint<T>::Value>
 {};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
+template<typename T>
 class TIsIntegral : public TFalseType
 {};
 
-template <> class TIsIntegral<bool> : public TTrueType
+template<>
+class TIsIntegral<bool> : public TTrueType
 {};
 
-template <> class TIsIntegral<char> : public TTrueType
+template<>
+class TIsIntegral<char> : public TTrueType
 {};
 
-template <> class TIsIntegral<signed char> : public TTrueType
+template<>
+class TIsIntegral<signed char> : public TTrueType
 {};
 
-template <> class TIsIntegral<unsigned char> : public TTrueType
+template<>
+class TIsIntegral<unsigned char> : public TTrueType
 {};
 
-template <> class TIsIntegral<char16_t> : public TTrueType
+template<>
+class TIsIntegral<char16_t> : public TTrueType
 {};
 
-template <> class TIsIntegral<char32_t> : public TTrueType
+template<>
+class TIsIntegral<char32_t> : public TTrueType
 {};
 
 #ifdef __cpp_char8_t
-template <> class TIsIntegral<char8_t> : public TTrueType
+template<>
+class TIsIntegral<char8_t> : public TTrueType
 {};
 #endif // __cpp_char8_t
 
-
-template <> class TIsIntegral<wchar_t> : public TTrueType
+template<>
+class TIsIntegral<wchar_t> : public TTrueType
 {};
 
-template <> class TIsIntegral<short> : public TTrueType
+template<>
+class TIsIntegral<short> : public TTrueType
 {};
 
-template <> class TIsIntegral<unsigned short> : public TTrueType
+template<>
+class TIsIntegral<unsigned short> : public TTrueType
 {};
 
-template <> class TIsIntegral<int> : public TTrueType
+template<>
+class TIsIntegral<int> : public TTrueType
 {};
 
-template <> class TIsIntegral<unsigned int> : public TTrueType
+template<>
+class TIsIntegral<unsigned int> : public TTrueType
 {};
 
-template <> class TIsIntegral<long> : public TTrueType
+template<>
+class TIsIntegral<long> : public TTrueType
 {};
 
-template <> class TIsIntegral<unsigned long> : public TTrueType
+template<>
+class TIsIntegral<unsigned long> : public TTrueType
 {};
 
-template <> class TIsIntegral<long long> : public TTrueType
+template<>
+class TIsIntegral<long long> : public TTrueType
 {};
 
-template <> class TIsIntegral<unsigned long long> : public TTrueType
+template<>
+class TIsIntegral<unsigned long long> : public TTrueType
 {};
 
-template <typename T> class TIsIntegral<const T> : public TBoolConstant<TIsIntegral<T>::Value>
+template<typename T>
+class TIsIntegral<const T> : public TBoolConstant<TIsIntegral<T>::Value>
 {};
 
-template <typename T> class TIsIntegral<volatile T> : public TBoolConstant<TIsIntegral<T>::Value>
+template<typename T>
+class TIsIntegral<volatile T> : public TBoolConstant<TIsIntegral<T>::Value>
 {};
 
-template <typename T> class TIsIntegral<const volatile T> : public TBoolConstant<TIsIntegral<T>::Value>
+template<typename T>
+class TIsIntegral<const volatile T> : public TBoolConstant<TIsIntegral<T>::Value>
 {};
 
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-template <typename T>
-class TIsArithmetic : public TBoolConstant<TIsFloatingPoint<T>::Value || TIsIntegral<T>::Value> 
+template<typename T>
+class TIsArithmetic : public TBoolConstant<TIsFloatingPoint<T>::Value || TIsIntegral<T>::Value>
 {
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename T>
-class TIsArray : public TFalseType {};
+class TIsArray : public TFalseType
+{};
 
 template<typename T>
-class TIsArray<T[]> : public TTrueType {};
+class TIsArray<T[]> : public TTrueType
+{};
 
 template<typename T, TSize_T N>
-class TIsArray<T[N]> : public TTrueType {};
+class TIsArray<T[N]> : public TTrueType
+{};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 template<typename>
-class TIsFunction : public TFalseType {};
+class TIsFunction : public TFalseType
+{};
 
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...)> : public TTrueType {};
+class TIsFunction<ReturnType(Args...)> : public TTrueType
+{};
 
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......)> : public TTrueType {};
+class TIsFunction<ReturnType(Args......)> : public TTrueType
+{};
 
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) const> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) volatile> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) const volatile> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) const> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) volatile> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) const volatile> : public TTrueType {};
+class TIsFunction<ReturnType(Args...) const> : public TTrueType
+{};
 
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...)&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) const&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) volatile&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) const volatile&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......)&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) const&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) volatile&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) const volatile&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...)&&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) const&&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) volatile&&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) const volatile&&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......)&&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) const&&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) volatile&&> : public TTrueType {};
-template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) const volatile&&> : public TTrueType {};
+class TIsFunction<ReturnType(Args...) volatile> : public TTrueType
+{};
 
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args...) const volatile> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args......) const> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) const noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args......) volatile> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) volatile noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args......) const volatile> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) const volatile noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args...)&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) const noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args...) const&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) volatile noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args...) volatile&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) const volatile noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args...) const volatile&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) & noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args......)&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) const& noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args......) const&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) volatile& noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args......) volatile&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) const volatile& noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args......) const volatile&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) & noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args...) &&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) const& noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args...) const&&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) volatile& noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args...) volatile&&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) const volatile& noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args...) const volatile&&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) && noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args......) &&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) const&& noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args......) const&&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) volatile&& noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args......) volatile&&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args...) const volatile&& noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args......) const volatile&&> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) && noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args...) noexcept> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) const&& noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args......) noexcept> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) volatile&& noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args...) const noexcept> : public TTrueType
+{};
+
 template<typename ReturnType, typename... Args>
-class TIsFunction<ReturnType(Args......) const volatile&& noexcept> : public TTrueType {};
+class TIsFunction<ReturnType(Args...) volatile noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args...) const volatile noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args......) const noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args......) volatile noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args......) const volatile noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args...) & noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args...) const & noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args...) volatile & noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args...) const volatile & noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args......) & noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args......) const & noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args......) volatile & noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args......) const volatile & noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args...) && noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args...) const && noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args...) volatile && noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args...) const volatile && noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args......) && noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args......) const && noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args......) volatile && noexcept> : public TTrueType
+{};
+
+template<typename ReturnType, typename... Args>
+class TIsFunction<ReturnType(Args......) const volatile && noexcept> : public TTrueType
+{};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 template<typename T>
@@ -230,19 +348,19 @@ template<typename T>
 class TIsPointer : public TFalseType
 {};
 
-template <typename T> 
+template<typename T>
 class TIsPointer<T*> : public TTrueType
 {};
 
-template <typename T> 
+template<typename T>
 class TIsPointer<const T*> : public TTrueType
 {};
 
-template <typename T> 
+template<typename T>
 class TIsPointer<volatile T*> : public TTrueType
 {};
 
-template <typename T> 
+template<typename T>
 class TIsPointer<const volatile T*> : public TTrueType
 {};
 
@@ -289,8 +407,7 @@ public:
 		TAreTheSameType<CharacterType, char8_t>,
 #endif
 		TAreTheSameType<CharacterType, char16_t>,
-		TAreTheSameType<CharacterType, char32_t>
-	>::Value;
+		TAreTheSameType<CharacterType, char32_t>>::Value;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -301,4 +418,14 @@ class TIsEmpty : public TBoolConstant<std::is_empty<T>::value>
 
 template<typename T>
 class TIsFinal : public TBoolConstant<std::is_final<T>::value>
+{};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+template<typename T>
+class TIsPODType : public TBoolConstant<std::is_pod<T>::value>
+{};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+template<typename T>
+class TIsMemberFunctionPointer : public TBoolConstant<std::is_member_function_pointer<T>::value>
 {};

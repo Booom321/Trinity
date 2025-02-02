@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Trinity/Core/Defines.h"
-#include "Trinity/Core/Types/DataTypes.h"
 #include "Trinity/Core/TypeTraits/RemoveReference.h"
+#include "Trinity/Core/Types/DataTypes.h"
 
 template<typename T, typename U>
 class TPair
@@ -72,7 +72,7 @@ public:
 };
 
 template<class T, class U>
-inline constexpr TPair<T, U> MakePair(const T& First, const U& Second)
+constexpr inline TPair<T, U> MakePair(const T& First, const U& Second)
 {
 	return TPair<T, U>(First, Second);
 }

@@ -4,17 +4,21 @@
 #include "Trinity/Core/PlatformDetection.h"
 
 #if defined(TRNT_PLATFORM_WIN64)
-#include "Windows/WindowsDeclarations.h"
+	#include "Windows/WindowsDeclarations.h"
 using TMutexHandle = TWindowsMutexHandle;
 #else
-#	error "FMutexHandle isn't declared on current platform!"
+	#error "TMutexHandle isn't declared on current platform!"
 #endif
+
+class TConditionVariable;
 
 class TRNT_API TMutex
 {
 	TRNT_DISALLOW_COPY_AND_ASSIGN(TMutex);
 
 public:
+	friend class TConditionVariable;
+
 	TMutex() noexcept;
 
 	~TMutex();
@@ -25,6 +29,9 @@ public:
 	void Unlock();
 
 	bool TryLock();
+
+public:
+	TMutexHandle GetMutexHandle() const;
 
 private:
 	TMutexHandle Mutex;

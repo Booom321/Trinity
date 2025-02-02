@@ -1,26 +1,28 @@
 #pragma once
 
-#include "Trinity/Core/Defines.h"
 #include "Trinity/Core/Config.h"
+#include "Trinity/Core/Defines.h"
+#include "Trinity/Core/Logging/Log.h"
 #include "Trinity/Core/PlatformDetection.h"
 #include "Trinity/Core/String/String.h"
+#include "Trinity/Input/InputAction.h"
+#include "Trinity/Input/KeyCodes.h"
+#include "Trinity/Input/ModifierKeys.h"
+#include "Trinity/Input/MouseButtons.h"
 
 #if defined(TRNT_USE_GLFW)
-#include "Glfw/GlfwWindowHandle.h"
-using TWindowHandle = TGlfwWindowHandle;
+	#include "Glfw/GlfwWindowHandle.h"
 #elif defined(TRNT_USE_WINDOWS_WINDOW)
-#include "Windows/WindowsWindowHandle.h"
-using TWindowHandle = TWindowsWindowHandle;
-#else
-#	error "TWindowHandle isn't declared on current platform!"
+	#include "Windows/WindowsWindowHandle.h"
 #endif
 
-#include "Trinity/Input/KeyCodes.h"
-#include "Trinity/Input/MouseButtons.h"
-#include "Trinity/Input/InputAction.h"
-#include "Trinity/Input/ModifierKeys.h"
-
-#include "Trinity/Core/Logging/Log.h"
+#if defined(TRNT_USE_GLFW)
+using TWindowHandle = TGlfwWindowHandle;
+#elif defined(TRNT_USE_WINDOWS_WINDOW)
+using TWindowHandle = TWindowsWindowHandle;
+#else
+	#error "TWindowHandle isn't declared on current platform!"
+#endif
 
 TRNT_DECLARE_LOG_INFO(Window, TLogLevel::EDebug);
 
@@ -110,41 +112,95 @@ public:
 		return static_cast<TFloat>(WindowProperties.Width) / static_cast<TFloat>(WindowProperties.Height);
 	}
 
-	TRNT_FORCE_INLINE TBool IsInitialized() const { return Initialized; }
+	TRNT_FORCE_INLINE TBool IsInitialized() const
+	{
+		return Initialized;
+	}
 
-	TRNT_FORCE_INLINE TBool IsFocused() const { return Focused; }
+	TRNT_FORCE_INLINE TBool IsFocused() const
+	{
+		return Focused;
+	}
 
-	TRNT_FORCE_INLINE TBool IsIconified() const { return Iconified; }
+	TRNT_FORCE_INLINE TBool IsIconified() const
+	{
+		return Iconified;
+	}
 
-	TRNT_FORCE_INLINE TBool IsClosed() const { return Closed; }
+	TRNT_FORCE_INLINE TBool IsClosed() const
+	{
+		return Closed;
+	}
 
-	TRNT_FORCE_INLINE const TString& GetTitle() const { return WindowProperties.Title; }
+	TRNT_FORCE_INLINE const TString& GetTitle() const
+	{
+		return WindowProperties.Title;
+	}
 
-	TRNT_FORCE_INLINE TInt32 GetWidth() const { return WindowProperties.Fullscreen ? FullscreenWidth : WindowProperties.Width; }
+	TRNT_FORCE_INLINE TInt32 GetWidth() const
+	{
+		return WindowProperties.Fullscreen ? FullscreenWidth : WindowProperties.Width;
+	}
 
-	TRNT_FORCE_INLINE TInt32 GetHeight() const { return WindowProperties.Fullscreen ? FullscreenHeight : WindowProperties.Height; }
+	TRNT_FORCE_INLINE TInt32 GetHeight() const
+	{
+		return WindowProperties.Fullscreen ? FullscreenHeight : WindowProperties.Height;
+	}
 
-	TRNT_FORCE_INLINE TInt32 GetXPosition() const { return WindowProperties.Fullscreen ? 0 : WindowProperties.XPosition; }
+	TRNT_FORCE_INLINE TInt32 GetXPosition() const
+	{
+		return WindowProperties.Fullscreen ? 0 : WindowProperties.XPosition;
+	}
 
-	TRNT_FORCE_INLINE TInt32 GetYPosition() const { return WindowProperties.Fullscreen ? 0 : WindowProperties.YPosition; }
+	TRNT_FORCE_INLINE TInt32 GetYPosition() const
+	{
+		return WindowProperties.Fullscreen ? 0 : WindowProperties.YPosition;
+	}
 
-	TRNT_FORCE_INLINE TBool IsResizable() const { return WindowProperties.Resizable; }
+	TRNT_FORCE_INLINE TBool IsResizable() const
+	{
+		return WindowProperties.Resizable;
+	}
 
-	TRNT_FORCE_INLINE TBool IsBorderless() const { return WindowProperties.Borderless; }
+	TRNT_FORCE_INLINE TBool IsBorderless() const
+	{
+		return WindowProperties.Borderless;
+	}
 
-	TRNT_FORCE_INLINE TBool IsFloating() const { return WindowProperties.Floating; }
+	TRNT_FORCE_INLINE TBool IsFloating() const
+	{
+		return WindowProperties.Floating;
+	}
 
-	TRNT_FORCE_INLINE TBool IsFullscreen() const { return WindowProperties.Fullscreen; }
+	TRNT_FORCE_INLINE TBool IsFullscreen() const
+	{
+		return WindowProperties.Fullscreen;
+	}
 
-	TRNT_FORCE_INLINE TDouble GetMouseXPosition() const { return MouseXPosition; }
+	TRNT_FORCE_INLINE TDouble GetMouseXPosition() const
+	{
+		return MouseXPosition;
+	}
 
-	TRNT_FORCE_INLINE TDouble GetMouseYPosition() const { return MouseYPosition; }
+	TRNT_FORCE_INLINE TDouble GetMouseYPosition() const
+	{
+		return MouseYPosition;
+	}
 
-	TRNT_FORCE_INLINE TBool CursorIsHidden() const { return CursorHidden; }
+	TRNT_FORCE_INLINE TBool CursorIsHidden() const
+	{
+		return CursorHidden;
+	}
 
-	TRNT_FORCE_INLINE void* GetNativeHandle() const { return WindowHandle; }
+	TRNT_FORCE_INLINE void* GetNativeHandle() const
+	{
+		return WindowHandle;
+	}
 
-	TRNT_FORCE_INLINE TFloat GetOpacity() const { return Opacity; }
+	TRNT_FORCE_INLINE TFloat GetOpacity() const
+	{
+		return Opacity;
+	}
 
 private:
 	TWindowHandle WindowHandle;
@@ -166,33 +222,84 @@ private:
 	TFloat Opacity;
 
 public:
-	using OnWindowMoveCallback			= void(*)(TWindow* Window, TInt32 XPos, TInt32 YPos);
-	using OnWindowResizeCallback		= void(*)(TWindow* Window, TInt32 Width, TInt32 Height);
-	using OnWindowCloseCallback			= void(*)(TWindow* Window);
-	using OnWindowFocusCallback			= void(*)(TWindow* Window, TBool Focused);
-	using OnWindowIconifyCallback		= void(*)(TWindow* Window, TBool Iconified);
-	using OnFramebufferSizeCallback		= void(*)(TWindow* Window, TInt32 Width, TInt32 Height);
-	using OnCursorEnterCallback			= void(*)(TWindow* Window, TBool CursorEntered);
-	using OnDropCallback				= void(*)(TWindow* Window, TInt32 Count, const TChar** Paths);
-	using OnKeyCallback					= void(*)(TWindow* Window, TKeyCode Key, TInt32 Scancode, TInputAction Action, TModifierKey Mods);
-	using OnCharCallback				= void(*)(TWindow* Window, TChar Codepoint);
-	using OnMouseButtonCallback			= void(*)(TWindow* Window, TMouseButton Button, TInputAction Action, TModifierKey Mods);
-	using OnCursorPositionCallback		= void(*)(TWindow* Window, TDouble XPosition, TDouble YPosition);
-	using OnScrollCallback				= void(*)(TWindow* Window, TDouble XOffset, TDouble YOffset);
+	using OnWindowMoveCallback = void (*)(TWindow* Window, TInt32 XPos, TInt32 YPos);
+	using OnWindowResizeCallback = void (*)(TWindow* Window, TInt32 Width, TInt32 Height);
+	using OnWindowCloseCallback = void (*)(TWindow* Window);
+	using OnWindowFocusCallback = void (*)(TWindow* Window, TBool Focused);
+	using OnWindowIconifyCallback = void (*)(TWindow* Window, TBool Iconified);
+	using OnFramebufferSizeCallback = void (*)(TWindow* Window, TInt32 Width, TInt32 Height);
+	using OnCursorEnterCallback = void (*)(TWindow* Window, TBool CursorEntered);
+	using OnDropCallback = void (*)(TWindow* Window, TInt32 Count, const TChar** Paths);
+	using OnKeyCallback = void (*)(TWindow* Window, TKeyCode Key, TInt32 Scancode, TInputAction Action, TModifierKey Mods);
+	using OnCharCallback = void (*)(TWindow* Window, TChar Codepoint);
+	using OnMouseButtonCallback = void (*)(TWindow* Window, TMouseButton Button, TInputAction Action, TModifierKey Mods);
+	using OnCursorPositionCallback = void (*)(TWindow* Window, TDouble XPosition, TDouble YPosition);
+	using OnScrollCallback = void (*)(TWindow* Window, TDouble XOffset, TDouble YOffset);
 
-	TRNT_FORCE_INLINE OnWindowMoveCallback GetWindowMoveCallback() const { return OnWindowMove; }
-	TRNT_FORCE_INLINE OnWindowResizeCallback GetWindowResizeCallback() const { return OnWindowResize; }
-	TRNT_FORCE_INLINE OnWindowCloseCallback GetWindowCloseCallback() const { return OnWindowClose; }
-	TRNT_FORCE_INLINE OnWindowFocusCallback GetWindowFocusCallback() const { return OnWindowFocus; }
-	TRNT_FORCE_INLINE OnWindowIconifyCallback GetWindowIconifyCallback() const { return OnWindowIconify; }
-	TRNT_FORCE_INLINE OnFramebufferSizeCallback GetFramebufferSizeCallback() const { return OnFramebufferSize; }
-	TRNT_FORCE_INLINE OnCursorEnterCallback GetCursorEnterCallback() const { return OnCursorEnter; }
-	TRNT_FORCE_INLINE OnDropCallback GetDropCallback() const { return OnDrop; }
-	TRNT_FORCE_INLINE OnKeyCallback GetKeyCallback() const { return OnKey; }
-	TRNT_FORCE_INLINE OnCharCallback GetCharCallback() const { return OnChar; }
-	TRNT_FORCE_INLINE OnMouseButtonCallback GetMouseButtonCallback() const { return OnMouseButton; }
-	TRNT_FORCE_INLINE OnCursorPositionCallback GetCursorPositionCallback() const { return OnCursorPosition; }
-	TRNT_FORCE_INLINE OnScrollCallback GetScrollCallback() const { return OnScroll; }
+	TRNT_FORCE_INLINE OnWindowMoveCallback GetWindowMoveCallback() const
+	{
+		return OnWindowMove;
+	}
+
+	TRNT_FORCE_INLINE OnWindowResizeCallback GetWindowResizeCallback() const
+	{
+		return OnWindowResize;
+	}
+
+	TRNT_FORCE_INLINE OnWindowCloseCallback GetWindowCloseCallback() const
+	{
+		return OnWindowClose;
+	}
+
+	TRNT_FORCE_INLINE OnWindowFocusCallback GetWindowFocusCallback() const
+	{
+		return OnWindowFocus;
+	}
+
+	TRNT_FORCE_INLINE OnWindowIconifyCallback GetWindowIconifyCallback() const
+	{
+		return OnWindowIconify;
+	}
+
+	TRNT_FORCE_INLINE OnFramebufferSizeCallback GetFramebufferSizeCallback() const
+	{
+		return OnFramebufferSize;
+	}
+
+	TRNT_FORCE_INLINE OnCursorEnterCallback GetCursorEnterCallback() const
+	{
+		return OnCursorEnter;
+	}
+
+	TRNT_FORCE_INLINE OnDropCallback GetDropCallback() const
+	{
+		return OnDrop;
+	}
+
+	TRNT_FORCE_INLINE OnKeyCallback GetKeyCallback() const
+	{
+		return OnKey;
+	}
+
+	TRNT_FORCE_INLINE OnCharCallback GetCharCallback() const
+	{
+		return OnChar;
+	}
+
+	TRNT_FORCE_INLINE OnMouseButtonCallback GetMouseButtonCallback() const
+	{
+		return OnMouseButton;
+	}
+
+	TRNT_FORCE_INLINE OnCursorPositionCallback GetCursorPositionCallback() const
+	{
+		return OnCursorPosition;
+	}
+
+	TRNT_FORCE_INLINE OnScrollCallback GetScrollCallback() const
+	{
+		return OnScroll;
+	}
 
 	TRNT_FORCE_INLINE void SetWindowMoveCallback(OnWindowMoveCallback OnWindowMove)
 	{
@@ -300,5 +407,5 @@ static TRNT_API TModifierKey ConvertGlfwModifierKeyToTModifierKey(TInt32 Mod);
 #elif defined(TRNT_USE_WINDOWS_WINDOW)
 // ...
 #else
-#	error "Current platform keycodes and mouse buttons cannot be converted to TKeyCode and TMouseButton!"
+	#error "Current platform keycodes and mouse buttons cannot be converted to TKeyCode and TMouseButton!"
 #endif

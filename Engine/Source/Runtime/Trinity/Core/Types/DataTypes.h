@@ -4,27 +4,27 @@ using TByte = unsigned char;
 
 /*
 	Unsigned int types
-*/ 
+*/
 
-using TUInt8	= unsigned char;
+using TUInt8 = unsigned char;
 
-using TUInt16	= unsigned short;
+using TUInt16 = unsigned short;
 
-using TUInt32	= unsigned int;
+using TUInt32 = unsigned int;
 
-using TUInt64	= unsigned long long;
+using TUInt64 = unsigned long long;
 
 /*
 	signed int types
 */
 
-using TInt8		= signed char;
+using TInt8 = signed char;
 
-using TInt16	= signed short;
+using TInt16 = signed short;
 
-using TInt32	= signed int;
+using TInt32 = signed int;
 
-using TInt64	= signed long long;
+using TInt64 = signed long long;
 
 /*
 	floating point types
@@ -33,6 +33,8 @@ using TInt64	= signed long long;
 using TFloat = float;
 
 using TDouble = double;
+
+using TLongDouble = long double;
 
 /*
 	boolean type

@@ -2,4 +2,4 @@
 
 #include "Framework/TestMacros.h"
 
-TRNT_DECL_TEST_CASE(Containers, THashMap); 
+TRNT_DECL_TEST_CASE(Containers, THashMap);

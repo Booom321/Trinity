@@ -1,11 +1,11 @@
 #include "TrinityPCH.h"
 
 #include "Application.h"
-#include "Trinity/Engine/EngineGlobals.h"
 
 TApplication* TApplication::ApplicationInstance = nullptr;
 
-TApplication::TApplication(const TString& ApplicationName) : ApplicationName(ApplicationName), QuitRequested(false)
+TApplication::TApplication(const TString& ApplicationName)
+	: ApplicationName(ApplicationName), QuitRequested(false)
 {
 	TRNT_ASSERT(ApplicationInstance == nullptr);
 
@@ -23,5 +23,3 @@ TRNT_NODISCARD TBool TApplication::CreateNewProject(const TString& ProjectDir, c
 	// will be implemented later!
 	return true;
 }
-
-TApplication::~TApplication() = default;

@@ -1,8 +1,8 @@
 #include "TrinityPCH.h"
 
-#if defined (TRNT_PLATFORM_WIN64)
+#include "Trinity/Core/Platform/Timer.h"
 
-#include "Trinity/Platform/Timer.h"
+#ifdef TRNT_PLATFORM_WIN64
 
 TDouble TTimer::GetQueryPerfomanceFrequency()
 {
@@ -12,7 +12,6 @@ TDouble TTimer::GetQueryPerfomanceFrequency()
 }
 
 const TDouble TTimer::PCFrequency = TTimer::GetQueryPerfomanceFrequency();
-
 
 void TTimer::Reset()
 {

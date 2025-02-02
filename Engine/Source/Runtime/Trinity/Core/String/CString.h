@@ -1,23 +1,22 @@
 #pragma once
 
-#include "Trinity/Core/Defines.h"
-#include "Trinity/Core/Types/DataTypes.h"
-#include "Trinity/Core/Assert/AssertionMacros.h"
-
 #include "CharUtils.h"
-
+#include "Trinity/Core/Assert/AssertionMacros.h"
+#include "Trinity/Core/Defines.h"
 #include "Trinity/Core/TypeTraits/Logical.h"
 #include "Trinity/Core/TypeTraits/RemoveCV.h"
 #include "Trinity/Core/TypeTraits/TypeRelationships.h"
+#include "Trinity/Core/Types/DataTypes.h"
 
 template<typename T>
 class TCString
 {
 public:
+	static_assert(TIsCharTypeSupported<T>::Value, "TCString<T> is not implemented for this char type.");
+
 	using CharType = typename TRemoveCVRef<T>::Type;
 	using SizeType = TSize_T;
 
-	static_assert(TIsCharTypeSupported<T>::Value, "TCString<T> is not implemented for this char type.");
 
 	static constexpr TBool IsCharType = TAreTheSameType<CharType, TChar>::Value;
 	static constexpr TBool IsWCharType = TAreTheSameType<CharType, TWChar>::Value;
@@ -64,7 +63,7 @@ public:
 		TInt32 Diff;
 		while ((Diff = TCharUtils<CharType>::ToUpperCase(*A) - TCharUtils<CharType>::ToUpperCase(*B)) == 0)
 		{
-			if (*A == static_cast<CharType>(0)) 
+			if (*A == static_cast<CharType>(0))
 			{
 				return 0;
 			}
@@ -89,10 +88,12 @@ public:
 	static TRNT_FORCE_INLINE TInt32 Strnicmp(const CharType* A, const CharType* B, SizeType Count)
 	{
 		if (Count == 0)
+		{
 			return 0;
+		}
 
 		TInt32 Diff;
-		for (;	Count > 0; --Count)
+		for (; Count > 0; --Count)
 		{
 			if (Diff = TCharUtils<CharType>::ToUpperCase(*A) - TCharUtils<CharType>::ToUpperCase(*B))
 			{
@@ -115,8 +116,8 @@ public:
 	{
 		SizeType ALen = static_cast<SizeType>(ALast - AFirst);
 		SizeType BLen = static_cast<SizeType>(BLast - BFirst);
-		TInt32 Result;
 
+		TInt32 Result;
 		if constexpr (IsCharType)
 		{
 			Result = strncmp(AFirst, BFirst, TRNT_MIN(ALen, BLen));
@@ -131,12 +132,12 @@ public:
 			return Result;
 		}
 
-		if (ALen < BLen) 
+		if (ALen < BLen)
 		{
 			return -1;
 		}
 
-		if (ALen > BLen) 
+		if (ALen > BLen)
 		{
 			return 1;
 		}
@@ -288,7 +289,7 @@ public:
 
 		SizeType StrLen = Strlen(Str);
 		SizeType SubstrLen = Strlen(Substr);
-	
+
 		if (StrLen >= SubstrLen)
 		{
 			for (const CharType* Tmp = Str + (StrLen - SubstrLen); Tmp >= Str; --Tmp)
@@ -410,6 +411,18 @@ public:
 		else if constexpr (IsWCharType)
 		{
 			return wcspbrk(Str1, Str2);
+		}
+	}
+
+	static TRNT_FORCE_INLINE SizeType Strcspn(const CharType* Str, const CharType* Control)
+	{
+		if constexpr (IsCharType)
+		{
+			return strcspn(Str, Control);
+		}
+		else if constexpr (IsWCharType)
+		{
+			return wcscspn(Str, Control);
 		}
 	}
 };

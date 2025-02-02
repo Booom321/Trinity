@@ -1,12 +1,11 @@
 #pragma once
 
-#include "Trinity/Core/Defines.h"
-
 #include "Trinity/Core/Containers/DynamicArray.h"
-#include "Trinity/Core/String/StringConversion.h"
+#include "Trinity/Core/Defines.h"
 #include "Trinity/Core/String/String.h"
+#include "Trinity/Core/String/StringConversion.h"
 
-class TCommandLine
+class TRNT_API TCommandLine
 {
 public:
 	TCommandLine();
@@ -26,27 +25,40 @@ public:
 	TString GetCommandLineAsString() const;
 
 	void AddCommandLineArgument(const TChar* CmdLineArgument);
+
 	template<typename T>
 	void AddCommandLineArgument(const TChar* OptionName, T Value)
 	{
-		static_assert(TIsStringable<T, TChar>::Value, "TStringConverter<TChar>::ToString does not support this type `T`");
+		// static_assert(TIsStringable<T, TChar>::Value, "TStringConverter<TChar>::ToString does not support this type `T`");
 
 		TString CmdLineArgument(OptionName);
 		CmdLineArgument += "=";
-		CmdLineArgument += TNsStringConversion::ToString<TChar>(Value);
+		// CmdLineArgument += TNsStringConversion::ToString<TChar>(Value);
 
 		CommandLineArgs.EmplaceBack(CmdLineArgument);
 		++ArgCount;
 	}
 
 public:
-	TRNT_NODISCARD TRNT_FORCE_INLINE TInt64 GetCommanndLineArgCount() const { return ArgCount; }
+	TRNT_NODISCARD TRNT_FORCE_INLINE TInt64 GetCommanndLineArgCount() const
+	{
+		return ArgCount;
+	}
 
-	TRNT_NODISCARD TRNT_FORCE_INLINE const TString& GetExecutableFilePath() const { return CommandLineArgs[0]; }
+	TRNT_NODISCARD TRNT_FORCE_INLINE const TString& GetExecutableFilePath() const
+	{
+		return CommandLineArgs[0];
+	}
 
-	TRNT_NODISCARD TRNT_FORCE_INLINE const TDynamicArray<TString>& GetCommandLineArgs() const { return CommandLineArgs; }
+	TRNT_NODISCARD TRNT_FORCE_INLINE const TDynamicArray<TString>& GetCommandLineArgs() const
+	{
+		return CommandLineArgs;
+	}
 
-	TRNT_NODISCARD TRNT_FORCE_INLINE const TString& CommandLineArgAt(TInt32 Index) const { return CommandLineArgs[(TInt64)Index]; }
+	TRNT_NODISCARD TRNT_FORCE_INLINE const TString& CommandLineArgAt(TInt32 Index) const
+	{
+		return CommandLineArgs[(TInt64)Index];
+	}
 
 public:
 	TRNT_NODISCARD TBool GetValueOf(const TChar* OptionName, TString* OutValue, TStringSearchCase SearchChase = TStringSearchCase::ECaseSensitive) const;
@@ -74,7 +86,10 @@ public:
 	TRNT_NODISCARD TBool GetValueOf(const TChar* OptionName, TDouble* OutValue, TStringSearchCase SearchChase = TStringSearchCase::ECaseSensitive) const;
 
 public:
-	static TRNT_NODISCARD TRNT_FORCE_INLINE TCommandLine* GetInstance() { return &Instance; }
+	static TRNT_NODISCARD TRNT_FORCE_INLINE TCommandLine* GetInstance()
+	{
+		return &Instance;
+	}
 
 private:
 	static TCommandLine Instance;

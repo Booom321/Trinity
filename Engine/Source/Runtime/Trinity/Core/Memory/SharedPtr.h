@@ -1,9 +1,9 @@
 #pragma once
 
-#include <atomic>
-
-#include "Trinity\Core\TypeTraits\TypeChooser.h"
+#include "Trinity/Core/TypeTraits/TypeChooser.h"
 #include "UniquePtr.h"
+
+#include <atomic>
 
 namespace TNsSharedPtrDetails
 {
@@ -83,9 +83,11 @@ namespace TNsSharedPtrDetails
 				return SharedRefCount;
 			}
 		}
+
 	public:
 		CounterType SharedRefCount{ 0 };
 	};
+
 	//////////////////////////////////////////////////////////////////////////////////////////
 	template<typename T, TBool EnableThreadSafety>
 	class TDefaultReferenceCounter : public TReferenceCounterBase<EnableThreadSafety>
@@ -94,7 +96,9 @@ namespace TNsSharedPtrDetails
 		using BaseType = TReferenceCounterBase<EnableThreadSafety>;
 		using PointerType = typename TRemoveExtent<T>::Type*;
 
-		explicit TDefaultReferenceCounter(PointerType Ptr) : BaseType(), Ptr(Ptr) {}
+		explicit TDefaultReferenceCounter(PointerType Ptr)
+			: BaseType(), Ptr(Ptr)
+		{}
 
 		void Destroy() noexcept override
 		{
@@ -127,7 +131,9 @@ namespace TNsSharedPtrDetails
 		using BaseType = TReferenceCounterBase<EnableThreadSafety>;
 		using PointerType = typename TRemoveExtent<T>::Type*;
 
-		TReferenceCounterWithDeleter(PointerType Ptr, DeleterType&& Deleter) : BaseType(), Pair(Move(Deleter), Ptr) {}
+		TReferenceCounterWithDeleter(PointerType Ptr, DeleterType&& Deleter)
+			: BaseType(), Pair(Move(Deleter), Ptr)
+		{}
 
 		void Destroy() noexcept override
 		{
@@ -148,13 +154,13 @@ namespace TNsSharedPtrDetails
 	{};
 
 	template<typename Lhs, typename Rhs>
-	class TSharedPtrConvertible<Lhs, Rhs[]> : public TBoolConstant<TIsConvertible<Lhs(*)[], Rhs(*)[]>::Value>
+	class TSharedPtrConvertible<Lhs, Rhs[]> : public TBoolConstant<TIsConvertible<Lhs (*)[], Rhs (*)[]>::Value>
 	{};
 
 	template<typename Lhs, typename Rhs, TSize_T Size>
-	class TSharedPtrConvertible<Lhs, Rhs[Size]> : public TBoolConstant<TIsConvertible<Lhs(*)[Size], Rhs(*)[Size]>::Value>
+	class TSharedPtrConvertible<Lhs, Rhs[Size]> : public TBoolConstant<TIsConvertible<Lhs (*)[Size], Rhs (*)[Size]>::Value>
 	{};
-}
+} // namespace TNsSharedPtrDetails
 
 template<typename T, TBool EnableThreadSafety = false>
 class TSharedPtr
@@ -179,8 +185,7 @@ public:
 
 	template<
 		typename OtherType,
-		typename TEnableIf<!TIsArray<OtherType>::Value&& TNsSharedPtrDetails::TSharedPtrConvertible<OtherType, T>::Value, int>::Type = 0
-	>
+		typename TEnableIf<!TIsArray<OtherType>::Value && TNsSharedPtrDetails::TSharedPtrConvertible<OtherType, T>::Value, int>::Type = 0>
 	explicit TRNT_FORCE_INLINE TSharedPtr(OtherType* Ptr)
 		: RefCounter(new TNsSharedPtrDetails::TDefaultReferenceCounter<OtherType, EnableThreadSafety>(Ptr)), Ptr(Ptr)
 	{
@@ -190,8 +195,7 @@ public:
 	template<
 		typename OtherType,
 		typename OtherDeleterType,
-		typename TEnableIf<!TIsArray<OtherType>::Value&& TNsSharedPtrDetails::TSharedPtrConvertible<OtherType, T>::Value, int>::Type = 0
-	>
+		typename TEnableIf<!TIsArray<OtherType>::Value && TNsSharedPtrDetails::TSharedPtrConvertible<OtherType, T>::Value, int>::Type = 0>
 	explicit TRNT_FORCE_INLINE TSharedPtr(OtherType* Ptr, OtherDeleterType&& OtherDeleter) noexcept
 		: RefCounter(new TNsSharedPtrDetails::TReferenceCounterWithDeleter<OtherType, OtherDeleterType, EnableThreadSafety>(Ptr, Move(OtherDeleter))), Ptr(Ptr)
 	{
@@ -201,8 +205,7 @@ public:
 	template<
 		typename OtherType,
 		typename OtherDeleterType,
-		typename TEnableIf<TNsSharedPtrDetails::TSharedPtrConvertible<typename TRemoveExtent<OtherType>::Type, T>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TNsSharedPtrDetails::TSharedPtrConvertible<typename TRemoveExtent<OtherType>::Type, T>::Value, int>::Type = 0>
 	TRNT_FORCE_INLINE TSharedPtr(const TSharedPtr<OtherType, EnableThreadSafety>& Other)
 		: RefCounter(Other.RefCounter), Ptr(Other.Ptr)
 	{
@@ -212,8 +215,7 @@ public:
 	template<
 		typename OtherType,
 		typename OtherDeleterType,
-		typename TEnableIf<TNsSharedPtrDetails::TSharedPtrConvertible<typename TRemoveExtent<OtherType>::Type, T>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TNsSharedPtrDetails::TSharedPtrConvertible<typename TRemoveExtent<OtherType>::Type, T>::Value, int>::Type = 0>
 	TRNT_FORCE_INLINE TSharedPtr(TSharedPtr<OtherType, EnableThreadSafety>&& Other) noexcept
 		: RefCounter(Other.RefCounter), Ptr(Other.Ptr)
 	{
@@ -282,7 +284,7 @@ public:
 		return *Ptr;
 	}
 
-	template<typename OtherT = T, typename TEnableIf<!TAreTheSameType<OtherT, void>::Value&& TIsArray<OtherT>::Value, int>::Type = 0>
+	template<typename OtherT = T, typename TEnableIf<!TAreTheSameType<OtherT, void>::Value && TIsArray<OtherT>::Value, int>::Type = 0>
 	TRNT_NODISCARD TRNT_FORCE_INLINE decltype(auto) operator[](TSize_T Index) const
 	{
 		return Ptr[Index];
@@ -301,8 +303,7 @@ public:
 
 	template<
 		typename OtherType,
-		typename TEnableIf<TNsSharedPtrDetails::TSharedPtrConvertible<typename TRemoveExtent<OtherType>::Type, T>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TNsSharedPtrDetails::TSharedPtrConvertible<typename TRemoveExtent<OtherType>::Type, T>::Value, int>::Type = 0>
 	TSharedPtr& operator=(const TSharedPtr<OtherType, EnableThreadSafety>& Other)
 	{
 		ReleaseSharedReferenceInternal();
@@ -317,8 +318,7 @@ public:
 
 	template<
 		typename OtherType,
-		typename TEnableIf<TNsSharedPtrDetails::TSharedPtrConvertible<typename TRemoveExtent<OtherType>::Type, T>::Value, int>::Type = 0
-	>
+		typename TEnableIf<TNsSharedPtrDetails::TSharedPtrConvertible<typename TRemoveExtent<OtherType>::Type, T>::Value, int>::Type = 0>
 	TSharedPtr& operator=(TSharedPtr<OtherType, EnableThreadSafety>&& Other) noexcept
 	{
 		ReleaseSharedReferenceInternal();
@@ -361,7 +361,6 @@ public:
 		return *this;
 	}
 
-
 public:
 	TRNT_FORCE_INLINE void Reset()
 	{
@@ -370,7 +369,6 @@ public:
 		RefCounter = nullptr;
 		Ptr = nullptr;
 	}
-
 
 private:
 	TRNT_FORCE_INLINE void ReleaseSharedReferenceInternal()
@@ -397,7 +395,7 @@ namespace TNsHash
 	{
 		return GetHashCode<typename TSharedPtr<T, EnableThreadSafety>::PointerType>(SharedPtr.Get());
 	}
-}
+} // namespace TNsHash
 
 template<typename T, TBool EnableThreadSafety, typename... ArgsType>
 TRNT_NODISCARD TRNT_FORCE_INLINE typename TEnableIf<!TIsArray<T>::Value, TSharedPtr<T, EnableThreadSafety>>::Type MakeSharedTS(ArgsType&&... Args)

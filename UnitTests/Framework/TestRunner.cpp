@@ -1,8 +1,7 @@
 #include "TestRunner.h"
 
+#include <Trinity/Core/Platform/Timer.h>
 #include <Trinity/Core/Utilities/OutputStream.h>
-#include <Trinity/Platform/Timer.h>
-
 #include <chrono>
 
 TTestRunner* TTestRunner::TestRunnerInstance = nullptr;
@@ -48,8 +47,9 @@ void TTestRunner::RunAllTests()
 	Printf("Results: \033[92m{} passed\033[39m, \033[91m{} failed\033[39m\n", TestPassedCount, TestFailedCount);
 	Printf("Total time: {:.5f}ms\n", TotalTestTime);
 }
+
 #pragma warning(push)
-#pragma warning(disable: 26813)
+#pragma warning(disable : 26813)
 
 void TTestRunner::RunTestSuite(TTestSuite* TestSuite)
 {

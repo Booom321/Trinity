@@ -2,17 +2,18 @@
 
 #ifdef TRNT_SUPPORT_VULKAN_RHI
 
-#include "VulkanShader.h"
-#include "VulkanUtils.h"
-#include "VulkanDevice.h"
+	#include "Trinity/Core/Platform/FileIO.h"
+	#include "Trinity/Core/Platform/FileSystem.h"
+	#include "Trinity/Core/String/PathUtils.h"
+	#include "VulkanDevice.h"
+	#include "VulkanShader.h"
+	#include "VulkanUtils.h"
 
-#include "Trinity/Platform/FileIO.h"
-#include "Trinity/Platform/FileSystem.h"
-#include "Trinity/Core/String/PathUtils.h"
+	#include <SPIRV/GlslangToSpv.h>
+	#include <glslang/Public/ShaderLang.h>
 
-#include <SPIRV/GlslangToSpv.h>
-#include <glslang/Public/ShaderLang.h>
-#include <spirv_cross.hpp>
+	#include <spirv_cross.hpp>
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// TVulkanShaderIncluder /////////////////////////////////////////////////////////////////////////////
@@ -35,7 +36,7 @@ public:
 		return nullptr;
 	}
 
-	IncludeResult* includeSystem(const TChar* HeaderName, const TChar* IncluderName, TSize_T InclusionDepth) override 
+	IncludeResult* includeSystem(const TChar* HeaderName, const TChar* IncluderName, TSize_T InclusionDepth) override
 	{
 		TLog::Warning<TRNT_GET_LOG_INFO(VulkanShaderIncluder)>("TVulkanShaderIncluder::includeSystem() is not implemented:");
 		TLog::Warning<TRNT_GET_LOG_INFO(VulkanShaderIncluder)>("-> Header name: {}", HeaderName);
@@ -45,7 +46,7 @@ public:
 		return nullptr;
 	}
 
-	void releaseInclude(IncludeResult* Result) override 
+	void releaseInclude(IncludeResult* Result) override
 	{
 		TLog::Warning<TRNT_GET_LOG_INFO(VulkanShaderIncluder)>("TVulkanShaderIncluder::releaseInclude() is not implemented:");
 		return;
@@ -207,12 +208,12 @@ TBool TVulkanShaderCompiler::CompileIntoSPIRVCode(TVersion ClientVersion, TShade
 	TBuiltInResource Resource;
 	BuildGlslangResource(Resource);
 
-#if TRNT_DEBUG
+	#if TRNT_DEBUG
 	const EShMessages Messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules | EShMsgDefault | EShMsgDebugInfo);
-#else
+	#else
 	const EShMessages Messages = static_cast<EShMessages>(EShMsgSpvRules | EShMsgVulkanRules | EShMsgDefault);
-#endif
-	const TChar* Sources[1] = {SourceCode};
+	#endif
+	const TChar* Sources[1] = { SourceCode };
 	Shader.setStrings(Sources, 1);
 
 	const TInt32 DefaultVersion = 450;
@@ -226,7 +227,7 @@ TBool TVulkanShaderCompiler::CompileIntoSPIRVCode(TVersion ClientVersion, TShade
 	const TBool ForwardCompatible = false;
 	const TBool ForceDefaultVersionAndProfile = false;
 	const EProfile Profile = EProfile::ENoProfile;
-	
+
 	TVulkanShaderIncluder ShaderIncluder;
 	std::string OutputString;
 
@@ -263,15 +264,15 @@ TBool TVulkanShaderCompiler::CompileIntoSPIRVCode(TVersion ClientVersion, TShade
 	}
 
 	glslang::SpvOptions SpvOptions;
-#ifdef TRNT_DEBUG
+	#ifdef TRNT_DEBUG
 	SpvOptions.generateDebugInfo = true;
 	SpvOptions.disableOptimizer = true;
 	SpvOptions.optimizeSize = false;
-#else
+	#else
 	SpvOptions.generateDebugInfo = false;
 	SpvOptions.disableOptimizer = false;
 	SpvOptions.optimizeSize = true;
-#endif
+	#endif
 
 	spv::SpvBuildLogger BuildLogger;
 	std::vector<TUInt32> SPIRV;
@@ -282,30 +283,29 @@ TBool TVulkanShaderCompiler::CompileIntoSPIRVCode(TVersion ClientVersion, TShade
 	SPIRVData.Clear();
 	SPIRVData.Append(SPIRVCodeSize, SPIRV.data());
 
-	return true;	
+	return true;
 }
 
 EShLanguage TVulkanShaderCompiler::ConvertTShaderStageToEShLanguage(TShaderStage ShaderStage)
 {
 	switch (ShaderStage)
 	{
-	case TShaderStage::EVertex:
-		return EShLangVertex;
-	case TShaderStage::ETessellationControl:
-		return EShLangTessControl;
-	case TShaderStage::ETessellationEvaluation:
-		return EShLangTessEvaluation;
-	case TShaderStage::EGeometry:
-		return EShLangGeometry;
-	case TShaderStage::EFragment:
-		return EShLangFragment;
-	case TShaderStage::ECompute:
-		return EShLangCompute;
+		case TShaderStage::EVertex:
+			return EShLangVertex;
+		case TShaderStage::ETessellationControl:
+			return EShLangTessControl;
+		case TShaderStage::ETessellationEvaluation:
+			return EShLangTessEvaluation;
+		case TShaderStage::EGeometry:
+			return EShLangGeometry;
+		case TShaderStage::EFragment:
+			return EShLangFragment;
+		case TShaderStage::ECompute:
+			return EShLangCompute;
 	}
 
 	return EShLangVertex;
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 //// TVulkanShader /////////////////////////////////////////////////////////////////////////////////////
@@ -320,54 +320,54 @@ static VkFormat ConvertSPIRVTypeToVkFormat(const spirv_cross::SPIRType& SPIRType
 	{
 		switch (SPIRType.image.format)
 		{
-		case spv::ImageFormatR8:
-			return VK_FORMAT_R8_UNORM;
-		case spv::ImageFormatR8Snorm:
-			return VK_FORMAT_R8_SNORM;
-		case spv::ImageFormatR8ui:
-			return VK_FORMAT_R8_UINT;
-		case spv::ImageFormatR8i:
-			return VK_FORMAT_R8_SINT;
-		case spv::ImageFormatRg8:
-			return VK_FORMAT_R8G8_UNORM;
-		case spv::ImageFormatRg8Snorm:
-			return VK_FORMAT_R8G8_SNORM;
-		case spv::ImageFormatRg8ui:
-			return VK_FORMAT_R8G8_UINT;
-		case spv::ImageFormatRg8i:
-			return VK_FORMAT_R8G8_SINT;
-		case spv::ImageFormatRgba8i:
-			return VK_FORMAT_R8G8B8A8_SINT;
-		case spv::ImageFormatRgba8ui:
-			return VK_FORMAT_R8G8B8A8_UINT;
-		case spv::ImageFormatRgba8:
-			return VK_FORMAT_R8G8B8A8_UNORM;
-		case spv::ImageFormatRgba8Snorm:
-			return VK_FORMAT_R8G8B8A8_SNORM;
-		case spv::ImageFormatR32i:
-			return VK_FORMAT_R32_SINT;
-		case spv::ImageFormatR32ui:
-			return VK_FORMAT_R32_UINT;
-		case spv::ImageFormatRg32i:
-			return VK_FORMAT_R32G32_SINT;
-		case spv::ImageFormatRg32ui:
-			return VK_FORMAT_R32G32_UINT;
-		case spv::ImageFormatRgba32f:
-			return VK_FORMAT_R32G32B32A32_SFLOAT;
-		case spv::ImageFormatRgba16f:
-			return VK_FORMAT_R16G16B16A16_SFLOAT;
-		case spv::ImageFormatR32f:
-			return VK_FORMAT_R32_SFLOAT;
-		case spv::ImageFormatRg32f:
-			return VK_FORMAT_R32G32_SFLOAT;
-		case spv::ImageFormatR16f:
-			return VK_FORMAT_R16_SFLOAT;
-		case spv::ImageFormatRgba32i:
-			return VK_FORMAT_R32G32B32A32_SINT;
-		case spv::ImageFormatRgba32ui:
-			return VK_FORMAT_R32G32B32A32_UINT;
-		default:
-			return VK_FORMAT_UNDEFINED;
+			case spv::ImageFormatR8:
+				return VK_FORMAT_R8_UNORM;
+			case spv::ImageFormatR8Snorm:
+				return VK_FORMAT_R8_SNORM;
+			case spv::ImageFormatR8ui:
+				return VK_FORMAT_R8_UINT;
+			case spv::ImageFormatR8i:
+				return VK_FORMAT_R8_SINT;
+			case spv::ImageFormatRg8:
+				return VK_FORMAT_R8G8_UNORM;
+			case spv::ImageFormatRg8Snorm:
+				return VK_FORMAT_R8G8_SNORM;
+			case spv::ImageFormatRg8ui:
+				return VK_FORMAT_R8G8_UINT;
+			case spv::ImageFormatRg8i:
+				return VK_FORMAT_R8G8_SINT;
+			case spv::ImageFormatRgba8i:
+				return VK_FORMAT_R8G8B8A8_SINT;
+			case spv::ImageFormatRgba8ui:
+				return VK_FORMAT_R8G8B8A8_UINT;
+			case spv::ImageFormatRgba8:
+				return VK_FORMAT_R8G8B8A8_UNORM;
+			case spv::ImageFormatRgba8Snorm:
+				return VK_FORMAT_R8G8B8A8_SNORM;
+			case spv::ImageFormatR32i:
+				return VK_FORMAT_R32_SINT;
+			case spv::ImageFormatR32ui:
+				return VK_FORMAT_R32_UINT;
+			case spv::ImageFormatRg32i:
+				return VK_FORMAT_R32G32_SINT;
+			case spv::ImageFormatRg32ui:
+				return VK_FORMAT_R32G32_UINT;
+			case spv::ImageFormatRgba32f:
+				return VK_FORMAT_R32G32B32A32_SFLOAT;
+			case spv::ImageFormatRgba16f:
+				return VK_FORMAT_R16G16B16A16_SFLOAT;
+			case spv::ImageFormatR32f:
+				return VK_FORMAT_R32_SFLOAT;
+			case spv::ImageFormatRg32f:
+				return VK_FORMAT_R32G32_SFLOAT;
+			case spv::ImageFormatR16f:
+				return VK_FORMAT_R16_SFLOAT;
+			case spv::ImageFormatRgba32i:
+				return VK_FORMAT_R32G32B32A32_SINT;
+			case spv::ImageFormatRgba32ui:
+				return VK_FORMAT_R32G32B32A32_UINT;
+			default:
+				return VK_FORMAT_UNDEFINED;
 		}
 	}
 	else if (SPIRType.vecsize == 1)
@@ -376,54 +376,54 @@ static VkFormat ConvertSPIRVTypeToVkFormat(const spirv_cross::SPIRType& SPIRType
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int:
-				return VK_FORMAT_R8_SINT;
-			case spirv_cross::SPIRType::UInt:
-				return VK_FORMAT_R8_UINT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int:
+					return VK_FORMAT_R8_SINT;
+				case spirv_cross::SPIRType::UInt:
+					return VK_FORMAT_R8_UINT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else if (SPIRType.width == 16)
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int:
-				return VK_FORMAT_R16_SINT;
-			case spirv_cross::SPIRType::UInt:
-				return VK_FORMAT_R16_UINT;
-			case spirv_cross::SPIRType::Float:
-				return VK_FORMAT_R16_SFLOAT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int:
+					return VK_FORMAT_R16_SINT;
+				case spirv_cross::SPIRType::UInt:
+					return VK_FORMAT_R16_UINT;
+				case spirv_cross::SPIRType::Float:
+					return VK_FORMAT_R16_SFLOAT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else if (SPIRType.width == 32)
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int:
-				return VK_FORMAT_R32_SINT;
-			case spirv_cross::SPIRType::UInt:
-				return VK_FORMAT_R32_UINT;
-			case spirv_cross::SPIRType::Float:
-				return VK_FORMAT_R32_SFLOAT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int:
+					return VK_FORMAT_R32_SINT;
+				case spirv_cross::SPIRType::UInt:
+					return VK_FORMAT_R32_UINT;
+				case spirv_cross::SPIRType::Float:
+					return VK_FORMAT_R32_SFLOAT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else if (SPIRType.width == 64)
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int64:
-				return VK_FORMAT_R64_SINT;
-			case spirv_cross::SPIRType::UInt64:
-				return VK_FORMAT_R64_UINT;
-			case spirv_cross::SPIRType::Double:
-				return VK_FORMAT_R64_SFLOAT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int64:
+					return VK_FORMAT_R64_SINT;
+				case spirv_cross::SPIRType::UInt64:
+					return VK_FORMAT_R64_UINT;
+				case spirv_cross::SPIRType::Double:
+					return VK_FORMAT_R64_SFLOAT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else
@@ -437,54 +437,54 @@ static VkFormat ConvertSPIRVTypeToVkFormat(const spirv_cross::SPIRType& SPIRType
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int:
-				return VK_FORMAT_R8G8_SINT;
-			case spirv_cross::SPIRType::UInt:
-				return VK_FORMAT_R8G8_UINT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int:
+					return VK_FORMAT_R8G8_SINT;
+				case spirv_cross::SPIRType::UInt:
+					return VK_FORMAT_R8G8_UINT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else if (SPIRType.width == 16)
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int:
-				return VK_FORMAT_R16G16_SINT;
-			case spirv_cross::SPIRType::UInt:
-				return VK_FORMAT_R16G16_UINT;
-			case spirv_cross::SPIRType::Float:
-				return VK_FORMAT_R16G16_SFLOAT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int:
+					return VK_FORMAT_R16G16_SINT;
+				case spirv_cross::SPIRType::UInt:
+					return VK_FORMAT_R16G16_UINT;
+				case spirv_cross::SPIRType::Float:
+					return VK_FORMAT_R16G16_SFLOAT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else if (SPIRType.width == 32)
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int:
-				return VK_FORMAT_R32G32_SINT;
-			case spirv_cross::SPIRType::UInt:
-				return VK_FORMAT_R32G32_UINT;
-			case spirv_cross::SPIRType::Float:
-				return VK_FORMAT_R32G32_SFLOAT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int:
+					return VK_FORMAT_R32G32_SINT;
+				case spirv_cross::SPIRType::UInt:
+					return VK_FORMAT_R32G32_UINT;
+				case spirv_cross::SPIRType::Float:
+					return VK_FORMAT_R32G32_SFLOAT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else if (SPIRType.width == 64)
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int64:
-				return VK_FORMAT_R64G64_SINT;
-			case spirv_cross::SPIRType::UInt64:
-				return VK_FORMAT_R64G64_UINT;
-			case spirv_cross::SPIRType::Double:
-				return VK_FORMAT_R64G64_SFLOAT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int64:
+					return VK_FORMAT_R64G64_SINT;
+				case spirv_cross::SPIRType::UInt64:
+					return VK_FORMAT_R64G64_UINT;
+				case spirv_cross::SPIRType::Double:
+					return VK_FORMAT_R64G64_SFLOAT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else
@@ -498,54 +498,54 @@ static VkFormat ConvertSPIRVTypeToVkFormat(const spirv_cross::SPIRType& SPIRType
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int:
-				return VK_FORMAT_R8G8B8_SINT;
-			case spirv_cross::SPIRType::UInt:
-				return VK_FORMAT_R8G8B8_UINT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int:
+					return VK_FORMAT_R8G8B8_SINT;
+				case spirv_cross::SPIRType::UInt:
+					return VK_FORMAT_R8G8B8_UINT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else if (SPIRType.width == 16)
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int:
-				return VK_FORMAT_R16G16B16_SINT;
-			case spirv_cross::SPIRType::UInt:
-				return VK_FORMAT_R16G16B16_UINT;
-			case spirv_cross::SPIRType::Float:
-				return VK_FORMAT_R16G16B16_SFLOAT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int:
+					return VK_FORMAT_R16G16B16_SINT;
+				case spirv_cross::SPIRType::UInt:
+					return VK_FORMAT_R16G16B16_UINT;
+				case spirv_cross::SPIRType::Float:
+					return VK_FORMAT_R16G16B16_SFLOAT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else if (SPIRType.width == 32)
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int:
-				return VK_FORMAT_R32G32B32_SINT;
-			case spirv_cross::SPIRType::UInt:
-				return VK_FORMAT_R32G32B32_UINT;
-			case spirv_cross::SPIRType::Float:
-				return VK_FORMAT_R32G32B32_SFLOAT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int:
+					return VK_FORMAT_R32G32B32_SINT;
+				case spirv_cross::SPIRType::UInt:
+					return VK_FORMAT_R32G32B32_UINT;
+				case spirv_cross::SPIRType::Float:
+					return VK_FORMAT_R32G32B32_SFLOAT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else if (SPIRType.width == 64)
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int64:
-				return VK_FORMAT_R64G64B64_SINT;
-			case spirv_cross::SPIRType::UInt64:
-				return VK_FORMAT_R64G64B64_UINT;
-			case spirv_cross::SPIRType::Double:
-				return VK_FORMAT_R64G64B64_SFLOAT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int64:
+					return VK_FORMAT_R64G64B64_SINT;
+				case spirv_cross::SPIRType::UInt64:
+					return VK_FORMAT_R64G64B64_UINT;
+				case spirv_cross::SPIRType::Double:
+					return VK_FORMAT_R64G64B64_SFLOAT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else
@@ -559,54 +559,54 @@ static VkFormat ConvertSPIRVTypeToVkFormat(const spirv_cross::SPIRType& SPIRType
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int:
-				return VK_FORMAT_R8G8B8A8_SINT;
-			case spirv_cross::SPIRType::UInt:
-				return VK_FORMAT_R8G8B8A8_UINT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int:
+					return VK_FORMAT_R8G8B8A8_SINT;
+				case spirv_cross::SPIRType::UInt:
+					return VK_FORMAT_R8G8B8A8_UINT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else if (SPIRType.width == 16)
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int:
-				return VK_FORMAT_R16G16B16A16_SINT;
-			case spirv_cross::SPIRType::UInt:
-				return VK_FORMAT_R16G16B16A16_UINT;
-			case spirv_cross::SPIRType::Float:
-				return VK_FORMAT_R16G16B16A16_SFLOAT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int:
+					return VK_FORMAT_R16G16B16A16_SINT;
+				case spirv_cross::SPIRType::UInt:
+					return VK_FORMAT_R16G16B16A16_UINT;
+				case spirv_cross::SPIRType::Float:
+					return VK_FORMAT_R16G16B16A16_SFLOAT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else if (SPIRType.width == 32)
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int:
-				return VK_FORMAT_R32G32B32A32_SINT;
-			case spirv_cross::SPIRType::UInt:
-				return VK_FORMAT_R32G32B32A32_UINT;
-			case spirv_cross::SPIRType::Float:
-				return VK_FORMAT_R32G32B32A32_SFLOAT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int:
+					return VK_FORMAT_R32G32B32A32_SINT;
+				case spirv_cross::SPIRType::UInt:
+					return VK_FORMAT_R32G32B32A32_UINT;
+				case spirv_cross::SPIRType::Float:
+					return VK_FORMAT_R32G32B32A32_SFLOAT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else if (SPIRType.width == 64)
 		{
 			switch (SPIRType.basetype)
 			{
-			case spirv_cross::SPIRType::Int64:
-				return VK_FORMAT_R64G64B64A64_SINT;
-			case spirv_cross::SPIRType::UInt64:
-				return VK_FORMAT_R64G64B64A64_UINT;
-			case spirv_cross::SPIRType::Double:
-				return VK_FORMAT_R64G64B64A64_SFLOAT;
-			default:
-				return VK_FORMAT_UNDEFINED;
+				case spirv_cross::SPIRType::Int64:
+					return VK_FORMAT_R64G64B64A64_SINT;
+				case spirv_cross::SPIRType::UInt64:
+					return VK_FORMAT_R64G64B64A64_UINT;
+				case spirv_cross::SPIRType::Double:
+					return VK_FORMAT_R64G64B64A64_SFLOAT;
+				default:
+					return VK_FORMAT_UNDEFINED;
 			}
 		}
 		else
@@ -624,142 +624,142 @@ static TUInt32 GetOffsetByVkFormat(VkFormat Format)
 {
 	switch (Format)
 	{
-    case VK_FORMAT_UNDEFINED:
-		return 0;
-	case VK_FORMAT_R8_UNORM:
-	case VK_FORMAT_R8_SNORM:
-	case VK_FORMAT_R8_USCALED:
-	case VK_FORMAT_R8_SSCALED:
-	case VK_FORMAT_R8_UINT:
-	case VK_FORMAT_R8_SINT:
-	case VK_FORMAT_R8_SRGB:
-    case VK_FORMAT_R4G4_UNORM_PACK8:
-		return 1;
-    case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
-    case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
-    case VK_FORMAT_R5G6B5_UNORM_PACK16:
-    case VK_FORMAT_B5G6R5_UNORM_PACK16:
-    case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
-    case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
-    case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
-    case VK_FORMAT_R8G8_UNORM:
-    case VK_FORMAT_R8G8_SNORM:
-    case VK_FORMAT_R8G8_USCALED:
-    case VK_FORMAT_R8G8_SSCALED:
-    case VK_FORMAT_R8G8_UINT:
-    case VK_FORMAT_R8G8_SINT:
-    case VK_FORMAT_R8G8_SRGB:
-	case VK_FORMAT_R16_UNORM:
-	case VK_FORMAT_R16_SNORM:
-	case VK_FORMAT_R16_USCALED:
-	case VK_FORMAT_R16_SSCALED:
-	case VK_FORMAT_R16_UINT:
-	case VK_FORMAT_R16_SINT:
-	case VK_FORMAT_R16_SFLOAT:
-		return 2;
-    case VK_FORMAT_R8G8B8_UNORM:
-    case VK_FORMAT_R8G8B8_SNORM:
-    case VK_FORMAT_R8G8B8_USCALED:
-    case VK_FORMAT_R8G8B8_SSCALED:
-    case VK_FORMAT_R8G8B8_UINT:
-    case VK_FORMAT_R8G8B8_SINT:
-    case VK_FORMAT_R8G8B8_SRGB:
-    case VK_FORMAT_B8G8R8_UNORM:
-    case VK_FORMAT_B8G8R8_SNORM:
-    case VK_FORMAT_B8G8R8_USCALED:
-    case VK_FORMAT_B8G8R8_SSCALED:
-    case VK_FORMAT_B8G8R8_UINT:
-    case VK_FORMAT_B8G8R8_SINT:
-    case VK_FORMAT_B8G8R8_SRGB:
-		return 3;
-    case VK_FORMAT_R8G8B8A8_UNORM:
-    case VK_FORMAT_R8G8B8A8_SNORM:
-    case VK_FORMAT_R8G8B8A8_USCALED:
-    case VK_FORMAT_R8G8B8A8_SSCALED:
-    case VK_FORMAT_R8G8B8A8_UINT:
-    case VK_FORMAT_R8G8B8A8_SINT:
-    case VK_FORMAT_R8G8B8A8_SRGB:
-    case VK_FORMAT_B8G8R8A8_UNORM:
-    case VK_FORMAT_B8G8R8A8_SNORM:
-    case VK_FORMAT_B8G8R8A8_USCALED:
-    case VK_FORMAT_B8G8R8A8_SSCALED:
-    case VK_FORMAT_B8G8R8A8_UINT:
-    case VK_FORMAT_B8G8R8A8_SINT:
-    case VK_FORMAT_B8G8R8A8_SRGB:
-    case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
-    case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
-    case VK_FORMAT_A8B8G8R8_USCALED_PACK32:
-    case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:
-    case VK_FORMAT_A8B8G8R8_UINT_PACK32:
-    case VK_FORMAT_A8B8G8R8_SINT_PACK32:
-    case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
-    case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
-    case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
-    case VK_FORMAT_A2R10G10B10_USCALED_PACK32:
-    case VK_FORMAT_A2R10G10B10_SSCALED_PACK32:
-    case VK_FORMAT_A2R10G10B10_UINT_PACK32:
-    case VK_FORMAT_A2R10G10B10_SINT_PACK32:
-    case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
-    case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
-    case VK_FORMAT_A2B10G10R10_USCALED_PACK32:
-    case VK_FORMAT_A2B10G10R10_SSCALED_PACK32:
-    case VK_FORMAT_A2B10G10R10_UINT_PACK32:
-    case VK_FORMAT_A2B10G10R10_SINT_PACK32:
-    case VK_FORMAT_R16G16_UNORM:
-    case VK_FORMAT_R16G16_SNORM:
-    case VK_FORMAT_R16G16_USCALED:
-    case VK_FORMAT_R16G16_SSCALED:
-    case VK_FORMAT_R16G16_UINT:
-    case VK_FORMAT_R16G16_SINT:
-    case VK_FORMAT_R16G16_SFLOAT:
-	case VK_FORMAT_R32_UINT:
-	case VK_FORMAT_R32_SINT:
-	case VK_FORMAT_R32_SFLOAT:
-	case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
-	case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
-		return 4;
-    case VK_FORMAT_R16G16B16_UNORM:
-    case VK_FORMAT_R16G16B16_SNORM:
-    case VK_FORMAT_R16G16B16_USCALED:
-    case VK_FORMAT_R16G16B16_SSCALED:
-    case VK_FORMAT_R16G16B16_UINT:
-    case VK_FORMAT_R16G16B16_SINT:
-    case VK_FORMAT_R16G16B16_SFLOAT:
-		return 6;
-    case VK_FORMAT_R16G16B16A16_UNORM:
-    case VK_FORMAT_R16G16B16A16_SNORM:
-    case VK_FORMAT_R16G16B16A16_USCALED:
-    case VK_FORMAT_R16G16B16A16_SSCALED:
-    case VK_FORMAT_R16G16B16A16_UINT:
-    case VK_FORMAT_R16G16B16A16_SINT:
-    case VK_FORMAT_R16G16B16A16_SFLOAT:
-    case VK_FORMAT_R32G32_UINT:
-    case VK_FORMAT_R32G32_SINT:
-    case VK_FORMAT_R32G32_SFLOAT:
-	case VK_FORMAT_R64_UINT:
-	case VK_FORMAT_R64_SINT:
-	case VK_FORMAT_R64_SFLOAT:
-		return 8;
-    case VK_FORMAT_R32G32B32_UINT:
-    case VK_FORMAT_R32G32B32_SINT:
-    case VK_FORMAT_R32G32B32_SFLOAT:
-		return 12;
-    case VK_FORMAT_R32G32B32A32_UINT:
-    case VK_FORMAT_R32G32B32A32_SINT:
-    case VK_FORMAT_R32G32B32A32_SFLOAT:
-    case VK_FORMAT_R64G64_UINT:
-    case VK_FORMAT_R64G64_SINT:
-    case VK_FORMAT_R64G64_SFLOAT:
-		return 16;
-    case VK_FORMAT_R64G64B64_UINT:
-    case VK_FORMAT_R64G64B64_SINT:
-    case VK_FORMAT_R64G64B64_SFLOAT:
-		return 24;
-    case VK_FORMAT_R64G64B64A64_UINT:
-    case VK_FORMAT_R64G64B64A64_SINT:
-    case VK_FORMAT_R64G64B64A64_SFLOAT:
-		return 32;
-  	}
+		case VK_FORMAT_UNDEFINED:
+			return 0;
+		case VK_FORMAT_R8_UNORM:
+		case VK_FORMAT_R8_SNORM:
+		case VK_FORMAT_R8_USCALED:
+		case VK_FORMAT_R8_SSCALED:
+		case VK_FORMAT_R8_UINT:
+		case VK_FORMAT_R8_SINT:
+		case VK_FORMAT_R8_SRGB:
+		case VK_FORMAT_R4G4_UNORM_PACK8:
+			return 1;
+		case VK_FORMAT_R4G4B4A4_UNORM_PACK16:
+		case VK_FORMAT_B4G4R4A4_UNORM_PACK16:
+		case VK_FORMAT_R5G6B5_UNORM_PACK16:
+		case VK_FORMAT_B5G6R5_UNORM_PACK16:
+		case VK_FORMAT_R5G5B5A1_UNORM_PACK16:
+		case VK_FORMAT_B5G5R5A1_UNORM_PACK16:
+		case VK_FORMAT_A1R5G5B5_UNORM_PACK16:
+		case VK_FORMAT_R8G8_UNORM:
+		case VK_FORMAT_R8G8_SNORM:
+		case VK_FORMAT_R8G8_USCALED:
+		case VK_FORMAT_R8G8_SSCALED:
+		case VK_FORMAT_R8G8_UINT:
+		case VK_FORMAT_R8G8_SINT:
+		case VK_FORMAT_R8G8_SRGB:
+		case VK_FORMAT_R16_UNORM:
+		case VK_FORMAT_R16_SNORM:
+		case VK_FORMAT_R16_USCALED:
+		case VK_FORMAT_R16_SSCALED:
+		case VK_FORMAT_R16_UINT:
+		case VK_FORMAT_R16_SINT:
+		case VK_FORMAT_R16_SFLOAT:
+			return 2;
+		case VK_FORMAT_R8G8B8_UNORM:
+		case VK_FORMAT_R8G8B8_SNORM:
+		case VK_FORMAT_R8G8B8_USCALED:
+		case VK_FORMAT_R8G8B8_SSCALED:
+		case VK_FORMAT_R8G8B8_UINT:
+		case VK_FORMAT_R8G8B8_SINT:
+		case VK_FORMAT_R8G8B8_SRGB:
+		case VK_FORMAT_B8G8R8_UNORM:
+		case VK_FORMAT_B8G8R8_SNORM:
+		case VK_FORMAT_B8G8R8_USCALED:
+		case VK_FORMAT_B8G8R8_SSCALED:
+		case VK_FORMAT_B8G8R8_UINT:
+		case VK_FORMAT_B8G8R8_SINT:
+		case VK_FORMAT_B8G8R8_SRGB:
+			return 3;
+		case VK_FORMAT_R8G8B8A8_UNORM:
+		case VK_FORMAT_R8G8B8A8_SNORM:
+		case VK_FORMAT_R8G8B8A8_USCALED:
+		case VK_FORMAT_R8G8B8A8_SSCALED:
+		case VK_FORMAT_R8G8B8A8_UINT:
+		case VK_FORMAT_R8G8B8A8_SINT:
+		case VK_FORMAT_R8G8B8A8_SRGB:
+		case VK_FORMAT_B8G8R8A8_UNORM:
+		case VK_FORMAT_B8G8R8A8_SNORM:
+		case VK_FORMAT_B8G8R8A8_USCALED:
+		case VK_FORMAT_B8G8R8A8_SSCALED:
+		case VK_FORMAT_B8G8R8A8_UINT:
+		case VK_FORMAT_B8G8R8A8_SINT:
+		case VK_FORMAT_B8G8R8A8_SRGB:
+		case VK_FORMAT_A8B8G8R8_UNORM_PACK32:
+		case VK_FORMAT_A8B8G8R8_SNORM_PACK32:
+		case VK_FORMAT_A8B8G8R8_USCALED_PACK32:
+		case VK_FORMAT_A8B8G8R8_SSCALED_PACK32:
+		case VK_FORMAT_A8B8G8R8_UINT_PACK32:
+		case VK_FORMAT_A8B8G8R8_SINT_PACK32:
+		case VK_FORMAT_A8B8G8R8_SRGB_PACK32:
+		case VK_FORMAT_A2R10G10B10_UNORM_PACK32:
+		case VK_FORMAT_A2R10G10B10_SNORM_PACK32:
+		case VK_FORMAT_A2R10G10B10_USCALED_PACK32:
+		case VK_FORMAT_A2R10G10B10_SSCALED_PACK32:
+		case VK_FORMAT_A2R10G10B10_UINT_PACK32:
+		case VK_FORMAT_A2R10G10B10_SINT_PACK32:
+		case VK_FORMAT_A2B10G10R10_UNORM_PACK32:
+		case VK_FORMAT_A2B10G10R10_SNORM_PACK32:
+		case VK_FORMAT_A2B10G10R10_USCALED_PACK32:
+		case VK_FORMAT_A2B10G10R10_SSCALED_PACK32:
+		case VK_FORMAT_A2B10G10R10_UINT_PACK32:
+		case VK_FORMAT_A2B10G10R10_SINT_PACK32:
+		case VK_FORMAT_R16G16_UNORM:
+		case VK_FORMAT_R16G16_SNORM:
+		case VK_FORMAT_R16G16_USCALED:
+		case VK_FORMAT_R16G16_SSCALED:
+		case VK_FORMAT_R16G16_UINT:
+		case VK_FORMAT_R16G16_SINT:
+		case VK_FORMAT_R16G16_SFLOAT:
+		case VK_FORMAT_R32_UINT:
+		case VK_FORMAT_R32_SINT:
+		case VK_FORMAT_R32_SFLOAT:
+		case VK_FORMAT_B10G11R11_UFLOAT_PACK32:
+		case VK_FORMAT_E5B9G9R9_UFLOAT_PACK32:
+			return 4;
+		case VK_FORMAT_R16G16B16_UNORM:
+		case VK_FORMAT_R16G16B16_SNORM:
+		case VK_FORMAT_R16G16B16_USCALED:
+		case VK_FORMAT_R16G16B16_SSCALED:
+		case VK_FORMAT_R16G16B16_UINT:
+		case VK_FORMAT_R16G16B16_SINT:
+		case VK_FORMAT_R16G16B16_SFLOAT:
+			return 6;
+		case VK_FORMAT_R16G16B16A16_UNORM:
+		case VK_FORMAT_R16G16B16A16_SNORM:
+		case VK_FORMAT_R16G16B16A16_USCALED:
+		case VK_FORMAT_R16G16B16A16_SSCALED:
+		case VK_FORMAT_R16G16B16A16_UINT:
+		case VK_FORMAT_R16G16B16A16_SINT:
+		case VK_FORMAT_R16G16B16A16_SFLOAT:
+		case VK_FORMAT_R32G32_UINT:
+		case VK_FORMAT_R32G32_SINT:
+		case VK_FORMAT_R32G32_SFLOAT:
+		case VK_FORMAT_R64_UINT:
+		case VK_FORMAT_R64_SINT:
+		case VK_FORMAT_R64_SFLOAT:
+			return 8;
+		case VK_FORMAT_R32G32B32_UINT:
+		case VK_FORMAT_R32G32B32_SINT:
+		case VK_FORMAT_R32G32B32_SFLOAT:
+			return 12;
+		case VK_FORMAT_R32G32B32A32_UINT:
+		case VK_FORMAT_R32G32B32A32_SINT:
+		case VK_FORMAT_R32G32B32A32_SFLOAT:
+		case VK_FORMAT_R64G64_UINT:
+		case VK_FORMAT_R64G64_SINT:
+		case VK_FORMAT_R64G64_SFLOAT:
+			return 16;
+		case VK_FORMAT_R64G64B64_UINT:
+		case VK_FORMAT_R64G64B64_SINT:
+		case VK_FORMAT_R64G64B64_SFLOAT:
+			return 24;
+		case VK_FORMAT_R64G64B64A64_UINT:
+		case VK_FORMAT_R64G64B64A64_SINT:
+		case VK_FORMAT_R64G64B64A64_SFLOAT:
+			return 32;
+	}
 	return 0;
 }
 
@@ -799,7 +799,7 @@ TBool TVulkanShader::LoadFromFile(TShaderStage ShaderStage, const TString& FileP
 		TLog::Error<TRNT_GET_LOG_INFO(VulkanShaderCompiler)>("Failed to compile shader file \"{}\"!", FilePath.GetData());
 		return false;
 	}
-	
+
 	TBool Success = BuildShaderInternal(ShaderStage, SPIRVResult);
 	return Success;
 }
@@ -865,7 +865,9 @@ TBool TVulkanShader::CreateShaderModule(TShaderStage ShaderStage, const TDynamic
 	if (TVulkanRHI::VulkanPFNFunctions.CreateShaderModule(VulkanDevice->GetDevice(), &ShaderModuleCreateInfo, nullptr, &ShaderModule) != VK_SUCCESS)
 	{
 		TLog::Error<TRNT_GET_LOG_INFO(VulkanRHI)>(
-			"Failed to create shader module [stage={}, SPIRV code size={}]", TVulkanUtils::ConvertShaderStageToCString(ShaderStage), SPIRVData.GetElementCount() * sizeof(TUInt32));
+			"Failed to create shader module [stage={}, SPIRV code size={}]",
+			TVulkanUtils::ConvertShaderStageToCString(ShaderStage),
+			SPIRVData.GetElementCount() * sizeof(TUInt32));
 
 		return false;
 	}
@@ -873,10 +875,12 @@ TBool TVulkanShader::CreateShaderModule(TShaderStage ShaderStage, const TDynamic
 	ShaderModules[static_cast<TInt32>(ShaderStage)] = ShaderModule;
 
 	TLog::Success<TRNT_GET_LOG_INFO(VulkanRHI)>(
-		"Create shader module successfully [stage={}, SPIRV code size={}]", TVulkanUtils::ConvertShaderStageToCString(ShaderStage), SPIRVData.GetElementCount() * sizeof(TUInt32));
+		"Create shader module successfully [stage={}, SPIRV code size={}]",
+		TVulkanUtils::ConvertShaderStageToCString(ShaderStage),
+		SPIRVData.GetElementCount() * sizeof(TUInt32));
 
 	return true;
-}	
+}
 
 void TVulkanShader::ReflectShader(TShaderStage ShaderStage, const TDynamicArray<TUInt32>& SPIRVData)
 {
@@ -935,13 +939,13 @@ void TVulkanShader::ReflectShader(TShaderStage ShaderStage, const TDynamicArray<
 
 	for (const spirv_cross::Resource& SampledImage : ShaderResources.sampled_images)
 	{
-		TUInt32 Binding	= Compiler.get_decoration(SampledImage.id, spv::DecorationBinding);
-		TUInt32 Set		= Compiler.get_decoration(SampledImage.id, spv::DecorationDescriptorSet);
+		TUInt32 Binding = Compiler.get_decoration(SampledImage.id, spv::DecorationBinding);
+		TUInt32 Set = Compiler.get_decoration(SampledImage.id, spv::DecorationDescriptorSet);
 
 		const spirv_cross::SPIRType& Type = Compiler.get_type(SampledImage.type_id);
 
 		TDynamicArray<VkDescriptorSetLayoutBinding>& SetLayoutBindings = SetLayoutBindingMap[Set];
-		
+
 		VkDescriptorSetLayoutBinding SetLayoutBinding{};
 		SetLayoutBinding.binding = Binding;
 		SetLayoutBinding.descriptorCount = Type.array.size() ? static_cast<TUInt32>(Type.array[0]) : 1;
@@ -955,7 +959,7 @@ void TVulkanShader::ReflectShader(TShaderStage ShaderStage, const TDynamicArray<
 	for (const spirv_cross::Resource& StorageImage : ShaderResources.storage_images)
 	{
 		TUInt32 Binding = Compiler.get_decoration(StorageImage.id, spv::DecorationBinding);
-		TUInt32 Set		= Compiler.get_decoration(StorageImage.id, spv::DecorationDescriptorSet);
+		TUInt32 Set = Compiler.get_decoration(StorageImage.id, spv::DecorationDescriptorSet);
 
 		const spirv_cross::SPIRType& Type = Compiler.get_type(StorageImage.type_id);
 
@@ -974,7 +978,7 @@ void TVulkanShader::ReflectShader(TShaderStage ShaderStage, const TDynamicArray<
 	for (const spirv_cross::Resource& StorageImage : ShaderResources.separate_images)
 	{
 		TUInt32 Binding = Compiler.get_decoration(StorageImage.id, spv::DecorationBinding);
-		TUInt32 Set		= Compiler.get_decoration(StorageImage.id, spv::DecorationDescriptorSet);
+		TUInt32 Set = Compiler.get_decoration(StorageImage.id, spv::DecorationDescriptorSet);
 
 		const spirv_cross::SPIRType& Type = Compiler.get_type(StorageImage.type_id);
 
@@ -993,7 +997,7 @@ void TVulkanShader::ReflectShader(TShaderStage ShaderStage, const TDynamicArray<
 	for (const spirv_cross::Resource& UniformBuffer : ShaderResources.uniform_buffers)
 	{
 		TUInt32 Binding = Compiler.get_decoration(UniformBuffer.id, spv::DecorationBinding);
-		TUInt32 Set		= Compiler.get_decoration(UniformBuffer.id, spv::DecorationDescriptorSet);
+		TUInt32 Set = Compiler.get_decoration(UniformBuffer.id, spv::DecorationDescriptorSet);
 
 		const spirv_cross::SPIRType& Type = Compiler.get_type(UniformBuffer.type_id);
 
@@ -1012,7 +1016,7 @@ void TVulkanShader::ReflectShader(TShaderStage ShaderStage, const TDynamicArray<
 	for (const spirv_cross::Resource& StorageBuffer : ShaderResources.storage_buffers)
 	{
 		TUInt32 Binding = Compiler.get_decoration(StorageBuffer.id, spv::DecorationBinding);
-		TUInt32 Set		= Compiler.get_decoration(StorageBuffer.id, spv::DecorationDescriptorSet);
+		TUInt32 Set = Compiler.get_decoration(StorageBuffer.id, spv::DecorationDescriptorSet);
 
 		const spirv_cross::SPIRType& Type = Compiler.get_type(StorageBuffer.type_id);
 
@@ -1038,7 +1042,7 @@ void TVulkanShader::BuildDescriptorSetLayouts(const THashMap<TUInt32, TDynamicAr
 	for (const THashMapElement<TUInt32, TDynamicArray<VkDescriptorSetLayoutBinding>>& Element : SetLayoutBindingMap)
 	{
 		TVulkanDescriptorSetLayout DescriptorSetLayout{ VulkanDevice };
-	
+
 		for (const VkDescriptorSetLayoutBinding& SetLayoutBinding : Element.Value)
 		{
 			DescriptorSetLayout.AddLayoutBinding(SetLayoutBinding.binding, SetLayoutBinding.descriptorType, SetLayoutBinding.descriptorCount, SetLayoutBinding.stageFlags);
@@ -1083,4 +1087,4 @@ void TVulkanShader::ClearDescriptorSetLayouts()
 	}
 }
 
-#endif 
+#endif

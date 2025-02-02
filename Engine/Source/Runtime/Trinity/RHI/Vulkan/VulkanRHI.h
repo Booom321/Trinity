@@ -2,12 +2,11 @@
 
 #if defined(TRNT_SUPPORT_VULKAN_RHI)
 
-#include "Trinity/RHI/RHI.h"
+	#include "IncludeVulkanHeader.h"
+	#include "Trinity/RHI/RHI.h"
+	#include "VulkanPlatform.h"
 
-#include "VulkanPlatform.h"
-#include "IncludeVulkanHeader.h"
-
-#undef CreateSemaphore 
+	#undef CreateSemaphore
 
 class TRNT_API TVulkanPFNFunctions
 {
@@ -16,9 +15,9 @@ public:
 	PFN_vkEnumerateInstanceLayerProperties EnumerateInstanceLayerProperties = nullptr;
 	PFN_vkCreateInstance CreateInstance = nullptr;
 
-#if defined(TRNT_PLATFORM_WIN64)
+	#if defined(TRNT_PLATFORM_WIN64)
 	PFN_vkCreateWin32SurfaceKHR CreateWin32SurfaceKHR = nullptr;
-#endif
+	#endif
 	PFN_vkDestroyInstance DestroyInstance = nullptr;
 
 	PFN_vkGetPhysicalDeviceProperties GetPhysicalDeviceProperties = nullptr;
@@ -196,7 +195,7 @@ public:
 	friend class TVulkanPlatform;
 	friend class TVulkanDevice;
 	friend class TVulkanPhysicalDevice;
-	friend class TVulkanCommandBuffer; 
+	friend class TVulkanCommandBuffer;
 
 	TVulkanRHI();
 	virtual ~TVulkanRHI();
@@ -209,22 +208,65 @@ public:
 	virtual TGraphicsAPI GetGraphicsAPI() override;
 
 public:
-	static TRNT_NODISCARD TRNT_FORCE_INLINE TVulkanRHI* GetGlobalVulkanRHIInstance() { return static_cast<TVulkanRHI*>(GlobalRHIInstance); }
+	static TRNT_NODISCARD TRNT_FORCE_INLINE TVulkanRHI* GetGlobalVulkanRHIInstance()
+	{
+		return static_cast<TVulkanRHI*>(GlobalRHIInstance);
+	}
 
-	TRNT_NODISCARD TRNT_FORCE_INLINE const TVersion GetVulkanInstanceVersion() const { return VulkanInstanceVersion; }
-	TRNT_NODISCARD TRNT_FORCE_INLINE const VkInstance GetVkInstance() const { return Instance; }
+	TRNT_NODISCARD TRNT_FORCE_INLINE const TVersion GetVulkanInstanceVersion() const
+	{
+		return VulkanInstanceVersion;
+	}
 
-	TRNT_NODISCARD TRNT_FORCE_INLINE TDynamicArray<const TChar*>& GetInstanceLayers() { return InstanceLayers; }
-	TRNT_NODISCARD TRNT_FORCE_INLINE TDynamicArray<const TChar*>& GetInstanceExtensions() { return InstanceExtensions; }
-	TRNT_NODISCARD TRNT_FORCE_INLINE const TDynamicArray<const TChar*>& GetInstanceLayers() const { return InstanceLayers; }
-	TRNT_NODISCARD TRNT_FORCE_INLINE const TDynamicArray<const TChar*>& GetInstanceExtensions() const { return InstanceExtensions; }
+	TRNT_NODISCARD TRNT_FORCE_INLINE const VkInstance GetVkInstance() const
+	{
+		return Instance;
+	}
 
-	TRNT_NODISCARD TRNT_FORCE_INLINE TVulkanRHIFeatures& GetVulkanRHIFeatures() { return VulkanRHIFeatures; }
-	TRNT_NODISCARD TRNT_FORCE_INLINE const TVulkanRHIFeatures& GetVulkanRHIFeatures() const { return VulkanRHIFeatures; }
+	TRNT_NODISCARD TRNT_FORCE_INLINE TDynamicArray<const TChar*>& GetInstanceLayers()
+	{
+		return InstanceLayers;
+	}
 
-	TRNT_NODISCARD TRNT_FORCE_INLINE TVulkanDevice* GetVulkanDevice() { return VulkanDevice; }
-	TRNT_NODISCARD TRNT_FORCE_INLINE const TVulkanDevice* GetVulkanDevice() const { return VulkanDevice; }
-	TRNT_NODISCARD TRNT_FORCE_INLINE const TVersion GetVulkanAPIVersion() const { return VulkanAPIVersion; }
+	TRNT_NODISCARD TRNT_FORCE_INLINE TDynamicArray<const TChar*>& GetInstanceExtensions()
+	{
+		return InstanceExtensions;
+	}
+
+	TRNT_NODISCARD TRNT_FORCE_INLINE const TDynamicArray<const TChar*>& GetInstanceLayers() const
+	{
+		return InstanceLayers;
+	}
+
+	TRNT_NODISCARD TRNT_FORCE_INLINE const TDynamicArray<const TChar*>& GetInstanceExtensions() const
+	{
+		return InstanceExtensions;
+	}
+
+	TRNT_NODISCARD TRNT_FORCE_INLINE TVulkanRHIFeatures& GetVulkanRHIFeatures()
+	{
+		return VulkanRHIFeatures;
+	}
+
+	TRNT_NODISCARD TRNT_FORCE_INLINE const TVulkanRHIFeatures& GetVulkanRHIFeatures() const
+	{
+		return VulkanRHIFeatures;
+	}
+
+	TRNT_NODISCARD TRNT_FORCE_INLINE TVulkanDevice* GetVulkanDevice()
+	{
+		return VulkanDevice;
+	}
+
+	TRNT_NODISCARD TRNT_FORCE_INLINE const TVulkanDevice* GetVulkanDevice() const
+	{
+		return VulkanDevice;
+	}
+
+	TRNT_NODISCARD TRNT_FORCE_INLINE const TVersion GetVulkanAPIVersion() const
+	{
+		return VulkanAPIVersion;
+	}
 
 	static TVulkanPFNFunctions VulkanPFNFunctions;
 
@@ -233,7 +275,6 @@ private:
 
 	TVersion VulkanInstanceVersion;
 	TVulkanRHIFeatures VulkanRHIFeatures;
-
 
 	TDynamicArray<const TChar*> InstanceExtensions;
 	TDynamicArray<const TChar*> InstanceLayers;
@@ -245,8 +286,8 @@ private:
 	TBool CreateVulkanInstance();
 	void SetupDebugLayerCallback();
 
-#if defined(TRNT_DEBUG)
-#	if defined(TRNT_USE_VULKAN_DEBUG_UTILS)
+	#if defined(TRNT_DEBUG)
+		#if defined(TRNT_USE_VULKAN_DEBUG_UTILS)
 
 	VkDebugUtilsMessengerEXT DebugUtilsMessenger = VK_NULL_HANDLE;
 	static VKAPI_ATTR VkBool32 VKAPI_PTR DebugUtilsCallback(
@@ -255,11 +296,14 @@ private:
 		const VkDebugUtilsMessengerCallbackDataEXT* CallbackData,
 		void* UserData);
 	static VkResult VKCreateDebugUtilsMessengerEXT(
-		VkInstance Instance, const VkDebugUtilsMessengerCreateInfoEXT* DebugUtilsMessengerCreateInfo, const VkAllocationCallbacks* AllocationCallbacks,	VkDebugUtilsMessengerEXT* DebugUtilsMessenger);
+		VkInstance Instance,
+		const VkDebugUtilsMessengerCreateInfoEXT* DebugUtilsMessengerCreateInfo,
+		const VkAllocationCallbacks* AllocationCallbacks,
+		VkDebugUtilsMessengerEXT* DebugUtilsMessenger);
 
 	static void VKDestroyDebugUtilsMessengerEXT(VkInstance Instance, VkDebugUtilsMessengerEXT DebugUtilsMessenger, const VkAllocationCallbacks* AllocationCallbacks);
 
-#	elif defined(TRNT_USE_VULKAN_DEBUG_REPORT)
+		#elif defined(TRNT_USE_VULKAN_DEBUG_REPORT)
 	VkDebugReportCallbackEXT DebugReportCallback = VK_NULL_HANDLE;
 	static VkBool32 VKAPI_PTR DebugReportFunction(
 		VkDebugReportFlagsEXT ReportFlags,
@@ -271,12 +315,14 @@ private:
 		const TChar* Message,
 		void* UserData);
 	static VkResult VKCreateDebugReportCallbackEXT(
-		VkInstance Instance, const VkDebugReportCallbackCreateInfoEXT* DebugReportCallbackCreateInfo, const VkAllocationCallbacks* AllocationCallbacks,	VkDebugReportCallbackEXT* DebugReportCallback);
+		VkInstance Instance,
+		const VkDebugReportCallbackCreateInfoEXT* DebugReportCallbackCreateInfo,
+		const VkAllocationCallbacks* AllocationCallbacks,
+		VkDebugReportCallbackEXT* DebugReportCallback);
 
 	static void VKDestroyDebugReportCallbackEXT(VkInstance Instance, VkDebugReportCallbackEXT DebugReportCallback, const VkAllocationCallbacks* AllocationCallbacks);
-
-#	endif
-#endif
+		#endif
+	#endif
 
 private:
 	TVulkanDevice* VulkanDevice;

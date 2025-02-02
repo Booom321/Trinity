@@ -1,9 +1,11 @@
 #include "TrinityPCH.h"
+
 #include "CommandLine.h"
 
-TCommandLine TCommandLine::Instance = TCommandLine{};
+TCommandLine TCommandLine::Instance = TCommandLine();
 
-TCommandLine::TCommandLine() : ArgCount(0), CommandLineArgs()
+TCommandLine::TCommandLine()
+	: ArgCount(0), CommandLineArgs()
 {
 }
 
@@ -36,26 +38,26 @@ void TCommandLine::AddCommandLineArgument(const TChar* CmdLineArgument)
 
 TBool TCommandLine::CommandLineOptionExists(const TChar* OptionName, TStringSearchCase SearchChase) const
 {
-	TRNT_ASSERT_MESSAGE(OptionName[0] == '-', "Command line option name must start with a hyphen (-).");
-	
+	TRNT_ASSERT_MESSAGE("Command line option name must start with a hyphen (-).", OptionName[0] == '-');
+
 	TSize_T OptionNameLen = strlen(OptionName);
 
 	for (TInt32 Index = 0; Index < ArgCount; ++Index)
 	{
 		switch (SearchChase)
 		{
-		case TStringSearchCase::EIgnoreCase:
-			if (TCString<TChar>::Strnicmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
-			{
-				return true;
-			}
-			break;
-		case TStringSearchCase::ECaseSensitive:
-			if (::strncmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
-			{
-				return true;
-			}
-			break;
+			case TStringSearchCase::EIgnoreCase:
+				if (TCString<TChar>::Strnicmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
+				{
+					return true;
+				}
+				break;
+			case TStringSearchCase::ECaseSensitive:
+				if (::strncmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
+				{
+					return true;
+				}
+				break;
 		}
 	}
 
@@ -63,8 +65,8 @@ TBool TCommandLine::CommandLineOptionExists(const TChar* OptionName, TStringSear
 }
 
 TInt32 TCommandLine::GetCommandLineOptionIndex(const TChar* OptionName, TStringSearchCase SearchChase) const
-{ 
-	TRNT_ASSERT_MESSAGE(OptionName[0] == '-', "Command line option name must start with a hyphen (-).");
+{
+	TRNT_ASSERT_MESSAGE("Command line option name must start with a hyphen (-).", OptionName[0] == '-');
 
 	TSize_T OptionNameLen = strlen(OptionName);
 
@@ -72,18 +74,18 @@ TInt32 TCommandLine::GetCommandLineOptionIndex(const TChar* OptionName, TStringS
 	{
 		switch (SearchChase)
 		{
-		case TStringSearchCase::EIgnoreCase:
-			if (TCString<TChar>::Strnicmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
-			{
-				return Index;
-			}
-			break;
-		case TStringSearchCase::ECaseSensitive:
-			if (::strncmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
-			{
-				return Index;
-			}
-			break;
+			case TStringSearchCase::EIgnoreCase:
+				if (TCString<TChar>::Strnicmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
+				{
+					return Index;
+				}
+				break;
+			case TStringSearchCase::ECaseSensitive:
+				if (::strncmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
+				{
+					return Index;
+				}
+				break;
 		}
 	}
 
@@ -107,32 +109,36 @@ TString TCommandLine::GetCommandLineAsString() const
 namespace TNsPrivate
 {
 	static TInt32 GetCommandLineOptionIndex(
-		const TDynamicArray<TString>& CommandLineArgs, TInt32 ArgCount, const TChar* OptionName, TSize_T OptionNameLen, TStringSearchCase SearchChase)
+		const TDynamicArray<TString>& CommandLineArgs,
+		TInt32 ArgCount,
+		const TChar* OptionName,
+		TSize_T OptionNameLen,
+		TStringSearchCase SearchChase)
 	{
-		TRNT_ASSERT_MESSAGE(OptionName[0] == '-', "Command line option name must start with a hyphen (-).");
+		TRNT_ASSERT_MESSAGE("Command line option name must start with a hyphen (-).", OptionName[0] == '-');
 
 		for (TInt32 Index = 0; Index < ArgCount; ++Index)
 		{
 			switch (SearchChase)
 			{
-			case TStringSearchCase::EIgnoreCase:
-				if (TCString<TChar>::Strnicmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
-				{
-					return Index;
-				}
-				break;
-			case TStringSearchCase::ECaseSensitive:
-				if (::strncmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
-				{
-					return Index;
-				}
-				break;
+				case TStringSearchCase::EIgnoreCase:
+					if (TCString<TChar>::Strnicmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
+					{
+						return Index;
+					}
+					break;
+				case TStringSearchCase::ECaseSensitive:
+					if (::strncmp(OptionName, CommandLineArgs[Index].GetData(), OptionNameLen) == 0)
+					{
+						return Index;
+					}
+					break;
 			}
 		}
 
 		return (TInt32)TDynamicArray<TString>::Npos;
 	}
-}
+} // namespace TNsPrivate
 
 TBool TCommandLine::GetValueOf(const TChar* OptionName, TString* OutValue, TStringSearchCase SearchChase) const
 {
@@ -142,7 +148,7 @@ TBool TCommandLine::GetValueOf(const TChar* OptionName, TString* OutValue, TStri
 	{
 		return false;
 	}
-	
+
 	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
 	OutValue->Append(ValuePos);
 
@@ -159,7 +165,7 @@ TBool TCommandLine::GetValueOf(const TChar* OptionName, TBool* OutValue, TString
 	}
 
 	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
-	
+
 	if (!TCString<TChar>::Stricmp(ValuePos, "true") || !TCString<TChar>::Stricmp(ValuePos, "on") || !TCString<TChar>::Stricmp(ValuePos, "1"))
 	{
 		*OutValue = true;
@@ -312,7 +318,7 @@ TBool TCommandLine::GetValueOf(const TChar* OptionName, TFloat* OutValue, TStrin
 
 	const TChar* ValuePos = CommandLineArgs[Index].GetData() + OptionNameLen + 1;
 	TChar* StrEnd;
-	*OutValue = ::strtof(ValuePos, & StrEnd);
+	*OutValue = ::strtof(ValuePos, &StrEnd);
 
 	return StrEnd[0] == '\0';
 }

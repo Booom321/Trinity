@@ -3,22 +3,22 @@
 #include "Trinity/Core/Types/DataTypes.h"
 
 template<typename T>
-class TRemoveAllExtents 
-{ 
+class TRemoveAllExtents
+{
 public:
-    using Type = T;
+	using Type = T;
 };
 
 template<typename T>
-class TRemoveAllExtents<T[]> 
+class TRemoveAllExtents<T[]>
 {
 public:
-    using Type = typename TRemoveAllExtents<T>::Type;
+	using Type = typename TRemoveAllExtents<T>::Type;
 };
 
 template<typename T, TSize_T N>
-class TRemoveAllExtents<T[N]> 
+class TRemoveAllExtents<T[N]>
 {
 public:
-    using Type = typename TRemoveAllExtents<T>::Type;
+	using Type = typename TRemoveAllExtents<T>::Type;
 };

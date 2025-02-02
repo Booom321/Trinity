@@ -1,4 +1,5 @@
 #include "TrinityPCH.h"
+
 #include "Trinity/Core/Threading/Mutex.h"
 
 #if defined(TRNT_PLATFORM_WIN64)
@@ -26,6 +27,11 @@ void TMutex::Unlock()
 bool TMutex::TryLock()
 {
 	return TryEnterCriticalSection(&Mutex) != 0;
+}
+
+TWindowsMutexHandle TMutex::GetMutexHandle() const
+{
+	return Mutex;
 }
 
 #endif

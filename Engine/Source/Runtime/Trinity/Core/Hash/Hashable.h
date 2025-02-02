@@ -1,8 +1,7 @@
 #pragma once
 
-#include "Trinity/Core/Types/DataTypes.h"
-
 #include "Trinity/Core/TypeTraits/TypeRelationships.h"
+#include "Trinity/Core/Types/DataTypes.h"
 
 class THashable
 {

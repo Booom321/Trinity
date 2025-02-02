@@ -17,7 +17,7 @@ class TVulkanTriangleApp : public TApplication
 {
 public:
 	TVulkanTriangleApp();
-	
+
 	~TVulkanTriangleApp();
 
 public:

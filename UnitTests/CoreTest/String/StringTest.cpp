@@ -1,267 +1,274 @@
 ﻿#include "StringTest.h"
 
 #include <Trinity/Core/String/String.h>
-#include <Trinity/Core/Logging/Log.h>
-#include <Trinity/Core/String/StringConversion.h>
-#undef max
-static constexpr TUInt64 max = std::numeric_limits<TUInt64>::max();
 
-static TRNT_FORCE_INLINE TBool Check(const TString& Str, const TChar* ExpectedStr, TString::SizeType ExpectedStrLen)
+static TRNT_FORCE_INLINE TBool Check(const TStringBase<TRNT_CHAR_TYPE>& Str, const TRNT_CHAR_TYPE* ExpectedStr, TStringBase<TRNT_CHAR_TYPE>::SizeType ExpectedStrLen)
 {
 	return Str == ExpectedStr && Str.GetElementCount() == ExpectedStrLen && Str.Capacity() >= ExpectedStrLen;
 }
-#include <Trinity/Core/Logging/Log.h>
 
+#if defined(TRNT_TEST_CHAR_TYPE)
 TRNT_IMPL_TEST_CASE(Strings, TString)
+#elif defined(TRNT_TEST_WCHAR_TYPE)
+TRNT_IMPL_TEST_CASE(Strings, TWString)
+#endif
 {
+	using String = TStringBase<TRNT_CHAR_TYPE>;
 	// Constructor
 	{
-		TString Empty;
-		TRNT_TEST_EXPECT_TRUE(Check(Empty, "", 0));
+		String Empty;
+		TRNT_TEST_EXPECT_TRUE(Check(Empty, TRNT_TEXT(""), 0));
 
-		TString S1("HELLO WORLD");
-		TRNT_TEST_EXPECT_TRUE(Check(S1, "HELLO WORLD", 11));
+		String S1(TRNT_TEXT("HELLO WORLD"));
+		TRNT_TEST_EXPECT_TRUE(Check(S1, TRNT_TEXT("HELLO WORLD"), 11));
 
-		TString S2(S1);
-		TRNT_TEST_EXPECT_TRUE(Check(S2, "HELLO WORLD", 11));
+		String S2(S1);
+		TRNT_TEST_EXPECT_TRUE(Check(S2, TRNT_TEXT("HELLO WORLD"), 11));
 
-		TString S3(5, "HELLO WORLD");
-		TRNT_TEST_EXPECT_TRUE(Check(S3, "HELLO", 5));
-		// Assertion failed: TString S3(-5, "HELLO WORLD");
+		String S3(5, TRNT_TEXT("HELLO WORLD"));
+		TRNT_TEST_EXPECT_TRUE(Check(S3, TRNT_TEXT("HELLO"), 5));
+		// Assertion failed: String S3(-5, TRNT_TEXT("HELLO WORLD"));
 
-		TString S4(TString("FOO BAR"));
-		TRNT_TEST_EXPECT_TRUE(Check(S4, "FOO BAR", 7));
+		String S4(String(TRNT_TEXT("FOO BAR")));
+		TRNT_TEST_EXPECT_TRUE(Check(S4, TRNT_TEXT("FOO BAR"), 7));
 
-		TString S5(Move(S4));
-		TRNT_TEST_EXPECT_TRUE(Check(S5, "FOO BAR", 7));
-		TRNT_TEST_EXPECT_TRUE(Check(S4, "", 0));
+		String S5(Move(S4));
+		TRNT_TEST_EXPECT_TRUE(Check(S5, TRNT_TEXT("FOO BAR"), 7));
+		TRNT_TEST_EXPECT_TRUE(Check(S4, TRNT_TEXT(""), 0));
 
-		TString S6(9, 'a');
-		TRNT_TEST_EXPECT_TRUE(Check(S6, "aaaaaaaaa", 9));
-		// Assertion failed: TString S6(-9, 'a');
+		String S6(9, TRNT_TEXT('a'));
+		TRNT_TEST_EXPECT_TRUE(Check(S6, TRNT_TEXT("aaaaaaaaa"), 9));
+		// Assertion failed: String S6(-9, TRNT_TEXT('a'));
 
-		S6 = "aaabbbcccddd";
-		TString S7(S6, 3, 9);
-		// Assertion failed: TString S7(Str7, -3, -9);
-		TRNT_ASSERT(Check(S7, "bbbcccddd", 9));
+		S6 = TRNT_TEXT("aaabbbcccddd");
+		String S7(S6, 3, 9);
+		// Assertion failed: String S7(Str7, -3, -9);
+		TRNT_ASSERT(Check(S7, TRNT_TEXT("bbbcccddd"), 9));
 	}
 
 	// Assignment
 	{
-		TString Str;
+		String Str;
 
-		Str = "aaabbbccc";
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "aaabbbccc", 9));
+		Str = TRNT_TEXT("aaabbbccc");
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("aaabbbccc"), 9));
 
-		Str = "aaa";
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "aaa", 3));
+		Str = TRNT_TEXT("aaa");
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("aaa"), 3));
 
-		Str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", 52));
+		Str = TRNT_TEXT("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"), 52));
 
-		TString Tmp{ "foo foo bar bar" };
+		String Tmp{ TRNT_TEXT("foo foo bar bar") };
 		Str = Tmp;
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "foo foo bar bar", 15));
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("foo foo bar bar"), 15));
 
-		Tmp = "1234567890";
+		Tmp = TRNT_TEXT("1234567890");
 		Str = Move(Tmp);
 
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "1234567890", 10));
-		TRNT_TEST_EXPECT_TRUE(Check(Tmp, "", 0));
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("1234567890"), 10));
+		TRNT_TEST_EXPECT_TRUE(Check(Tmp, TRNT_TEXT(""), 0));
 	}
 
 	// Comparision
 	{
-		TString A("aaabbbcccddd");
-		TString B;
+		String A(TRNT_TEXT("aaabbbcccddd"));
+		String B;
 
-		TRNT_TEST_EXPECT_TRUE(A.IsEquals("aaabbbcccddd"));
-		TRNT_TEST_EXPECT_TRUE(A.IsEquals("aaABBbCCCDdd", TStringSearchCase::EIgnoreCase));
+		TRNT_TEST_EXPECT_TRUE(A.IsEquals(TRNT_TEXT("aaabbbcccddd")));
+		TRNT_TEST_EXPECT_TRUE(A.IsEquals(TRNT_TEXT("aaABBbCCCDdd"), TStringSearchCase::EIgnoreCase));
 
-		B = "AAAbbbCCCddd";
+		B = TRNT_TEXT("AAAbbbCCCddd");
 		TRNT_TEST_EXPECT_TRUE(!A.IsEquals(B));
 		TRNT_TEST_EXPECT_TRUE(A.IsEquals(B, TStringSearchCase::EIgnoreCase));
 
 		//////////////////////////////////////////////////////////////////////
-		TRNT_TEST_EXPECT_TRUE(A == "aaabbbcccddd");
+		TRNT_TEST_EXPECT_TRUE(A == TRNT_TEXT("aaabbbcccddd"));
 		TRNT_TEST_EXPECT_TRUE(A != B);
-		TRNT_TEST_EXPECT_TRUE("AAAbbbCCCddd" == B);
-		TRNT_TEST_EXPECT_TRUE("aaabbb" < A);
-		TRNT_TEST_EXPECT_TRUE("zzzzzzzzzzzzzzzzzzzz" >= A);
-		TRNT_TEST_EXPECT_TRUE("z" > A);
-		TRNT_TEST_EXPECT_TRUE("aaaa" <= A);
-		TRNT_TEST_EXPECT_TRUE(A >= "aaabbbcccddd");
-		TRNT_TEST_EXPECT_TRUE(A < "aaabbbccceeeeeee");
-		TRNT_TEST_EXPECT_TRUE(B <= "AAAbbbCCCdddEEE");
-		TRNT_TEST_EXPECT_TRUE(B < "AAAbbbCCCdddEEE");
-		TRNT_TEST_EXPECT_TRUE(A != "aaa");
+		TRNT_TEST_EXPECT_TRUE(TRNT_TEXT("AAAbbbCCCddd") == B);
+		TRNT_TEST_EXPECT_TRUE(TRNT_TEXT("aaabbb") < A);
+		TRNT_TEST_EXPECT_TRUE(TRNT_TEXT("zzzzzzzzzzzzzzzzzzzz") >= A);
+		TRNT_TEST_EXPECT_TRUE(TRNT_TEXT("z") > A);
+		TRNT_TEST_EXPECT_TRUE(TRNT_TEXT("aaaa") <= A);
+		TRNT_TEST_EXPECT_TRUE(A >= TRNT_TEXT("aaabbbcccddd"));
+		TRNT_TEST_EXPECT_TRUE(A < TRNT_TEXT("aaabbbccceeeeeee"));
+		TRNT_TEST_EXPECT_TRUE(B <= TRNT_TEXT("AAAbbbCCCdddEEE"));
+		TRNT_TEST_EXPECT_TRUE(B < TRNT_TEXT("AAAbbbCCCdddEEE"));
+		TRNT_TEST_EXPECT_TRUE(A != TRNT_TEXT("aaa"));
 		//////////////////////////////////////////////////////////////////////
-		// A = "aaabbbcccddd"
-		// B = "AAAbbbCCCddd"
-		TRNT_TEST_EXPECT_TRUE(A.Compare("aaabbbccc") > 0);
-		TRNT_TEST_EXPECT_TRUE(A.Compare("AAABBBCCC", TStringSearchCase::EIgnoreCase) > 0);
+		// A = TRNT_TEXT("aaabbbcccddd")
+		// B = TRNT_TEXT("AAAbbbCCCddd")
+		TRNT_TEST_EXPECT_TRUE(A.Compare(TRNT_TEXT("aaabbbccc")) > 0);
+		TRNT_TEST_EXPECT_TRUE(A.Compare(TRNT_TEXT("AAABBBCCC"), TStringSearchCase::EIgnoreCase) > 0);
 		TRNT_TEST_EXPECT_TRUE(A.Compare(B, TStringSearchCase::EIgnoreCase) == 0);
-		A = "bbbaaacccddd";
-		B = "pppaaaccc";
+		A = TRNT_TEXT("bbbaaacccddd");
+		B = TRNT_TEXT("pppaaaccc");
 		TRNT_TEST_EXPECT_TRUE(A.Compare(3, 6, B, 3, 6) == 0);
 		TRNT_TEST_EXPECT_TRUE(A.Compare(0, 9, B, 0, 9) < 0);
 
-		B = "pppAAaCCC";
+		B = TRNT_TEXT("pppAAaCCC");
 		TRNT_TEST_EXPECT_TRUE(A.Compare(3, 6, B, 3, 6, TStringSearchCase::EIgnoreCase) == 0);
 	}
-	
+
 	// Concatenate
 	{
-		TString Str;
-		TString Tmp1("1111");
-		TString Tmp2("2222");
-		TString Tmp3("3333");
+		String Str;
+		String Tmp1(TRNT_TEXT("1111"));
+		String Tmp2(TRNT_TEXT("2222"));
+		String Tmp3(TRNT_TEXT("3333"));
 
 		Str = Tmp1 + Tmp2;
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "11112222", 8));
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("11112222"), 8));
 
-		Str = Tmp1 + "22223333";
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "111122223333", 12));
+		Str = Tmp1 + TRNT_TEXT("22223333");
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("111122223333"), 12));
 
-		Str = Tmp3 + TString("4444");
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "33334444", 8));
+		Str = Tmp3 + String(TRNT_TEXT("4444"));
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("33334444"), 8));
 
-		Str = "1111" + Tmp2;
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "11112222", 8));
+		Str = TRNT_TEXT("1111") + Tmp2;
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("11112222"), 8));
 
-		Str = "aaaa" + TString("bbbb");
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "aaaabbbb", 8));
+		Str = TRNT_TEXT("aaaa") + String(TRNT_TEXT("bbbb"));
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("aaaabbbb"), 8));
 
-		Str = TString("Hello ") + TString("world");
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "Hello world", 11));
+		Str = String(TRNT_TEXT("Hello ")) + String(TRNT_TEXT("world"));
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("Hello world"), 11));
 
-		Str = TString("AAA") + "BBB";
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "AAABBB", 6));
+		Str = String(TRNT_TEXT("AAA")) + TRNT_TEXT("BBB");
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("AAABBB"), 6));
 
-		Str = TString("AAA") + Tmp1;
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "AAA1111", 7));
+		Str = String(TRNT_TEXT("AAA")) + Tmp1;
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("AAA1111"), 7));
 	}
 
 	{
-		TString S = "aaabbbcccddd";
-		TString Pre = "aaa";
-		TString Suf = "ddd";
-		TRNT_TEST_EXPECT_TRUE(S.StartsWith("aaacc", 3));
-		TRNT_TEST_EXPECT_TRUE(S.StartsWith("AAA", TStringSearchCase::EIgnoreCase));
-		TRNT_TEST_EXPECT_TRUE(S.StartsWith("AaAdddcc", 3, TStringSearchCase::EIgnoreCase));
+		String S = TRNT_TEXT("aaabbbcccddd");
+		String Pre = TRNT_TEXT("aaa");
+		String Suf = TRNT_TEXT("ddd");
+		TRNT_TEST_EXPECT_TRUE(S.StartsWith(TRNT_TEXT("aaacc"), 3));
+		TRNT_TEST_EXPECT_TRUE(S.StartsWith(TRNT_TEXT("AAA"), TStringSearchCase::EIgnoreCase));
+		TRNT_TEST_EXPECT_TRUE(S.StartsWith(TRNT_TEXT("AaAdddcc"), 3, TStringSearchCase::EIgnoreCase));
 		TRNT_TEST_EXPECT_TRUE(S.StartsWith(Pre));
-		TRNT_TEST_EXPECT_TRUE(S.StartsWith(""));
-		TRNT_TEST_EXPECT_FALSE(S.StartsWith("foo"));
-		TRNT_TEST_EXPECT_FALSE(S.StartsWith("111222"));
+		TRNT_TEST_EXPECT_TRUE(S.StartsWith(TRNT_TEXT("")));
+		TRNT_TEST_EXPECT_FALSE(S.StartsWith(TRNT_TEXT("foo")));
+		TRNT_TEST_EXPECT_FALSE(S.StartsWith(TRNT_TEXT("111222")));
 
 		TRNT_TEST_EXPECT_TRUE(S.EndsWith(Suf));
-		TRNT_TEST_EXPECT_TRUE(S.EndsWith("cccddd"));
-		TRNT_TEST_EXPECT_TRUE(S.EndsWith("CCcDDdeee", 6, TStringSearchCase::EIgnoreCase));
-		TRNT_TEST_EXPECT_TRUE(S.EndsWith(""));
-		TRNT_TEST_EXPECT_TRUE(S.EndsWith("cCddD", TStringSearchCase::EIgnoreCase));
-		TRNT_TEST_EXPECT_FALSE(S.EndsWith("1"));
-		TRNT_TEST_EXPECT_FALSE(S.EndsWith("eee"));
+		TRNT_TEST_EXPECT_TRUE(S.EndsWith(TRNT_TEXT("cccddd")));
+		TRNT_TEST_EXPECT_TRUE(S.EndsWith(TRNT_TEXT("CCcDDdeee"), 6, TStringSearchCase::EIgnoreCase));
+		TRNT_TEST_EXPECT_TRUE(S.EndsWith(TRNT_TEXT("")));
+		TRNT_TEST_EXPECT_TRUE(S.EndsWith(TRNT_TEXT("cCddD"), TStringSearchCase::EIgnoreCase));
+		TRNT_TEST_EXPECT_FALSE(S.EndsWith(TRNT_TEXT("1")));
+		TRNT_TEST_EXPECT_FALSE(S.EndsWith(TRNT_TEXT("eee")));
 	}
 
 	// Find
 	{
-		TString Str("aaaa bbbb cccc dddd aaaa bbbb");
-		TString Substr("aaaa");
+		String Str(TRNT_TEXT("aaaa bbbb cccc dddd aaaa bbbb"));
+		String Substr(TRNT_TEXT("aaaa"));
 
 		TRNT_TEST_EXPECT_TRUE(Str.Contains(Substr));
-		TRNT_TEST_EXPECT_TRUE(Str.Contains("AaAA bBBB", TStringSearchCase::EIgnoreCase));
+		TRNT_TEST_EXPECT_TRUE(Str.Contains(TRNT_TEXT("AaAA bBBB"), TStringSearchCase::EIgnoreCase));
 
-		TRNT_TEST_EXPECT_TRUE(Str.FindChar('b') == 5);
-		TRNT_TEST_EXPECT_TRUE(Str.FindLastChar('b') == Str.GetElementCount() - 1);
+		TRNT_TEST_EXPECT_TRUE(Str.FindChar(TRNT_TEXT('b')) == 5);
+		TRNT_TEST_EXPECT_TRUE(Str.FindLastChar(TRNT_TEXT('b')) == Str.GetElementCount() - 1);
 
 		// CaseSensitive
-		TRNT_TEST_EXPECT_TRUE(Str.Find("cccc") == 10);
-		TRNT_TEST_EXPECT_TRUE(Str.Find("") == 0);
-		TRNT_TEST_EXPECT_TRUE(Str.Find("", 3) == 3);
-		TRNT_TEST_EXPECT_TRUE(Str.Find("cccc", -10) == 10);
-		TRNT_TEST_EXPECT_TRUE(Str.Find(3, "dcccdd") == TString::Npos);
-		TRNT_TEST_EXPECT_TRUE(Str.Find("aaaa", 10) == 20);
+		TRNT_TEST_EXPECT_TRUE(Str.Find(TRNT_TEXT("cccc")) == 10);
+		TRNT_TEST_EXPECT_TRUE(Str.Find(TRNT_TEXT("")) == 0);
+		TRNT_TEST_EXPECT_TRUE(Str.Find(TRNT_TEXT(""), 3) == 3);
+		TRNT_TEST_EXPECT_TRUE(Str.Find(TRNT_TEXT("cccc"), -10) == 10);
+		TRNT_TEST_EXPECT_TRUE(Str.Find(3, TRNT_TEXT("dcccdd")) == String::Npos);
+		TRNT_TEST_EXPECT_TRUE(Str.Find(TRNT_TEXT("aaaa"), 10) == 20);
 		TRNT_TEST_EXPECT_TRUE(Str.Find(Substr) == 0);
 
-		TRNT_TEST_EXPECT_TRUE(Str.FindLast("aaaa") == 20);
-		TRNT_TEST_EXPECT_TRUE(Str.FindLast("aaaa", 10) == 0);
+		TRNT_TEST_EXPECT_TRUE(Str.FindLast(TRNT_TEXT("aaaa")) == 20);
+		TRNT_TEST_EXPECT_TRUE(Str.FindLast(TRNT_TEXT("aaaa"), 10) == 0);
 		TRNT_TEST_EXPECT_TRUE(Str.FindLast(Substr, 1000) == 20);
 		TRNT_TEST_EXPECT_TRUE(Str.FindLast(Substr, 15) == 0);
-		TRNT_TEST_EXPECT_TRUE(Str.FindLast("", 10) == 10);
-		TRNT_TEST_EXPECT_TRUE(Str.FindLast("") == Str.GetElementCount());
-		TRNT_TEST_EXPECT_TRUE(Str.FindLast(3, "bbbbccc", 15) == 6);
+		TRNT_TEST_EXPECT_TRUE(Str.FindLast(TRNT_TEXT(""), 10) == 10);
+		TRNT_TEST_EXPECT_TRUE(Str.FindLast(TRNT_TEXT("")) == Str.GetElementCount());
+		TRNT_TEST_EXPECT_TRUE(Str.FindLast(3, TRNT_TEXT("bbbbccc"), 15) == 6);
 
 		// IgnoreCase
 		TStringSearchCase SearchCase = TStringSearchCase::EIgnoreCase;
-		TRNT_TEST_EXPECT_TRUE(Str.Find("CCCc", 0, SearchCase) == 10);
-		TRNT_TEST_EXPECT_TRUE(Str.Find("", 0, SearchCase) == 0);
-		TRNT_TEST_EXPECT_TRUE(Str.Find("", 3, SearchCase) == 3);
-		TRNT_TEST_EXPECT_TRUE(Str.Find("cCCc", -10, SearchCase) == 10);
-		TRNT_TEST_EXPECT_TRUE(Str.Find(3, "DcCcdd", 0, SearchCase) == TString::Npos);
-		TRNT_TEST_EXPECT_TRUE(Str.Find("AAaA", 10, SearchCase) == 20);
+		TRNT_TEST_EXPECT_TRUE(Str.Find(TRNT_TEXT("CCCc"), 0, SearchCase) == 10);
+		TRNT_TEST_EXPECT_TRUE(Str.Find(TRNT_TEXT(""), 0, SearchCase) == 0);
+		TRNT_TEST_EXPECT_TRUE(Str.Find(TRNT_TEXT(""), 3, SearchCase) == 3);
+		TRNT_TEST_EXPECT_TRUE(Str.Find(TRNT_TEXT("cCCc"), -10, SearchCase) == 10);
+		TRNT_TEST_EXPECT_TRUE(Str.Find(3, TRNT_TEXT("DcCcdd"), 0, SearchCase) == String::Npos);
+		TRNT_TEST_EXPECT_TRUE(Str.Find(TRNT_TEXT("AAaA"), 10, SearchCase) == 20);
 
-		TRNT_TEST_EXPECT_TRUE(Str.FindLast("AaaA", -1, SearchCase) == 20);
-		TRNT_TEST_EXPECT_TRUE(Str.FindLast("Aaaa", 10, SearchCase) == 0);
+		TRNT_TEST_EXPECT_TRUE(Str.FindLast(TRNT_TEXT("AaaA"), -1, SearchCase) == 20);
+		TRNT_TEST_EXPECT_TRUE(Str.FindLast(TRNT_TEXT("Aaaa"), 10, SearchCase) == 0);
 		TRNT_TEST_EXPECT_TRUE(Str.FindLast(Substr, 1000, SearchCase) == 20);
 		TRNT_TEST_EXPECT_TRUE(Str.FindLast(Substr, 15, SearchCase) == 0);
-		TRNT_TEST_EXPECT_TRUE(Str.FindLast("", 10, SearchCase) == 10);
-		TRNT_TEST_EXPECT_TRUE(Str.FindLast("", -1, SearchCase) == Str.GetElementCount());
-		TRNT_TEST_EXPECT_TRUE(Str.FindLast(3, "BBbbCCc", 15, SearchCase) == 6);
+		TRNT_TEST_EXPECT_TRUE(Str.FindLast(TRNT_TEXT(""), 10, SearchCase) == 10);
+		TRNT_TEST_EXPECT_TRUE(Str.FindLast(TRNT_TEXT(""), -1, SearchCase) == Str.GetElementCount());
+		TRNT_TEST_EXPECT_TRUE(Str.FindLast(3, TRNT_TEXT("BBbbCCc"), 15, SearchCase) == 6);
+
+		String Str1{ TRNT_TEXT("AB AB AB") };
+		TRNT_TEST_EXPECT_TRUE(Str1.FindLastChar(TRNT_TEXT('B'), 4) == 4);
+		TRNT_TEST_EXPECT_TRUE(Str1.FindLastChar(TRNT_TEXT('A')) == 6);
+
+		String Str2{ TRNT_TEXT("ABCD") };
+		TRNT_TEST_EXPECT_TRUE(Str2.FindLastChar(TRNT_TEXT('a'), -1, TStringSearchCase::EIgnoreCase) == 0);
 	}
 
 	{
-		TString Str("AAaabBBbcCCc");
+		String Str(TRNT_TEXT("AAaabBBbcCCc"));
 
 		Str.ToUpperInternal();
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "AAAABBBBCCCC", 12));
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("AAAABBBBCCCC"), 12));
 
 		Str.ToLowerInternal();
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "aaaabbbbcccc", 12));
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("aaaabbbbcccc"), 12));
 
-		TString Rev = Str.Reverse();
-		TRNT_TEST_EXPECT_TRUE(Check(Rev, "ccccbbbbaaaa", 12));
+		String Rev = Str.Reverse();
+		TRNT_TEST_EXPECT_TRUE(Check(Rev, TRNT_TEXT("ccccbbbbaaaa"), 12));
 
 		Rev.ReverseInternal();
-		TRNT_TEST_EXPECT_TRUE(Check(Rev, "aaaabbbbcccc", 12));
+		TRNT_TEST_EXPECT_TRUE(Check(Rev, TRNT_TEXT("aaaabbbbcccc"), 12));
 
 		Str.Resize(20, 'd');
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "aaaabbbbccccdddddddd", 20));
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("aaaabbbbccccdddddddd"), 20));
 
 		Str.Resize(8);
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "aaaabbbb", 8));
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT("aaaabbbb"), 8));
 
 		Str.Clear();
-		TRNT_TEST_EXPECT_TRUE(Check(Str, "", 0));
+		TRNT_TEST_EXPECT_TRUE(Check(Str, TRNT_TEXT(""), 0));
 
-		Str = "aaaaaaa";
-		TString UpString = Str.ToUpper();
-		TRNT_TEST_EXPECT_TRUE(Check(UpString, "AAAAAAA", 7));
+		Str = TRNT_TEXT("aaaaaaa");
+		String UpString = Str.ToUpper();
+		TRNT_TEST_EXPECT_TRUE(Check(UpString, TRNT_TEXT("AAAAAAA"), 7));
 
-		TString LowerString = Str.ToLower();
-		TRNT_TEST_EXPECT_TRUE(Check(LowerString, "aaaaaaa", 7));
+		String LowerString = Str.ToLower();
+		TRNT_TEST_EXPECT_TRUE(Check(LowerString, TRNT_TEXT("aaaaaaa"), 7));
 	}
 
 	{
-		TString Str("aaaabbbbcccc");
+		String Str(TRNT_TEXT("aaaabbbbcccc"));
 
 		TRNT_TEST_EXPECT_TRUE(Str.GetElementCount() == 12);
 		TRNT_TEST_EXPECT_TRUE(Str.Capacity() == 12);
 
 		TRNT_TEST_EXPECT_TRUE(Str.RemainingCapacity() == 0);
 
-		for (TString::IteratorType it = Str.begin(); it != Str.end(); ++it)
+		for (String::IteratorType it = Str.begin(); it != Str.end(); ++it)
 		{
-			*it = TCharUtils<TString::ElementType>::ToUpperCase(*it);
+			*it = TCharUtils<String::ElementType>::ToUpperCase(*it);
 		}
-		TRNT_TEST_EXPECT_TRUE(Str == "AAAABBBBCCCC");
+		TRNT_TEST_EXPECT_TRUE(Str == TRNT_TEXT("AAAABBBBCCCC"));
 
-		TRNT_TEST_EXPECT_TRUE(Str.CharAt(3) == 'A');
-		TRNT_TEST_EXPECT_TRUE(Str[6] == 'B');
+		TRNT_TEST_EXPECT_TRUE(Str.CharAt(3) == TRNT_TEXT('A'));
+		TRNT_TEST_EXPECT_TRUE(Str[6] == TRNT_TEXT('B'));
 
-		TRNT_TEST_EXPECT_TRUE(Str.First() == 'A');
-		TRNT_TEST_EXPECT_TRUE(Str.Last() == 'C');
+		TRNT_TEST_EXPECT_TRUE(Str.First() == TRNT_TEXT('A'));
+		TRNT_TEST_EXPECT_TRUE(Str.Last() == TRNT_TEXT('C'));
 
-		TRNT_TEST_EXPECT_TRUE(TCString<TString::ElementType>::Strcmp(Str.GetData(), "AAAABBBBCCCC") == 0);
+		TRNT_TEST_EXPECT_TRUE(TCString<String::ElementType>::Strcmp(Str.GetData(), TRNT_TEXT("AAAABBBBCCCC")) == 0);
 
 		TRNT_TEST_EXPECT_TRUE(Str.IsEmpty() == false);
 
@@ -273,126 +280,137 @@ TRNT_IMPL_TEST_CASE(Strings, TString)
 		TRNT_TEST_EXPECT_TRUE(Str.RemainingCapacity() == 8);
 		TRNT_TEST_EXPECT_TRUE(Str.Capacity() == 20);
 
-		TString res = Str.Substring(4);
-		// Assertion failed: TString res = Str.Substring(-4);
-		TRNT_TEST_EXPECT_TRUE(res == "BBBBCCCC");
+		String res = Str.Substring(4);
+		// Assertion failed: String res = Str.Substring(-4);
+		TRNT_TEST_EXPECT_TRUE(res == TRNT_TEXT("BBBBCCCC"));
 
 		res = Str.Substring(4, 4);
 		// Assertion failed: res = Str.Substring(-4, -4);
-		TRNT_TEST_EXPECT_TRUE(res == "BBBB");
+		TRNT_TEST_EXPECT_TRUE(res == TRNT_TEXT("BBBB"));
 	}
 
 	{
-		TString S;
-		TString Tmp;
-		S.Append("aaa");
-		S.Append(3, 'b');
-		//failed: S.Append(-3, 'b');
-		S.Append("cccbbb", 3);
-		//failed: S.Append("cccbbb", -3);
+		String S;
+		String Tmp;
+		S.Append(TRNT_TEXT("aaa"));
+		S.Append(3, TRNT_TEXT('b'));
+		// failed: S.Append(-3, TRNT_TEXT('b'));
+		S.Append(TRNT_TEXT("cccbbb"), 3);
+		// failed: S.Append(TRNT_TEXT("cccbbb"), -3);
 		S.Append(Tmp);
-		Tmp = "aaabbbcccddd";
+		Tmp = TRNT_TEXT("aaabbbcccddd");
 		S.Append(Tmp, 9, 3);
-		//failed: S.Append(Tmp, -9, -3);
+		// failed: S.Append(Tmp, -9, -3);
 
-		TRNT_TEST_EXPECT_TRUE(Check(S, "aaabbbcccddd", 12));
+		TRNT_TEST_EXPECT_TRUE(Check(S, TRNT_TEXT("aaabbbcccddd"), 12));
 
-		S = "";
-		S += "111";
-		S += '2';
-		Tmp = "22333";
+		S = TRNT_TEXT("");
+		S += TRNT_TEXT("111");
+		S += TRNT_TEXT('2');
+		Tmp = TRNT_TEXT("22333");
 		S += Tmp;
-		S += "";
-		TRNT_TEST_EXPECT_TRUE(Check(S, "111222333", 9));
+		S += TRNT_TEXT("");
+		TRNT_TEST_EXPECT_TRUE(Check(S, TRNT_TEXT("111222333"), 9));
 	}
 
 	{
 		// 33333344400011133334444222
-		TString S;
+		String S;
 
-		S.Insert(0, "000");
-		S.Insert(3, "111222", 3);
-		S.Insert(6, 3, '2');
+		S.Insert(0, TRNT_TEXT("000"));
+		S.Insert(3, TRNT_TEXT("111222"), 3);
+		S.Insert(6, 3, TRNT_TEXT('2'));
 
-		TString Tmp{ "333444" };
+		String Tmp{ TRNT_TEXT("333444") };
 
 		S.Insert(0, Tmp);
 		S.Insert(0, Tmp, 0, 3);
 
-		TRNT_TEST_EXPECT_TRUE(Check(S, "333333444000111222", 18));
+		TRNT_TEST_EXPECT_TRUE(Check(S, TRNT_TEXT("333333444000111222"), 18));
 
-		S.Insert(S.GetElementCount() - 3, "33334444");
+		S.Insert(S.GetElementCount() - 3, TRNT_TEXT("33334444"));
 
-		TRNT_TEST_EXPECT_TRUE(Check(S, "33333344400011133334444222", 26));
+		TRNT_TEST_EXPECT_TRUE(Check(S, TRNT_TEXT("33333344400011133334444222"), 26));
 	}
 
 	{
-		TString S("hello hello world");
+		String S(TRNT_TEXT("hello hello world"));
 		S.RemoveAt(0, 6);
-		//failed: S.RemoveAt(0, -6);
+		// failed: S.RemoveAt(0, -6);
 
-		TRNT_TEST_EXPECT_TRUE(Check(S, "hello world", 11));
+		TRNT_TEST_EXPECT_TRUE(Check(S, TRNT_TEXT("hello world"), 11));
 	}
 
 	// split
 	{
-		TString S("Welcome to Trinity Engine");
+		String S(TRNT_TEXT("Welcome to Trinity Engine"));
 
-		TDynamicArray<TString> Res;
-		TRNT_TEST_EXPECT_TRUE(S.SplitByString(Res));
-		
-		TRNT_TEST_EXPECT_TRUE(Res[0].IsEquals("Welcome"));
-		TRNT_TEST_EXPECT_TRUE(Res[1].IsEquals("to"));
-		TRNT_TEST_EXPECT_TRUE(Res[2].IsEquals("Trinity"));
-		TRNT_TEST_EXPECT_TRUE(Res[3].IsEquals("Engine"));
+		TDynamicArray<String> Res;
+		TRNT_TEST_EXPECT_TRUE(S.SplitByString(Res, TRNT_TEXT(" ")));
+
+		TRNT_TEST_EXPECT_TRUE(Res[0].IsEquals(TRNT_TEXT("Welcome")));
+		TRNT_TEST_EXPECT_TRUE(Res[1].IsEquals(TRNT_TEXT("to")));
+		TRNT_TEST_EXPECT_TRUE(Res[2].IsEquals(TRNT_TEXT("Trinity")));
+		TRNT_TEST_EXPECT_TRUE(Res[3].IsEquals(TRNT_TEXT("Engine")));
 
 		///////
 
-		S = "hello?world?friend <of,mine,!";
+		S = TRNT_TEXT("hello?world?friend <of,mine,!");
 		Res.Clear();
-		TRNT_TEST_EXPECT_TRUE(S.SplitBySeparators(Res, ",<?"));
-		TRNT_TEST_EXPECT_TRUE(Res[0].IsEquals("hello"));
-		TRNT_TEST_EXPECT_TRUE(Res[1].IsEquals("world"));
-		TRNT_TEST_EXPECT_TRUE(Res[2].IsEquals("friend "));
-		TRNT_TEST_EXPECT_TRUE(Res[3].IsEquals("of"));
-		TRNT_TEST_EXPECT_TRUE(Res[4].IsEquals("mine"));
-		TRNT_TEST_EXPECT_TRUE(Res[5].IsEquals("!"));
+		TRNT_TEST_EXPECT_TRUE(S.SplitBySeparators(Res, TRNT_TEXT(",<?")));
+
+		TRNT_TEST_EXPECT_TRUE(Res[0].IsEquals(TRNT_TEXT("hello")));
+		TRNT_TEST_EXPECT_TRUE(Res[1].IsEquals(TRNT_TEXT("world")));
+		TRNT_TEST_EXPECT_TRUE(Res[2].IsEquals(TRNT_TEXT("friend ")));
+		TRNT_TEST_EXPECT_TRUE(Res[3].IsEquals(TRNT_TEXT("of")));
+		TRNT_TEST_EXPECT_TRUE(Res[4].IsEquals(TRNT_TEXT("mine")));
+		TRNT_TEST_EXPECT_TRUE(Res[5].IsEquals(TRNT_TEXT("!")));
 	}
 
 	{
-		TString s("  abcdef       ");
+		String S(TRNT_TEXT(" one  two three four"));
+
+		TDynamicArray<String> Res;
+		TRNT_TEST_EXPECT_TRUE(S.SplitByString(Res, TRNT_TEXT(" ")));
+		TRNT_TEST_EXPECT_TRUE(Res[0].IsEquals(TRNT_TEXT("one")));
+		TRNT_TEST_EXPECT_TRUE(Res[1].IsEquals(TRNT_TEXT("two")));
+		TRNT_TEST_EXPECT_TRUE(Res[2].IsEquals(TRNT_TEXT("three")));
+		TRNT_TEST_EXPECT_TRUE(Res[3].IsEquals(TRNT_TEXT("four")));
+	}
+	{
+		String s(TRNT_TEXT("  abcdef       "));
 
 		s.TrimStartInternal();
-		TRNT_TEST_EXPECT_TRUE(Check(s, "abcdef       ", 13));
+		TRNT_TEST_EXPECT_TRUE(Check(s, TRNT_TEXT("abcdef       "), 13));
 
 		s.TrimEndInternal();
-		TRNT_TEST_EXPECT_TRUE(Check(s, "abcdef", 6));
+		TRNT_TEST_EXPECT_TRUE(Check(s, TRNT_TEXT("abcdef"), 6));
 
-		TString s1("  abcdef       ");
+		String s1(TRNT_TEXT("  abcdef       "));
 		s1.TrimStartAndEndInternal();
-		TRNT_TEST_EXPECT_TRUE(Check(s1, "abcdef", 6));
+		TRNT_TEST_EXPECT_TRUE(Check(s1, TRNT_TEXT("abcdef"), 6));
 	}
 
 	{
-		TString Path = "";
-		Path /= "dir1";
-		Path /= "/dir2";
-		Path /= "dir3/";
-		Path /= "/dir4/";
+		String Path = TRNT_TEXT("");
+		Path /= TRNT_TEXT("dir1");
+		Path /= TRNT_TEXT("/dir2");
+		Path /= TRNT_TEXT("dir3/");
+		Path /= TRNT_TEXT("/dir4/");
 
-		TRNT_TEST_EXPECT_TRUE(Check(Path, "dir1/dir2/dir3/dir4/", 20));
+		TRNT_TEST_EXPECT_TRUE(Check(Path, TRNT_TEXT("dir1/dir2/dir3/dir4/"), 20));
 
-		Path /= "";
-		TRNT_TEST_EXPECT_TRUE(Check(Path, "dir1/dir2/dir3/dir4/", 20));
+		Path /= TRNT_TEXT("");
+		TRNT_TEST_EXPECT_TRUE(Check(Path, TRNT_TEXT("dir1/dir2/dir3/dir4/"), 20));
 
-		TString Dir1 = "C:/dir1";
-		TString Dir2 = "dir2/";
+		String Dir1 = TRNT_TEXT("C:/dir1");
+		String Dir2 = TRNT_TEXT("dir2/");
 
 		Path = Dir1 / Dir2;
-		
-		TRNT_TEST_EXPECT_TRUE(Check(Path, "C:/dir1/dir2/", 13));
 
-		Path = Dir1 / "other_dir_1/other_dir_2";
-		TRNT_TEST_EXPECT_TRUE(Check(Path, "C:/dir1/other_dir_1/other_dir_2", 31));
+		TRNT_TEST_EXPECT_TRUE(Check(Path, TRNT_TEXT("C:/dir1/dir2/"), 13));
+
+		Path = Dir1 / TRNT_TEXT("other_dir_1/other_dir_2");
+		TRNT_TEST_EXPECT_TRUE(Check(Path, TRNT_TEXT("C:/dir1/other_dir_1/other_dir_2"), 31));
 	}
 }

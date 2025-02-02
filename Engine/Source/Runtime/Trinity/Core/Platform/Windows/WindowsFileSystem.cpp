@@ -1,13 +1,18 @@
 #include "TrinityPCH.h"
 
-#if defined(TRNT_PLATFORM_WIN64)
+#include "Trinity/Core/Platform/FileSystem.h"
 
-#define TRNT_WIN64_PATH_SEPARATOR "\\"
+#ifdef TRNT_PLATFORM_WIN64
+	#define TRNT_WIN64_PATH_SEPARATOR "\\"
+	#include "WindowsDeclarations.h"
 
-#include <shlwapi.h>
+	#include <shlwapi.h>
 
-#include "WindowsDeclarations.h"
-#include "Trinity/Platform/FileSystem.h"
+	#undef GetCurrentDirectory
+	#undef SetCurrentDirectory
+#endif
+
+#ifdef TRNT_PLATFORM_WIN64
 
 TBool TFileSystem::FileExists(const TChar* FilePath)
 {
@@ -81,18 +86,15 @@ TBool TFileSystem::MoveFileOrDirectory(const TChar* From, const TChar* To)
 
 TString TFileSystem::GetExecutablePath()
 {
-	TChar Result[TRNT_WINDOWS_MAX_PATH];
-	GetModuleFileNameA(nullptr, Result, TRNT_WINDOWS_MAX_PATH);
+	TChar Result[TRNT_WIN64_MAX_PATH];
+	GetModuleFileNameA(nullptr, Result, TRNT_WIN64_MAX_PATH);
 	return Result;
 }
 
-#undef GetCurrentDirectory
-#undef SetCurrentDirectory
-
 TString TFileSystem::GetCurrentDirectory()
 {
-	TChar Result[TRNT_WINDOWS_MAX_PATH];
-	GetCurrentDirectoryA(TRNT_WINDOWS_MAX_PATH, Result);
+	TChar Result[TRNT_WIN64_MAX_PATH];
+	GetCurrentDirectoryA(TRNT_WIN64_MAX_PATH, Result);
 	return Result;
 }
 
@@ -151,8 +153,7 @@ TBool TFileSystem::GetFilesInDirectory(const TString& Directory, TDynamicArray<T
 				continue;
 			}
 		}
-	} 
-	while (FindNextFileA(HFind, &FindData));
+	} while (FindNextFileA(HFind, &FindData));
 
 	FindClose(HFind);
 
@@ -195,13 +196,11 @@ TBool TFileSystem::GetFilesInDirectoryRecursively(const TString& Directory, TDyn
 				return false;
 			}
 		}
-	}
-	while (FindNextFileA(HFind, &FindData));
+	} while (FindNextFileA(HFind, &FindData));
 
 	FindClose(HFind);
 
 	return true;
 }
-
 
 #endif // PLATFORM_WINDOWS

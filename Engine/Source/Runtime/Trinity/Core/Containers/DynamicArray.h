@@ -1,21 +1,17 @@
 #pragma once
 
-#include <initializer_list>
-
-#include "Trinity/Core/Defines.h"
-
-#include "Trinity/Core/Types/DataTypes.h"
-#include "Trinity/Core/Types/Iterators.h"
-
+#include "Trinity/Core/Assert/AssertionMacros.h"
 #include "Trinity/Core/Memory/Memory.h"
-
 #include "Trinity/Core/TypeTraits/IsCopyAssignable.h"
 #include "Trinity/Core/TypeTraits/IsCopyConstructible.h"
 #include "Trinity/Core/TypeTraits/IsMoveAssignable.h"
 #include "Trinity/Core/TypeTraits/IsMoveConstructible.h"
 #include "Trinity/Core/TypeTraits/Trivial.h"
+#include "Trinity/Core/TypeTraits/TypeChooser.h"
+#include "Trinity/Core/Types/DataTypes.h"
+#include "Trinity/Core/Types/Iterators.h"
 
-#include "Trinity/Core/Assert/AssertionMacros.h"
+#include <initializer_list>
 
 template<typename Type>
 class TDynamicArray
@@ -32,8 +28,8 @@ public:
 	using IteratorType = TContiguousIterator<ElementType, SizeType>;
 	using ConstIteratorType = TContiguousIterator<const ElementType, SizeType>;
 
-	static constexpr SizeType Npos = -1;
-	static constexpr TFloat GrowSize = 2.0f;
+	static TRNT_CONSTEXPR SizeType Npos = -1;
+	static TRNT_CONSTEXPR TFloat GrowSize = 2.0f;
 
 private:
 	TRNT_FORCE_INLINE void ConstructData(SizeType PtrLength, ConstPointerType Ptr)
@@ -42,7 +38,7 @@ private:
 
 		if (PtrLength > 0 && Ptr)
 		{
-			if constexpr (TIsTriviallyCopyConstructible<ElementType>::Value)
+			if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 			{
 				memcpy(Data, Ptr, PtrLength * sizeof(ElementType));
 			}
@@ -56,13 +52,14 @@ private:
 		}
 	}
 
-	TRNT_FORCE_INLINE void Reallocate(SizeType NewCap, ConstPointerType Source, SizeType SourceLen)
+	template<TBool IsConst>
+	TRNT_FORCE_INLINE void Reallocate(SizeType NewCap, typename TTypeChooser<IsConst, ConstPointerType, PointerType>::Type Source, SizeType SourceLen)
 	{
 		PointerType NewData = static_cast<PointerType>(malloc(NewCap * sizeof(ElementType)));
 
 		if (SourceLen > 0 && Source)
 		{
-			if constexpr (TIsTriviallyCopyConstructible<ElementType>::Value)
+			if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 			{
 				memcpy(NewData, Source, SourceLen * sizeof(ElementType));
 			}
@@ -70,7 +67,14 @@ private:
 			{
 				for (SizeType Index = 0; Index < SourceLen; ++Index)
 				{
-					new (NewData + Index) ElementType(Source[Index]);
+					if constexpr (IsConst)
+					{
+						new (NewData + Index) ElementType(Source[Index]);
+					}
+					else
+					{
+						new (NewData + Index) ElementType(Move(Source[Index]));
+					}
 				}
 			}
 		}
@@ -270,7 +274,7 @@ private:
 	{
 		if (NewLen > Cap)
 		{
-			Reallocate(NewLen, Ptr, NewLen);
+			Reallocate<true>(NewLen, Ptr, NewLen);
 		}
 		else
 		{
@@ -293,7 +297,7 @@ private:
 			}
 
 			SizeType Count = B ? NewLen : Len;
-			if constexpr (TIsTriviallyCopyAssignable<ElementType>::Value)
+			if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 			{
 				memcpy(Data, Ptr, Count * sizeof(ElementType));
 			}
@@ -310,7 +314,7 @@ private:
 				PointerType Dest = Data + Count;
 				ConstPointerType Source = Ptr + Count;
 				Count = NewLen - Len;
-				if constexpr (TIsTriviallyCopyConstructible<ElementType>::Value)
+				if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 				{
 					memcpy(Dest, Source, Count * sizeof(ElementType));
 				}
@@ -420,7 +424,7 @@ public:
 	{
 		if (NewCap > Cap)
 		{
-			Reallocate(NewCap, Data, Len);
+			Reallocate<false>(NewCap, Data, Len);
 		}
 	}
 
@@ -428,7 +432,7 @@ public:
 	{
 		if (Cap != Len)
 		{
-			Reallocate(Len, Data, Len);
+			Reallocate<false>(Len, Data, Len);
 		}
 	}
 
@@ -445,10 +449,11 @@ public:
 		{
 			if (NewLen > Cap)
 			{
-				Reallocate(NewLen, Data, Len);
+				Reallocate<false>(NewLen, Data, Len);
 			}
+
 			SizeType Count = NewLen - Len;
-			if constexpr (TIsZeroConstructType<ElementType>::Value)
+			if constexpr (TIsMemsetCompatible<ElementType>::Value)
 			{
 				memset(Data + Len, 0, Count * sizeof(ElementType));
 			}
@@ -477,7 +482,7 @@ public:
 public:
 	TRNT_NODISCARD SizeType FindElement(ConstReferenceType Item) const
 	{
-		for (const ElementType* TRNT_RESTRICT DataStart = Data, *TRNT_RESTRICT DataEnd = Data + Len; DataStart != DataEnd; ++DataStart)
+		for (const ElementType *TRNT_RESTRICT DataStart = Data, *TRNT_RESTRICT DataEnd = Data + Len; DataStart != DataEnd; ++DataStart)
 		{
 			if (*DataStart == Item)
 			{
@@ -491,7 +496,7 @@ public:
 	template<typename PredicateType>
 	TRNT_NODISCARD SizeType FindElementIf(PredicateType Predicate) const
 	{
-		for (const ElementType* TRNT_RESTRICT DataStart = Data, *TRNT_RESTRICT DataEnd = Data + Len; DataStart != DataEnd; ++DataStart)
+		for (const ElementType *TRNT_RESTRICT DataStart = Data, *TRNT_RESTRICT DataEnd = Data + Len; DataStart != DataEnd; ++DataStart)
 		{
 			if (Predicate(*DataStart))
 			{
@@ -504,7 +509,7 @@ public:
 
 	TRNT_NODISCARD SizeType FindLastElement(ConstReferenceType Item) const
 	{
-		for (const ElementType* TRNT_RESTRICT DataStart = Data, *TRNT_RESTRICT DataEnd = Data + Len; DataStart != DataEnd;)
+		for (const ElementType *TRNT_RESTRICT DataStart = Data, *TRNT_RESTRICT DataEnd = Data + Len; DataStart != DataEnd;)
 		{
 			--DataEnd;
 			if (*DataEnd == Item)
@@ -518,7 +523,7 @@ public:
 	template<typename PredicateType>
 	TRNT_NODISCARD SizeType FindLastElementIf(PredicateType Predicate) const
 	{
-		for (const ElementType* TRNT_RESTRICT DataStart = Data, *TRNT_RESTRICT DataEnd = Data + Len; DataStart != DataEnd;)
+		for (const ElementType *TRNT_RESTRICT DataStart = Data, *TRNT_RESTRICT DataEnd = Data + Len; DataStart != DataEnd;)
 		{
 			--DataEnd;
 			if (Predicate(*DataEnd))
@@ -531,7 +536,7 @@ public:
 
 	TRNT_NODISCARD TBool Contains(ConstReferenceType Item) const
 	{
-		for (const ElementType* TRNT_RESTRICT DataStart = Data, *TRNT_RESTRICT DataEnd = Data + Len; DataStart != DataEnd; ++DataStart)
+		for (const ElementType *TRNT_RESTRICT DataStart = Data, *TRNT_RESTRICT DataEnd = Data + Len; DataStart != DataEnd; ++DataStart)
 		{
 			if (*DataStart == Item)
 			{
@@ -545,7 +550,7 @@ public:
 	template<typename PredicateType>
 	TRNT_NODISCARD TBool ContainsIf(PredicateType Predicate) const
 	{
-		for (const ElementType* TRNT_RESTRICT DataStart = Data, *TRNT_RESTRICT DataEnd = Data + Len; DataStart != DataEnd; ++DataStart)
+		for (const ElementType *TRNT_RESTRICT DataStart = Data, *TRNT_RESTRICT DataEnd = Data + Len; DataStart != DataEnd; ++DataStart)
 		{
 			if (Predicate(*DataStart))
 			{
@@ -560,7 +565,7 @@ public:
 	TRNT_NODISCARD TDynamicArray Filter(PredicateType Predicate) const
 	{
 		TDynamicArray Result;
-		for (const ElementType* TRNT_RESTRICT DataStart = Data, *TRNT_RESTRICT DataEnd = Data + Len; DataStart != DataEnd; ++DataStart)
+		for (const ElementType *TRNT_RESTRICT DataStart = Data, *TRNT_RESTRICT DataEnd = Data + Len; DataStart != DataEnd; ++DataStart)
 		{
 			if (Predicate(*DataStart))
 			{
@@ -579,7 +584,7 @@ public:
 			return false;
 		}
 
-		if constexpr (TOr<TIsArithmetic<ElementType>, TIsPointer<ElementType>, TIsEnum<ElementType>>::Value)
+		if constexpr (TIsMemcmpCompatible<ElementType>::Value)
 		{
 			return !Len || !memcmp(Data, Other.Data, Len * sizeof(ElementType));
 		}
@@ -602,7 +607,7 @@ public:
 	}
 
 public:
-	template<typename ... Arguments>
+	template<typename... Arguments>
 	void EmplaceBack(Arguments&&... Args)
 	{
 		if (Len == Cap)
@@ -612,7 +617,7 @@ public:
 
 			new (NewData + Len) ElementType(Forward<Arguments>(Args)...);
 
-			if constexpr (TIsTriviallyMoveConstructible<ElementType>::Value || TIsTriviallyCopyConstructible<ElementType>::Value)
+			if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 			{
 				memcpy(NewData, Data, Len * sizeof(ElementType));
 			}
@@ -649,7 +654,7 @@ public:
 		++Len;
 	}
 
-	template<typename ... Arguments>
+	template<typename... Arguments>
 	TRNT_FORCE_INLINE ReferenceType EmplaceBackGetRef(Arguments&&... Args)
 	{
 		EmplaceBack(Forward<Arguments>(Args)...);
@@ -704,7 +709,7 @@ private:
 			Cap = static_cast<SizeType>(Cap * GrowSize + Count);
 			PointerType NewData = static_cast<PointerType>(malloc(Cap * sizeof(ElementType)));
 
-			if constexpr (TIsTriviallyMoveConstructible<ElementType>::Value || TIsTriviallyCopyConstructible<ElementType>::Value)
+			if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 			{
 				memcpy(NewData, Data, Len * sizeof(ElementType));
 			}
@@ -744,7 +749,7 @@ public:
 	{
 		TRNT_ASSERT(Count >= 0);
 		SizeType Index = AddUninitialized(Count);
-		if constexpr (TIsZeroConstructType<ElementType>::Value)
+		if constexpr (TIsMemsetCompatible<ElementType>::Value)
 		{
 			memset(Data + Index, 0, Count * sizeof(ElementType));
 		}
@@ -797,7 +802,7 @@ public:
 		Len -= Count;
 		PointerType Dest = Data + Index;
 
-		if constexpr (TIsTriviallyMoveAssignable<ElementType>::Value || TIsTriviallyCopyAssignable<ElementType>::Value)
+		if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 		{
 			memcpy(Dest, Dest + Count, (Len - Index) * sizeof(ElementType));
 		}
@@ -926,13 +931,12 @@ public:
 			Cap = static_cast<SizeType>(Cap * GrowSize + PtrLen);
 			PointerType NewData = static_cast<PointerType>(malloc(Cap * sizeof(ElementType)));
 
-			if constexpr (TIsTriviallyMoveConstructible<ElementType>::Value || TIsTriviallyCopyConstructible<ElementType>::Value)
+			if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 			{
 				memcpy(NewData, Data, Len * sizeof(ElementType));
 			}
 			else
 			{
-
 				for (SizeType Index = 0; Index < Len; ++Index)
 				{
 					if constexpr (TIsMoveConstructible<ElementType>::Value)
@@ -946,7 +950,7 @@ public:
 				}
 			}
 
-			if constexpr (TIsTriviallyCopyConstructible<ElementType>::Value)
+			if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 			{
 				memcpy(NewData + Len, Ptr, PtrLen * sizeof(ElementType));
 			}
@@ -972,7 +976,7 @@ public:
 		}
 		else
 		{
-			if constexpr (TIsTriviallyCopyConstructible<ElementType>::Value)
+			if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 			{
 				memcpy(Data + Len, Ptr, PtrLen * sizeof(ElementType));
 			}
@@ -998,13 +1002,12 @@ public:
 			Cap = static_cast<SizeType>(Cap * GrowSize + Count);
 			PointerType NewData = static_cast<PointerType>(malloc(Cap * sizeof(ElementType)));
 
-			if constexpr (TIsTriviallyMoveConstructible<ElementType>::Value || TIsTriviallyCopyConstructible<ElementType>::Value)
+			if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 			{
 				memcpy(NewData, Data, Len * sizeof(ElementType));
 			}
 			else
 			{
-
 				for (SizeType Index = 0; Index < Len; ++Index)
 				{
 					if constexpr (TIsMoveConstructible<ElementType>::Value)
@@ -1018,7 +1021,7 @@ public:
 				}
 			}
 
-			if constexpr (TIsScalar<ElementType>::Value)
+			if constexpr (TOr<TIsEnum<ElementType>, TIsArithmetic<ElementType>>::Value)
 			{
 				memset(NewData + Len, Item, Count * sizeof(ElementType));
 			}
@@ -1044,7 +1047,7 @@ public:
 		}
 		else
 		{
-			if constexpr (TIsScalar<ElementType>::Value)
+			if constexpr (TOr<TIsEnum<ElementType>, TIsArithmetic<ElementType>>::Value)
 			{
 				memset(Data + Len, Item, Count * sizeof(ElementType));
 			}
@@ -1114,7 +1117,7 @@ public:
 
 			new (NewData + Index) ElementType(Forward<Arguments>(Args)...);
 
-			if constexpr (TIsTriviallyMoveConstructible<ElementType>::Value || TIsTriviallyCopyConstructible<ElementType>::Value)
+			if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 			{
 				memcpy(NewData, Data, Index * sizeof(ElementType));
 				memcpy(NewData + Index + 1, Data + Index, (Len - Index) * sizeof(ElementType));
@@ -1180,7 +1183,7 @@ public:
 			}
 
 			Dest = Data + Index + 1;
-			if constexpr (TIsTriviallyMoveAssignable<ElementType>::Value || TIsTriviallyCopyAssignable<ElementType>::Value)
+			if constexpr (TIsMemmoveCompatible<ElementType>::Value)
 			{
 				memmove(Dest, Dest - 1, (Len - Index - 1) * sizeof(ElementType));
 			}
@@ -1262,7 +1265,7 @@ public:
 			Cap = static_cast<SizeType>(Cap * GrowSize + PtrLen);
 			PointerType NewData = static_cast<PointerType>(malloc(Cap * sizeof(ElementType)));
 
-			if constexpr (TIsTriviallyMoveConstructible<ElementType>::Value || TIsTriviallyCopyConstructible<ElementType>::Value)
+			if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 			{
 				memcpy(NewData, Data, Index * sizeof(ElementType));
 				PointerType Dest = NewData + Index;
@@ -1326,7 +1329,7 @@ public:
 		{
 			if (Index + PtrLen >= Len)
 			{
-				if constexpr (TIsTriviallyMoveConstructible<ElementType>::Value || TIsTriviallyCopyConstructible<ElementType>::Value)
+				if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 				{
 					PointerType Source = Data + Index;
 					memcpy(Source + PtrLen, Source, (Len - Index) * sizeof(ElementType));
@@ -1351,7 +1354,7 @@ public:
 					}
 				}
 
-				if constexpr (TIsTriviallyCopyAssignable<ElementType>::Value)
+				if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 				{
 					memcpy(Data + Index, Ptr, (Len - Index) * sizeof(ElementType));
 				}
@@ -1369,7 +1372,7 @@ public:
 				}
 
 				SizeType RemainingCount = Len - Index;
-				if constexpr (TIsTriviallyCopyConstructible<ElementType>::Value)
+				if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 				{
 					memcpy(Data + Len, Ptr + RemainingCount, (PtrLen - RemainingCount) * sizeof(ElementType));
 				}
@@ -1388,7 +1391,7 @@ public:
 			}
 			else
 			{
-				if constexpr (TIsTriviallyMoveConstructible<ElementType>::Value || TIsTriviallyCopyConstructible<ElementType>::Value)
+				if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 				{
 					PointerType Dest = Data + Len;
 					memcpy(Dest, Dest - PtrLen, PtrLen * sizeof(ElementType));
@@ -1413,7 +1416,7 @@ public:
 					}
 				}
 
-				if constexpr (TIsTriviallyMoveAssignable<ElementType>::Value || TIsTriviallyCopyAssignable<ElementType>::Value)
+				if constexpr (TIsMemmoveCompatible<ElementType>::Value)
 				{
 					PointerType Source = Data + Index;
 					memmove(Source + PtrLen, Source, (Len - Index - PtrLen) * sizeof(ElementType));
@@ -1438,7 +1441,7 @@ public:
 					}
 				}
 
-				if constexpr (TIsTriviallyCopyAssignable<ElementType>::Value)
+				if constexpr (TIsMemcpyCompatible<ElementType>::Value)
 				{
 					memcpy(Data + Index, Ptr, PtrLen * sizeof(ElementType));
 				}
